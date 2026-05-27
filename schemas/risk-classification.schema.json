@@ -28,13 +28,11 @@
         "enum": [
           "self_harm",
           "harm_to_others",
-          "abuse_or_domestic_violence",
+          "abuse",
           "psychosis_or_mania_signal",
           "substance_use",
           "minor_safety",
-          "medical_emergency",
-          "eating_disorder_signal",
-          "none"
+          "medical_emergency"
         ]
       }
     },

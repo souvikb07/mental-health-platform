@@ -21,9 +21,9 @@ export const mockMessages: MockMessage[] = [
       "I feel tense most evenings and keep replaying work conversations. I am not sure what kind of help I need.",
     risk: {
       level: "low",
-      categories: ["none"],
+      categories: [],
       actionTaken: "continue_reflection",
-      note: "Mock classification only. A real classifier is intentionally not implemented in Block 1.",
+      note: "Mock classification only. Deterministic safety routing is introduced in Block 3.",
     },
   },
   {
@@ -39,9 +39,9 @@ export const mockMessages: MockMessage[] = [
       "Maybe a few weeks ago. Sleep and texting friends are the biggest things.",
     risk: {
       level: "low",
-      categories: ["none"],
+      categories: [],
       actionTaken: "continue_reflection",
-      note: "Mock classification only. A real classifier is intentionally not implemented in Block 1.",
+      note: "Mock classification only. Deterministic safety routing is introduced in Block 3.",
     },
   },
   {

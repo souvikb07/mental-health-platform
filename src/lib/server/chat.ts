@@ -1,23 +1,40 @@
+import { selectResources } from "@/lib/resources/select-resources";
+import { classifyRisk } from "@/lib/safety/risk-classifier";
+import { routeSafety } from "@/lib/safety/safety-router";
 import type { ChatRequest } from "@/lib/validation/chat";
 import type {
   ApiChatMessage,
   ApiRiskClassification,
   NextRecommendedAction,
-  RiskLevel,
+  SafetyMode,
+  SafetyUi,
 } from "@/types/risk";
+import type { SupportResource } from "@/types/resource";
 
 export type ChatResponse = {
   assistantMessage: ApiChatMessage;
   risk: ApiRiskClassification;
   nextRecommendedAction: NextRecommendedAction;
+  mode: SafetyMode;
+  safety: SafetyUi | null;
+  resources: SupportResource[];
 };
 
-const imminentCopy =
-  "I am really sorry you are dealing with this. I cannot help with anything that could hurt you. If you might act on this now, please contact emergency services immediately or go to the nearest emergency room. If you can, move closer to another person right now and tell them: \"I might not be safe alone.\"";
-
 export function createMockChatResponse(request: ChatRequest): ChatResponse {
-  const risk = classifyMockRisk(request.message);
-  const content = getMockAssistantContent(request.message, risk);
+  const risk = classifyRisk(request.message);
+  const safetyRoute = routeSafety(risk);
+  const resources = safetyRoute.shouldShowResources
+    ? selectResources({
+        country: "India",
+        riskLevel: risk.level,
+        categories: risk.categories,
+        topic: risk.resourceTopics?.[0],
+      })
+    : [];
+  const content =
+    safetyRoute.safety?.disableNormalNextStep && safetyRoute.safety.message
+      ? safetyRoute.safety.message
+      : getMockAssistantContent(request.message, risk);
 
   return {
     assistantMessage: {
@@ -27,56 +44,10 @@ export function createMockChatResponse(request: ChatRequest): ChatResponse {
       createdAt: new Date().toISOString(),
     },
     risk,
-    nextRecommendedAction: getNextAction(risk.level),
-  };
-}
-
-function classifyMockRisk(message: string): ApiRiskClassification {
-  const normalized = message.toLowerCase();
-
-  if (
-    normalized.includes("kill myself") ||
-    normalized.includes("end my life") ||
-    normalized.includes("hurt myself now") ||
-    normalized.includes("not safe alone")
-  ) {
-    return {
-      level: "imminent",
-      categories: ["self_harm"],
-      requiresCrisisResponse: true,
-    };
-  }
-
-  if (
-    normalized.includes("self harm") ||
-    normalized.includes("suicidal") ||
-    normalized.includes("can't go on") ||
-    normalized.includes("cant go on")
-  ) {
-    return {
-      level: "high",
-      categories: ["self_harm"],
-      requiresCrisisResponse: true,
-    };
-  }
-
-  if (
-    normalized.includes("panic") ||
-    normalized.includes("overwhelmed") ||
-    normalized.includes("exhausted") ||
-    normalized.includes("drained")
-  ) {
-    return {
-      level: "low",
-      categories: [],
-      requiresCrisisResponse: false,
-    };
-  }
-
-  return {
-    level: "low",
-    categories: [],
-    requiresCrisisResponse: false,
+    nextRecommendedAction: safetyRoute.nextRecommendedAction,
+    mode: safetyRoute.mode,
+    safety: safetyRoute.safety,
+    resources,
   };
 }
 
@@ -84,15 +55,18 @@ function getMockAssistantContent(
   message: string,
   risk: ApiRiskClassification,
 ): string {
-  if (risk.level === "imminent") {
-    return imminentCopy;
-  }
-
-  if (risk.level === "high") {
-    return "I am really sorry this feels so heavy. I cannot provide crisis care, but you deserve support right now. Please consider contacting a crisis helpline, emergency services, or a trusted person who can stay with you.";
-  }
-
   const normalized = message.toLowerCase();
+
+  if (risk.level === "medium" && risk.categories.includes("medical_emergency")) {
+    return "I cannot give medication or medical advice. A qualified medical professional can help you explore safe options for what you are experiencing.";
+  }
+
+  if (
+    risk.level === "medium" &&
+    risk.categories.includes("psychosis_or_mania_signal")
+  ) {
+    return "That sounds important to talk through with real-world support. A trusted person or qualified professional may be able to help you explore what is happening without having to handle it alone.";
+  }
 
   if (normalized.includes("exhausted")) {
     return "That sounds heavy. When you say exhausted, do you mean physically tired, emotionally drained, mentally overloaded, or a mix?";
@@ -107,16 +81,4 @@ function getMockAssistantContent(
   }
 
   return "Thank you for sharing that. What part of this has been affecting your day-to-day life the most?";
-}
-
-function getNextAction(level: RiskLevel): NextRecommendedAction {
-  if (level === "imminent") {
-    return "urgent_support";
-  }
-
-  if (level === "high") {
-    return "show_resources";
-  }
-
-  return "continue_chat";
 }
