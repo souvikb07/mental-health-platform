@@ -150,3 +150,30 @@ No app behavior, chat behavior, safety routing behavior, API routes, auth, datab
 
 Next step:
 Use the security-review prompt before future integration blocks that add keys, auth, persistence, payments, or production deployment.
+
+## 2026-05-27 19:18 CEST
+
+Task:
+Block 4 real AI conversation behind the deterministic safety layer.
+
+Prompt used:
+Integrate OpenAI Responses API into `/api/chat` for none/low/medium risk conversation only, with server-only key handling, `store: false`, non-streaming responses, missing-env fallback, post-response validation, and no OpenAI calls for high/imminent risk.
+
+Files changed:
+Added `src/lib/ai/openai-client.ts`, `src/lib/ai/conversation-agent.ts`, `src/lib/ai/conversation-prompt.ts`, `src/lib/ai/post-response-validator.ts`, and `src/lib/ai/fallbacks.ts`. Refactored `src/lib/server/chat.ts` and `src/app/api/chat/route.ts`, updated API client typing, Vitest server-only aliasing, and added tests for conversation routing, OpenAI request options, fallback behavior, and response validation.
+
+Commands run:
+`npm test`
+`npm run lint`
+`npm run build`
+`npm run start -- -p 3002`
+Local `/api/chat` checks for low-risk fallback and imminent safety routing.
+
+Result:
+Tests passed: 6 files, 33 tests. Lint passed. Build passed. Low-risk chat falls back safely when OpenAI env config is missing. Imminent-risk chat returns local safety routing with `urgent_support`, `mode: "crisis"`, and no conversation-agent call.
+
+Manual review notes:
+No Supabase, auth, database writes, payments, streaming, Clarity Map AI, OpenAI moderation, external resource APIs, package installs, client-side key exposure, raw-message logging, or real secrets were added. OpenAI modules use `server-only`; model and API key are read server-side only. Model output is post-validated before returning.
+
+Next step:
+Before using real keys outside local development, add server-side rate limits for AI/write endpoints and perform a security review.

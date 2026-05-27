@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { createMockChatResponse } from "@/lib/server/chat";
+import { createChatResponse } from "@/lib/server/chat";
 import { chatRequestSchema } from "@/lib/validation/chat";
 
 export async function POST(request: Request) {
@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     return validationError();
   }
 
-  return NextResponse.json(createMockChatResponse(parsed.data));
+  return NextResponse.json(await createChatResponse(parsed.data));
 }
 
 function validationError() {
