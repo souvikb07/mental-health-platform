@@ -5,6 +5,7 @@ import { CheckCircle2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { submitFeedback } from "@/lib/api/client";
 import type { FeedbackRating } from "@/types/feedback";
 
 const ratings: FeedbackRating[] = [1, 2, 3, 4, 5];
@@ -12,7 +13,10 @@ const ratings: FeedbackRating[] = [1, 2, 3, 4, 5];
 export function FeedbackForm() {
   const [helpfulness, setHelpfulness] = useState<FeedbackRating>(4);
   const [clarity, setClarity] = useState<FeedbackRating>(4);
+  const [comment, setComment] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   if (submitted) {
     return (
@@ -22,7 +26,8 @@ export function FeedbackForm() {
           Feedback noted locally for this demo.
         </div>
         <p className="mt-2 text-sm leading-6">
-          No account, database, analytics provider, or external service was used.
+          The internal mock API accepted it. No account, database, analytics
+          provider, or external service was used.
         </p>
       </div>
     );
@@ -31,9 +36,28 @@ export function FeedbackForm() {
   return (
     <form
       className="space-y-6"
-      onSubmit={(event) => {
+      onSubmit={async (event) => {
         event.preventDefault();
-        setSubmitted(true);
+        setError(null);
+        setIsSubmitting(true);
+
+        try {
+          await submitFeedback({
+            sessionId:
+              window.localStorage.getItem("mindbridge.sessionId") ??
+              "mock_session_demo",
+            clarityRating: clarity,
+            helpfulnessRating: helpfulness,
+            feltSafe: true,
+            unsafeOrUnhelpful: false,
+            comment: comment || null,
+          });
+          setSubmitted(true);
+        } catch {
+          setError("The mock feedback service did not respond. Please try again.");
+        } finally {
+          setIsSubmitting(false);
+        }
       }}
     >
       <RatingRow
@@ -50,11 +74,18 @@ export function FeedbackForm() {
         <span className="text-sm font-medium text-slate-950">Optional note</span>
         <Textarea
           className="mt-2 min-h-28 bg-white"
+          value={comment}
+          onChange={(event) => setComment(event.target.value)}
           placeholder="What would make this clearer or more supportive?"
         />
       </label>
-      <Button type="submit" className="h-10 bg-emerald-900 px-4 text-white hover:bg-emerald-800">
-        Submit feedback
+      {error ? <p className="text-sm text-red-700">{error}</p> : null}
+      <Button
+        type="submit"
+        disabled={isSubmitting}
+        className="h-10 bg-emerald-900 px-4 text-white hover:bg-emerald-800"
+      >
+        {isSubmitting ? "Submitting..." : "Submit feedback"}
       </Button>
     </form>
   );

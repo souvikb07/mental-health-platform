@@ -1,0 +1,121 @@
+import type { ClarityMap } from "@/types/clarity-map";
+import type { FeedbackSubmission } from "@/types/feedback";
+import type {
+  ApiChatMessage,
+  ApiRiskClassification,
+  NextRecommendedAction,
+} from "@/types/risk";
+import type { SupportResource } from "@/types/resource";
+
+type ApiError = {
+  error: {
+    code: string;
+    message: string;
+  };
+};
+
+export type CreateSessionInput = {
+  country?: string;
+  ageBand?: string;
+  mainConcern: string;
+};
+
+export type CreateSessionResponse = {
+  sessionId: string;
+  status: "created";
+};
+
+export type ChatResponse = {
+  assistantMessage: ApiChatMessage;
+  risk: ApiRiskClassification;
+  nextRecommendedAction: NextRecommendedAction;
+};
+
+export type ClarityMapResponse = {
+  clarityMap: ClarityMap;
+};
+
+export type ResourcesResponse = {
+  resources: SupportResource[];
+};
+
+export type FeedbackResponse = {
+  status: "received";
+};
+
+export function createSession(input: CreateSessionInput) {
+  return postJson<CreateSessionResponse>("/api/sessions", input);
+}
+
+export function sendChatMessage(input: { sessionId: string; message: string }) {
+  return postJson<ChatResponse>("/api/chat", input);
+}
+
+export function fetchClarityMap(input: { sessionId: string }) {
+  return postJson<ClarityMapResponse>("/api/clarity-map", input);
+}
+
+export function fetchResources(query: {
+  country?: string;
+  topic?: string;
+  riskLevel?: string;
+} = {}) {
+  const params = new URLSearchParams();
+
+  Object.entries(query).forEach(([key, value]) => {
+    if (value) {
+      params.set(key, value);
+    }
+  });
+
+  const path = params.size > 0 ? `/api/resources?${params}` : "/api/resources";
+
+  return getJson<ResourcesResponse>(path);
+}
+
+export function submitFeedback(input: FeedbackSubmission) {
+  return postJson<FeedbackResponse>("/api/feedback", input);
+}
+
+async function getJson<T>(path: string): Promise<T> {
+  const response = await fetch(path, {
+    cache: "no-store",
+  });
+
+  return parseJsonResponse<T>(response);
+}
+
+async function postJson<T>(path: string, body: unknown): Promise<T> {
+  const response = await fetch(path, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+
+  return parseJsonResponse<T>(response);
+}
+
+async function parseJsonResponse<T>(response: Response): Promise<T> {
+  const payload: unknown = await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      isApiError(payload)
+        ? payload.error.message
+        : "Request failed.",
+    );
+  }
+
+  return payload as T;
+}
+
+function isApiError(payload: unknown): payload is ApiError {
+  return (
+    typeof payload === "object" &&
+    payload !== null &&
+    "error" in payload &&
+    typeof (payload as ApiError).error?.message === "string"
+  );
+}

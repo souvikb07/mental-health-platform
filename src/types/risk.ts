@@ -17,3 +17,21 @@ export type MockRiskClassification = {
   actionTaken: "continue_reflection" | "show_support_resources" | "urgent_support";
   note: string;
 };
+
+export type ApiRiskClassification = {
+  level: RiskLevel;
+  categories: RiskCategory[];
+  requiresCrisisResponse: boolean;
+};
+
+export type ApiChatMessage = {
+  id: string;
+  role: "assistant" | "user";
+  content: string;
+  createdAt: string;
+};
+
+export type NextRecommendedAction =
+  | "continue_chat"
+  | "show_resources"
+  | "urgent_support";

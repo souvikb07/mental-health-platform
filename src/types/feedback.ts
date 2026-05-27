@@ -6,3 +6,12 @@ export type MockFeedback = {
   wouldUseAgain: boolean;
   note?: string;
 };
+
+export type FeedbackSubmission = {
+  sessionId: string;
+  clarityRating: FeedbackRating;
+  helpfulnessRating: FeedbackRating;
+  feltSafe?: boolean | null;
+  unsafeOrUnhelpful?: boolean;
+  comment?: string | null;
+};
