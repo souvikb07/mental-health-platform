@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ClarityMap",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "headline",
+    "notDiagnosisNotice",
+    "mainPatterns",
+    "focusAreas",
+    "next24Hours",
+    "next7Days",
+    "supportPath",
+    "resourceTopics",
+    "confidenceNotes"
+  ],
+  "properties": {
+    "headline": {
+      "type": "string",
+      "minLength": 1
+    },
+    "notDiagnosisNotice": {
+      "type": "string",
+      "minLength": 1
+    },
+    "mainPatterns": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "label",
+          "description",
+          "evidence",
+          "confidence"
+        ],
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "evidence": {
+            "type": "string"
+          },
+          "confidence": {
+            "type": "string",
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ]
+          }
+        }
+      }
+    },
+    "focusAreas": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 4,
+      "items": {
+        "type": "string"
+      }
+    },
+    "next24Hours": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 5,
+      "items": {
+        "type": "string"
+      }
+    },
+    "next7Days": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 5,
+      "items": {
+        "type": "string"
+      }
+    },
+    "supportPath": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "summary",
+        "suggestedSupportTypes",
+        "whenToSeekUrgentHelp"
+      ],
+      "properties": {
+        "summary": {
+          "type": "string"
+        },
+        "suggestedSupportTypes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "whenToSeekUrgentHelp": {
+          "type": "string"
+        }
+      }
+    },
+    "resourceTopics": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "confidenceNotes": {
+      "type": "string"
+    }
+  }
+}

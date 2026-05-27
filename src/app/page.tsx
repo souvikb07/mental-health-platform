@@ -1,65 +1,62 @@
-import Image from "next/image";
+import Link from "next/link";
+import { ArrowRight, CheckCircle2 } from "lucide-react";
+
+import { PageContainer } from "@/components/layout/page-container";
+import { JourneyStepper } from "@/components/product/journey-stepper";
+import { SafetyNotice } from "@/components/product/safety-notice";
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <PageContainer className="grid gap-10 py-12 sm:py-16">
+      <JourneyStepper current="/" />
+      <section className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+        <div className="space-y-6">
+          <p className="text-sm font-medium text-emerald-800">
+            Phase 1 mock clarity journey
+          </p>
+          <h1 className="max-w-3xl text-4xl font-semibold leading-tight tracking-tight text-emerald-950 sm:text-5xl">
+            Understand what you are going through. Find the right kind of support.
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="max-w-2xl text-base leading-8 text-slate-600">
+            Talk with an AI clarity assistant that helps organize what you are
+            experiencing, identify focus areas, and decide what kind of support
+            may be useful.
+          </p>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <Button asChild className="h-11 bg-emerald-900 px-5 text-white hover:bg-emerald-800">
+              <Link href="/onboarding">
+                Start a clarity session
+                <ArrowRight className="size-4" aria-hidden="true" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="h-11 px-5">
+              <Link href="/demo">View demo page</Link>
+            </Button>
+          </div>
+          <p className="text-sm font-medium text-slate-700">
+            Not therapy, diagnosis, or emergency support.
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+        <div className="rounded-lg border border-emerald-950/10 bg-white p-5 shadow-sm">
+          <h2 className="text-base font-semibold text-slate-950">Walking skeleton includes</h2>
+          <ul className="mt-4 space-y-3 text-sm leading-6 text-slate-600">
+            {[
+              "Anonymous onboarding with consent language",
+              "Mock guided chat with visible safety routing",
+              "A non-diagnostic Clarity Map",
+              "Curated local resource recommendations",
+              "Local-only feedback capture",
+            ].map((item) => (
+              <li key={item} className="flex gap-3">
+                <CheckCircle2 className="mt-1 size-4 shrink-0 text-emerald-800" aria-hidden="true" />
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
         </div>
-      </main>
-    </div>
+      </section>
+      <SafetyNotice />
+    </PageContainer>
   );
 }

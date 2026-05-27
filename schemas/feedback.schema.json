@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Feedback",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "sessionId",
+    "clarityRating",
+    "helpfulnessRating"
+  ],
+  "properties": {
+    "sessionId": {
+      "type": "string"
+    },
+    "clarityRating": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 5
+    },
+    "helpfulnessRating": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 5
+    },
+    "feltSafe": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "unsafeOrUnhelpful": {
+      "type": "boolean"
+    },
+    "comment": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  }
+}
