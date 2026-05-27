@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { ArrowRight, LifeBuoy, ShieldCheck } from "lucide-react";
+import { AlertTriangle, ArrowRight, LifeBuoy, ShieldCheck } from "lucide-react";
 
+import { ResourceCard } from "@/components/product/resource-card";
 import { SafetyNotice } from "@/components/product/safety-notice";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -11,13 +12,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { sendChatMessage } from "@/lib/api/client";
 import { mockMessages } from "@/lib/mock/mock-messages";
 import { cn } from "@/lib/utils";
-import type { ApiRiskClassification } from "@/types/risk";
+import type { ApiRiskClassification, SafetyUi } from "@/types/risk";
+import type { SupportResource } from "@/types/resource";
 
 type UiMessage = {
   id: string;
   role: "assistant" | "user";
   content: string;
   risk?: Pick<ApiRiskClassification, "level">;
+  safety?: SafetyUi | null;
+  resources?: SupportResource[];
 };
 
 const initialMessages: UiMessage[] = mockMessages.map((message) => ({
@@ -32,6 +36,9 @@ export function ChatPanel() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const normalNextStepDisabled = messages.some(
+    (item) => item.safety?.disableNormalNextStep,
+  );
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
@@ -80,6 +87,29 @@ export function ChatPanel() {
                   Mock risk check: {item.risk.level}
                 </p>
               ) : null}
+              {item.safety?.showInlineSafetyCard ? (
+                <div
+                  className={cn(
+                    "mt-3 rounded-lg border p-3 text-xs leading-6",
+                    item.safety.tone === "urgent"
+                      ? "border-red-900/20 bg-red-50 text-red-950"
+                      : "border-amber-900/20 bg-amber-50 text-amber-950",
+                  )}
+                >
+                  <div className="flex items-center gap-2 font-semibold">
+                    <AlertTriangle className="size-3.5" aria-hidden="true" />
+                    {item.safety.title}
+                  </div>
+                  <p className="mt-1">{item.safety.message}</p>
+                </div>
+              ) : null}
+              {item.resources && item.resources.length > 0 ? (
+                <div className="mt-3 grid gap-3">
+                  {item.resources.map((resource) => (
+                    <ResourceCard key={resource.id} resource={resource} />
+                  ))}
+                </div>
+              ) : null}
             </div>
           ))}
         </div>
@@ -120,6 +150,8 @@ export function ChatPanel() {
                   role: response.assistantMessage.role,
                   content: response.assistantMessage.content,
                   risk: { level: response.risk.level },
+                  safety: response.safety,
+                  resources: response.resources,
                 },
               ]);
             } catch {
@@ -152,14 +184,27 @@ export function ChatPanel() {
               >
                 {isSubmitting ? "Sending..." : "Send mock message"}
               </Button>
-              <Button asChild className="h-10 bg-emerald-900 px-4 text-white hover:bg-emerald-800">
-                <Link href="/clarity-map">
-                  Generate clarity map
-                  <ArrowRight className="size-4" aria-hidden="true" />
-                </Link>
+              <Button
+                asChild={!normalNextStepDisabled}
+                disabled={normalNextStepDisabled}
+                className="h-10 bg-emerald-900 px-4 text-white hover:bg-emerald-800 disabled:bg-slate-200 disabled:text-slate-500"
+              >
+                {normalNextStepDisabled ? (
+                  <span>Clarity map paused for safety</span>
+                ) : (
+                  <Link href="/clarity-map">
+                    Generate clarity map
+                    <ArrowRight className="size-4" aria-hidden="true" />
+                  </Link>
+                )}
               </Button>
             </div>
           </div>
+          {normalNextStepDisabled ? (
+            <p className="mt-3 text-xs leading-6 text-amber-800">
+              Safety support is the priority right now, so the normal next step is paused.
+            </p>
+          ) : null}
         </form>
       </section>
       <aside className="grid content-start gap-4">

@@ -7,9 +7,11 @@ import { SafetyNotice } from "@/components/product/safety-notice";
 import { Button } from "@/components/ui/button";
 
 const safetyRows = [
-  ["Low distress", "Continue reflective chat", "Mock low-risk conversation"],
-  ["High risk", "Show support resources", "Normal chat is bypassed in product design"],
-  ["Imminent risk", "Urgent support copy", "No reflective questioning"],
+  ["Low distress", "continue_chat", "Normal mock reflection continues"],
+  ["Medium support signal", "continue_with_supportive_nudge", "Support resources may appear by category"],
+  ["High risk", "show_resources", "Inline safety card and India-first resources"],
+  ["Imminent risk", "urgent_support", "Urgent inline safety card and normal next step disabled"],
+  ["Under 18 disclosure", "continue_with_supportive_nudge", "Trusted adult/professional support language"],
 ];
 
 export default function DemoPage() {
@@ -22,10 +24,10 @@ export default function DemoPage() {
           <h1 className="mt-2 text-3xl font-semibold tracking-tight text-emerald-950">
             Walking skeleton for the Phase 1 MindBridge journey.
           </h1>
-          <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-600">
-            This page is judge-facing: it shows the route flow, safety posture,
-            and what is intentionally mocked in Block 1.
-          </p>
+            <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-600">
+              This page is judge-facing: it shows the route flow, safety posture,
+            and what is intentionally mocked in the local Phase 1 build.
+            </p>
         </div>
         <Button asChild className="h-10 bg-emerald-900 px-4 text-white hover:bg-emerald-800">
           <Link href="/onboarding">
@@ -58,7 +60,7 @@ export default function DemoPage() {
               <tr>
                 <th className="border-b border-slate-200 py-2 pr-4">Scenario</th>
                 <th className="border-b border-slate-200 py-2 pr-4">Expected routing</th>
-                <th className="border-b border-slate-200 py-2">Block 1 status</th>
+                <th className="border-b border-slate-200 py-2">Block 3 behavior</th>
               </tr>
             </thead>
             <tbody>

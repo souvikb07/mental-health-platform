@@ -15,6 +15,7 @@ export function OnboardingForm() {
   const [ageBand, setAgeBand] = useState("Prefer not to say");
   const [mainConcern, setMainConcern] = useState("");
   const [consented, setConsented] = useState(true);
+  const [isAdult, setIsAdult] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -88,11 +89,23 @@ export function OnboardingForm() {
           for professional care.
         </span>
       </label>
+      <label className="flex items-start gap-3 rounded-lg bg-slate-50 p-3 text-sm leading-6 text-slate-700">
+        <input
+          type="checkbox"
+          className="mt-1 size-4 rounded border-slate-300"
+          checked={isAdult}
+          onChange={(event) => setIsAdult(event.target.checked)}
+        />
+        <span>
+          I understand MindBridge is intended for adults 18+. If I am under 18,
+          I should involve a trusted adult or qualified professional.
+        </span>
+      </label>
       {error ? <p className="text-sm text-red-700">{error}</p> : null}
       <div>
         <Button
           type="submit"
-          disabled={!consented || isSubmitting}
+          disabled={!consented || !isAdult || isSubmitting}
           className="h-10 bg-emerald-900 px-4 text-white hover:bg-emerald-800"
         >
           {isSubmitting ? "Creating session..." : "Continue to guided chat"}

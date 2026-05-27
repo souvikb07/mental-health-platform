@@ -4,6 +4,8 @@ import type {
   ApiChatMessage,
   ApiRiskClassification,
   NextRecommendedAction,
+  SafetyMode,
+  SafetyUi,
 } from "@/types/risk";
 import type { SupportResource } from "@/types/resource";
 
@@ -29,6 +31,9 @@ export type ChatResponse = {
   assistantMessage: ApiChatMessage;
   risk: ApiRiskClassification;
   nextRecommendedAction: NextRecommendedAction;
+  mode: SafetyMode;
+  safety: SafetyUi | null;
+  resources: SupportResource[];
 };
 
 export type ClarityMapResponse = {

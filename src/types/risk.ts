@@ -3,13 +3,11 @@ export type RiskLevel = "none" | "low" | "medium" | "high" | "imminent";
 export type RiskCategory =
   | "self_harm"
   | "harm_to_others"
-  | "abuse_or_domestic_violence"
+  | "abuse"
   | "psychosis_or_mania_signal"
   | "substance_use"
   | "minor_safety"
-  | "medical_emergency"
-  | "eating_disorder_signal"
-  | "none";
+  | "medical_emergency";
 
 export type MockRiskClassification = {
   level: RiskLevel;
@@ -22,6 +20,8 @@ export type ApiRiskClassification = {
   level: RiskLevel;
   categories: RiskCategory[];
   requiresCrisisResponse: boolean;
+  reason?: string;
+  resourceTopics?: string[];
 };
 
 export type ApiChatMessage = {
@@ -33,5 +33,16 @@ export type ApiChatMessage = {
 
 export type NextRecommendedAction =
   | "continue_chat"
+  | "continue_with_supportive_nudge"
   | "show_resources"
   | "urgent_support";
+
+export type SafetyMode = "normal" | "support" | "crisis";
+
+export type SafetyUi = {
+  showInlineSafetyCard: boolean;
+  disableNormalNextStep: boolean;
+  title: string;
+  message: string;
+  tone: "support" | "urgent";
+};

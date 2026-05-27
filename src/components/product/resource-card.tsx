@@ -39,6 +39,11 @@ export function ResourceCard({ resource }: ResourceCardProps) {
       </CardHeader>
       <CardContent>
         <p className="text-sm leading-6 text-slate-600">{resource.description}</p>
+        {resource.availabilityNote ? (
+          <p className="mt-3 text-xs leading-5 text-slate-500">
+            {resource.availabilityNote}
+          </p>
+        ) : null}
       </CardContent>
       <CardFooter>
         <Button asChild variant="outline" className="h-9 px-3">

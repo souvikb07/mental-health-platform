@@ -14,7 +14,7 @@ export default function OnboardingPage() {
         </h1>
         <p className="mt-3 text-sm leading-7 text-slate-600">
           Share only what you want to include. This demo does not save or send
-          your answers anywhere.
+          your answers anywhere. MindBridge is intended for adults 18+.
         </p>
       </div>
       <SafetyNotice />
