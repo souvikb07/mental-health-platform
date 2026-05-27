@@ -3,31 +3,41 @@ node_modules/
 .pnp
 .pnp.js
 
-# next
+# next / build output
 .next/
 out/
-
-# production
 build/
 dist/
 
-# env
+# env / secrets
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.*
+!.env.example
+*.pem
+*.key
+*.p8
+*.p12
+*.crt
+*.cert
+*.credentials
+credentials.json
+service-account*.json
+
+# local platform state
+.vercel/
+.supabase/
 
 # logs
+*.log
 npm-debug.log*
+pnpm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-pnpm-debug.log*
 
 # system
 .DS_Store
 
-# generated
+# generated reports
 coverage/
 playwright-report/
 .vitest/

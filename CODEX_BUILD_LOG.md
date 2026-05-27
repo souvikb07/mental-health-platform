@@ -127,3 +127,26 @@ The fix is limited to deterministic safety matching and regression coverage. Use
 
 Next step:
 Continue Block 3 only if more safety-routing regressions are found.
+
+## 2026-05-27 18:17 CEST
+
+Task:
+Block 3.5 security baseline and Codex guardrails.
+
+Prompt used:
+Create repo-level security documentation and agent instructions before adding real API keys, auth, persistence, payments, or production deployment, without changing app behavior or adding integrations.
+
+Files changed:
+Updated `AGENTS.md`, `.gitignore`, `.env.example`, and `README.md`. Added `SECURITY.md`, `docs/architecture/09-security-baseline.md`, and `codex/prompts/security-review.md`.
+
+Commands run:
+`npm run lint`
+
+Result:
+Added pre-production security guardrails covering browser trust boundaries, server-side authorization, secret handling, Supabase RLS and service-role constraints, safe SQL, mental-health data logging restrictions, model-output trust, payment webhook verification, and rate-limit requirements. Lint passed.
+
+Manual review notes:
+No app behavior, chat behavior, safety routing behavior, API routes, auth, database writes, payment logic, OpenAI integration, Supabase integration, packages, or real secrets were added. `.env.example` remains committed with placeholders only.
+
+Next step:
+Use the security-review prompt before future integration blocks that add keys, auth, persistence, payments, or production deployment.
