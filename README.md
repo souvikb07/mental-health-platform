@@ -58,6 +58,15 @@ supabase/migrations/0001_phase1_schema.sql
 - Anonymous sessions first; auth comes later.
 - Every feature must support the core loop.
 
+## Security
+
+Before adding real API keys, auth, database persistence, payments, or production deployment, read:
+
+- [SECURITY.md](./SECURITY.md)
+- [Security Baseline](./docs/architecture/09-security-baseline.md)
+
+This repo is pre-production. Do not commit real secrets, `.env` files, raw mental-health content in logs, or browser-exposed service credentials.
+
 ## Phase 1 definition of done
 
 ```txt
