@@ -66,6 +66,49 @@ describe("createChatResponse", () => {
     expect(conversationAgent).toHaveBeenCalledTimes(1);
   });
 
+  it("allows conversation agent for ambiguous elevated distress", async () => {
+    const conversationAgent = vi.fn().mockResolvedValue({
+      content: "Safety-aware OpenAI-style response.",
+      source: "openai",
+    });
+    const response = await createChatResponse(
+      {
+        sessionId: "mock_session_test",
+        message: "I don't know if I can keep doing this.",
+      },
+      { conversationAgent },
+    );
+
+    expect(response.risk.level).toBe("medium");
+    expect(response.safetyState).toBe("elevated_distress");
+    expect(response.source).toBe("openai");
+    expect(response.safety).toBeNull();
+    expect(response.resources.every((resource) =>
+      !resource.topics.includes("crisis")
+    )).toBe(true);
+    expect(conversationAgent).toHaveBeenCalledTimes(1);
+  });
+
+  it("uses safety-aware fallback for ambiguous elevated distress", async () => {
+    vi.stubEnv("OPENAI_API_KEY", "");
+    vi.stubEnv("OPENAI_MODEL", "");
+
+    const response = await createChatResponse({
+      sessionId: "mock_session_test",
+      message: "I don't know if I can keep doing this.",
+    });
+
+    expect(response.risk.level).toBe("medium");
+    expect(response.safetyState).toBe("elevated_distress");
+    expect(response.source).toBe("fallback");
+    expect(response.assistantMessage.content).toContain("really heavy");
+    expect(response.assistantMessage.content).toContain("feeling unsafe");
+    expect(response.assistantMessage.content).not.toBe(
+      "Thank you for sharing that. What part of this has been affecting your day-to-day life the most?",
+    );
+    vi.unstubAllEnvs();
+  });
+
   it("routes high risk to resources without calling the conversation model", async () => {
     const conversationAgent = vi.fn().mockResolvedValue({
       content: "This should not be used.",

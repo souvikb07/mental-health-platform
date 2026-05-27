@@ -256,3 +256,28 @@ No AI triage, OpenAI moderation, Supabase, auth, database writes, payments, stre
 
 Next step:
 When session persistence exists, connect authoritative previous safety state so high/imminent sessions cannot be downgraded by a later benign message.
+
+## 2026-05-28 00:08 CEST
+
+Task:
+Block 4.4.1a elevated distress regression patch.
+
+Prompt used:
+Classify ambiguous “can’t keep doing this / can’t keep going” statements as medium elevated distress, keep normal conversation and Clarity Map allowed, and preserve stronger high/imminent safety and policy-boundary behavior.
+
+Files changed:
+Updated `src/lib/safety/risk-rules.ts`, `src/lib/ai/fallbacks.ts`, and `src/lib/safety-core/safety-orchestrator.ts`. Added/updated unit tests in `tests/unit/risk-classifier.test.ts`, `tests/unit/safety-playbook-engine.test.ts`, and `tests/unit/chat-service.test.ts`.
+
+Commands run:
+`npm test`
+`npm run lint`
+`npm run build`
+
+Result:
+Tests passed: 10 files, 94 tests. Lint passed. Build passed. “I don't know if I can keep doing this.” now classifies as medium elevated distress, keeps normal chat allowed, and receives a safety-aware fallback clarification when OpenAI config is missing.
+
+Manual review notes:
+No AI triage, OpenAI moderation, Supabase, auth, database writes, payments, streaming, external resource APIs, package installs, Clarity Map changes, UI redesign, raw-message logging, diagnosis, treatment plans, medication advice, or therapy-replacement language were added. High/imminent safety behavior, policy-boundary behavior, and US/India/GLOBAL resource routing were preserved.
+
+Next step:
+Continue adding targeted regression tests for ambiguous distress language before broadening any safety taxonomy.

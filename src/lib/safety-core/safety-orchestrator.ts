@@ -43,7 +43,7 @@ export function evaluateSafety({
     boundaryResponse,
   });
   const countryCode = sessionContext?.countryCode ?? "GLOBAL";
-  const resources = playbook.showResources
+  const resources = shouldShowResources({ safetyState, risk, showResources: playbook.showResources })
     ? selectResources({
         countryCode,
         riskLevel: getResourceRiskLevel({ risk, safetyState }),
@@ -70,6 +70,26 @@ export function evaluateSafety({
     responseSource: getResponseSource(safetyState, exposedPolicyBoundary),
     policyBoundary: exposedPolicyBoundary,
   };
+}
+
+function shouldShowResources({
+  safetyState,
+  risk,
+  showResources,
+}: {
+  safetyState: SafetyState;
+  risk: ApiRiskClassification;
+  showResources: boolean;
+}) {
+  if (!showResources) {
+    return false;
+  }
+
+  if (safetyState === "elevated_distress" && risk.categories.length === 0) {
+    return false;
+  }
+
+  return true;
 }
 
 function getSafetyUi({

@@ -23,6 +23,10 @@ export function getFallbackConversationReply({
     return "That sounds important to talk through with real-world support. A trusted person or qualified professional may be able to help you explore what is happening without having to handle it alone.";
   }
 
+  if (risk.level === "medium" && isAmbiguousEnduranceDistress(normalized)) {
+    return "That sounds really heavy. When you say you do not know if you can keep doing this, do you mean the situation feels unsustainable, or are you feeling unsafe right now?";
+  }
+
   if (normalized.includes("exhausted")) {
     return "That sounds heavy. When you say exhausted, do you mean physically tired, emotionally drained, mentally overloaded, or a mix?";
   }
@@ -36,4 +40,22 @@ export function getFallbackConversationReply({
   }
 
   return "Thank you for sharing that. What part of this has been affecting your day-to-day life the most?";
+}
+
+function isAmbiguousEnduranceDistress(message: string) {
+  const normalized = message
+    .replace(/[‘’]/g, "'")
+    .replace(/\bdon't\b/g, "do not")
+    .replace(/\bcan't\b/g, "cannot")
+    .replace(/\bcant\b/g, "cannot")
+    .replace(/[^a-z0-9'\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return [
+    /\b(i do not know if i can|i do not know whether i can)\s+keep doing this\b/,
+    /\bi cannot keep doing this( anymore)?\b/,
+    /\bi do not know how much longer i can keep going\b/,
+    /\bi cannot keep going like this\b/,
+  ].some((pattern) => pattern.test(normalized));
 }

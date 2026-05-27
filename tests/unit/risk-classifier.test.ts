@@ -25,6 +25,21 @@ describe("classifyRisk", () => {
     });
   });
 
+  it.each([
+    "I don't know if I can keep doing this.",
+    "I do not know if I can keep doing this.",
+    "I can't keep doing this anymore.",
+    "I cannot keep doing this anymore.",
+    "I don't know how much longer I can keep going.",
+    "I can't keep going like this.",
+  ])("classifies ambiguous endurance distress as medium: %s", (message) => {
+    expect(classifyRisk(message)).toMatchObject({
+      level: "medium",
+      categories: [],
+      requiresCrisisResponse: false,
+    });
+  });
+
   it("classifies self-harm ideation as high", () => {
     expect(classifyRisk("Everyone would be better off without me.")).toMatchObject({
       level: "high",
