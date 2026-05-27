@@ -14,6 +14,7 @@ import { mockMessages } from "@/lib/mock/mock-messages";
 import { cn } from "@/lib/utils";
 import type { ApiRiskClassification, SafetyUi } from "@/types/risk";
 import type { SupportResource } from "@/types/resource";
+import type { SessionContext } from "@/types/session-context";
 
 type UiMessage = {
   id: string;
@@ -84,7 +85,7 @@ export function ChatPanel() {
               {item.risk ? (
                 <p className="mt-2 flex items-center gap-2 text-xs opacity-80">
                   <ShieldCheck className="size-3" aria-hidden="true" />
-                  Mock risk check: {item.risk.level}
+                  Safety check: {item.risk.level}
                 </p>
               ) : null}
               {item.safety?.showInlineSafetyCard ? (
@@ -138,9 +139,11 @@ export function ChatPanel() {
               const sessionId =
                 window.localStorage.getItem("mindbridge.sessionId") ??
                 "mock_session_demo";
+              const sessionContext = getStoredSessionContext();
               const response = await sendChatMessage({
                 sessionId,
                 message: trimmedMessage,
+                sessionContext,
               });
 
               setMessages((current) => [
@@ -173,7 +176,7 @@ export function ChatPanel() {
           {error ? <p className="mt-3 text-sm text-red-700">{error}</p> : null}
           <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-xs leading-6 text-slate-500">
-              Every submitted message now crosses the internal mock risk boundary.
+              Every submitted message crosses the internal safety boundary.
             </p>
             <div className="flex flex-col gap-2 sm:flex-row">
               <Button
@@ -182,7 +185,7 @@ export function ChatPanel() {
                 variant="outline"
                 className="h-10 px-4"
               >
-                {isSubmitting ? "Sending..." : "Send mock message"}
+                {isSubmitting ? "Sending..." : "Send message"}
               </Button>
               <Button
                 asChild={!normalNextStepDisabled}
@@ -213,4 +216,18 @@ export function ChatPanel() {
       </aside>
     </div>
   );
+}
+
+function getStoredSessionContext(): SessionContext | undefined {
+  const stored = window.localStorage.getItem("mindbridge.sessionContext");
+
+  if (!stored) {
+    return undefined;
+  }
+
+  try {
+    return JSON.parse(stored) as SessionContext;
+  } catch {
+    return undefined;
+  }
 }

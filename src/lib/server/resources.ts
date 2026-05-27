@@ -8,6 +8,7 @@ export function getMockResources(query: ResourcesQuery): {
   return {
     resources: selectResources({
       country: query.country,
+      countryCode: query.countryCode,
       topic: query.topic,
       riskLevel: query.riskLevel,
     }),

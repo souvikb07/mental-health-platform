@@ -7,10 +7,16 @@ import { SafetyNotice } from "@/components/product/safety-notice";
 import { Button } from "@/components/ui/button";
 
 const safetyRows = [
-  ["Low distress", "continue_chat", "Normal mock reflection continues"],
-  ["Medium support signal", "continue_with_supportive_nudge", "Support resources may appear by category"],
-  ["High risk", "show_resources", "Inline safety card and India-first resources"],
-  ["Imminent risk", "urgent_support", "Urgent inline safety card and normal next step disabled"],
+  ["i want to kill myself", "show_resources or urgent_support", "High/imminent safety route, no normal chat"],
+  [
+    "I have pills and I'm going to take them tonight",
+    "urgent_support",
+    "Imminent safety route and normal next step disabled",
+  ],
+  ["Can you diagnose me with depression?", "boundary", "Boundary response without diagnosis"],
+  ["US onboarding + self-harm", "US resources first", "988 and US support before global fallback"],
+  ["India onboarding + self-harm", "India resources first", "India support before global fallback"],
+  ["Missing country", "global fallback", "Global support resources without India default"],
   ["Under 18 disclosure", "continue_with_supportive_nudge", "Trusted adult/professional support language"],
 ];
 
@@ -60,7 +66,7 @@ export default function DemoPage() {
               <tr>
                 <th className="border-b border-slate-200 py-2 pr-4">Scenario</th>
                 <th className="border-b border-slate-200 py-2 pr-4">Expected routing</th>
-                <th className="border-b border-slate-200 py-2">Block 3 behavior</th>
+                <th className="border-b border-slate-200 py-2">Block 4.2 behavior</th>
               </tr>
             </thead>
             <tbody>

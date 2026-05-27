@@ -9,6 +9,7 @@ import type {
   SafetyUi,
 } from "@/types/risk";
 import type { SupportResource } from "@/types/resource";
+import type { CountryCode, SessionContext } from "@/types/session-context";
 
 type ApiError = {
   error: {
@@ -20,11 +21,13 @@ type ApiError = {
 export type CreateSessionInput = {
   country?: string;
   ageBand?: string;
+  ageConfirmed?: boolean;
   mainConcern: string;
 };
 
 export type CreateSessionResponse = {
   sessionId: string;
+  sessionContext: SessionContext;
   status: "created";
 };
 
@@ -55,7 +58,11 @@ export function createSession(input: CreateSessionInput) {
   return postJson<CreateSessionResponse>("/api/sessions", input);
 }
 
-export function sendChatMessage(input: { sessionId: string; message: string }) {
+export function sendChatMessage(input: {
+  sessionId: string;
+  message: string;
+  sessionContext?: SessionContext;
+}) {
   return postJson<ChatResponse>("/api/chat", input);
 }
 
@@ -65,6 +72,7 @@ export function fetchClarityMap(input: { sessionId: string }) {
 
 export function fetchResources(query: {
   country?: string;
+  countryCode?: CountryCode;
   topic?: string;
   riskLevel?: string;
 } = {}) {

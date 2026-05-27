@@ -14,7 +14,7 @@ export type SupportResource = {
   title: string;
   description: string;
   type: ResourceType;
-  country: "IN" | "global";
+  country: "US" | "IN" | "global";
   topics: string[];
   riskLevels: RiskLevel[];
   actionLabel: string;
