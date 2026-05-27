@@ -43,6 +43,23 @@ describe("safety playbook engine", () => {
     expect(decision.resources[0]?.country).toBe("US");
   });
 
+  it("maps ambiguous endurance distress to elevated distress without crisis routing", () => {
+    const decision = evaluateSafety({
+      message: "I don't know if I can keep doing this.",
+    });
+
+    expect(decision.risk.level).toBe("medium");
+    expect(decision.safetyState).toBe("elevated_distress");
+    expect(decision.allowNormalChat).toBe(true);
+    expect(decision.allowClarityMap).toBe(true);
+    expect(decision.nextRecommendedAction).toBe("continue_with_supportive_nudge");
+    expect(decision.mode).toBe("support");
+    expect(decision.safety).toBeNull();
+    expect(decision.resources.every((resource) =>
+      !resource.topics.includes("crisis")
+    )).toBe(true);
+  });
+
   it("returns urgent support and crisis mode for imminent risk", () => {
     const decision = evaluateSafety({
       message: "I have pills and I'm going to take them tonight",

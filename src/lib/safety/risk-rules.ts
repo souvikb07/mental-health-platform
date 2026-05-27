@@ -130,6 +130,10 @@ const mediumRules: RiskRule[] = [
       /\bpanic attack/i,
       /\b(can't|cant|cannot)\s+function\b/i,
       /\bfeel trapped\b/i,
+      /\b(i do not know if i can|i do not know whether i can)\s+keep doing this\b/i,
+      /\bi cannot keep doing this( anymore)?\b/i,
+      /\bi do not know how much longer i can keep going\b/i,
+      /\bi cannot keep going like this\b/i,
     ],
   },
 ];
