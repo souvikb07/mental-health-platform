@@ -20,7 +20,10 @@ export function createMockSession(
       country: request.country,
       ageBand: request.ageBand,
       mainConcern: request.mainConcern,
+      mainConcernCategory: request.mainConcernCategory,
+      mainConcernText: request.mainConcernText,
       ageConfirmed: request.ageConfirmed,
+      consentAccepted: request.consentAccepted,
     }),
     status: "created",
   };
