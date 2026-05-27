@@ -17,7 +17,7 @@ const prohibitedPatterns: Array<{ reason: string; pattern: RegExp }> = [
   },
   {
     reason: "treatment_protocol",
-    pattern: /\b(treatment plan|treatment protocol|this treatment will fix|will cure you|will fix you)\b/i,
+    pattern: /\b(here is|follow this|you need|you should)\s+[^.]{0,40}\b(treatment plan|treatment protocol)\b|\b(this treatment will fix|will cure you|will fix you)\b/i,
   },
   {
     reason: "unsafe_reassurance",

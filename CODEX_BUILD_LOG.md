@@ -177,3 +177,30 @@ No Supabase, auth, database writes, payments, streaming, Clarity Map AI, OpenAI 
 
 Next step:
 Before using real keys outside local development, add server-side rate limits for AI/write endpoints and perform a security review.
+
+## 2026-05-27 20:01 CEST
+
+Task:
+Block 4.1 deterministic policy boundary guardrails.
+
+Prompt used:
+Add a server-side policy boundary layer for diagnosis, medication, treatment protocol, medical advice, therapy replacement, self-harm method, prompt injection, dependency, and out-of-scope requests, without changing high/imminent safety routing or adding integrations.
+
+Files changed:
+Added `src/types/policy-boundary.ts`, `src/lib/safety/policy-boundary-classifier.ts`, and `src/lib/safety/policy-boundary-copy.ts`. Updated `src/lib/server/chat.ts`, `src/lib/api/client.ts`, `src/lib/ai/post-response-validator.ts`, and added policy boundary classifier/routing tests.
+
+Commands run:
+`npm test`
+`npm run lint`
+`npm run build`
+`npm run start -- -p 3002`
+Local `/api/chat` checks for diagnosis boundary, self-harm method safety routing, and imminent safety routing.
+
+Result:
+Tests passed: 8 files, 51 tests. Lint passed. Build passed. Diagnosis requests now return `source: "boundary"` without calling the conversation agent. Self-harm method requests return `policyBoundary.action: "route_to_safety"`, `nextRecommendedAction: "urgent_support"`, and a disabled normal next step. Imminent safety still returns `source: "safety"` before policy boundary handling.
+
+Manual review notes:
+No Supabase, auth, database writes, payments, streaming, OpenAI moderation, external resource APIs, package installs, Clarity Map AI changes, raw-message logging, or frontend redesign were added.
+
+Next step:
+Add rate limits before public exposure of AI/auth/write endpoints.

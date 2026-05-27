@@ -1,5 +1,6 @@
 import type { ClarityMap } from "@/types/clarity-map";
 import type { FeedbackSubmission } from "@/types/feedback";
+import type { PolicyBoundaryResult } from "@/types/policy-boundary";
 import type {
   ApiChatMessage,
   ApiRiskClassification,
@@ -34,7 +35,8 @@ export type ChatResponse = {
   mode: SafetyMode;
   safety: SafetyUi | null;
   resources: SupportResource[];
-  source?: "openai" | "fallback" | "safety";
+  source?: "openai" | "fallback" | "safety" | "boundary";
+  policyBoundary?: PolicyBoundaryResult;
 };
 
 export type ClarityMapResponse = {
