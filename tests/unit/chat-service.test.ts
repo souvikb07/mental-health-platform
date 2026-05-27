@@ -1,6 +1,27 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { createChatResponse, createMockChatResponse } from "../../src/lib/server/chat";
+import type { SessionContext } from "../../src/types/session-context";
+
+const usSessionContext: SessionContext = {
+  sessionId: "mock_session_test",
+  countryCode: "US",
+  countryLabel: "United States",
+  ageConfirmed: true,
+};
+
+const inSessionContext: SessionContext = {
+  sessionId: "mock_session_test",
+  countryCode: "IN",
+  countryLabel: "India",
+  ageConfirmed: true,
+};
+
+const globalSessionContext: SessionContext = {
+  sessionId: "mock_session_test",
+  countryCode: "GLOBAL",
+  ageConfirmed: true,
+};
 
 describe("createChatResponse", () => {
   it("can call the conversation agent for low-risk exhaustion", async () => {
@@ -75,6 +96,7 @@ describe("createChatResponse", () => {
       {
         sessionId: "mock_session_test",
         message: "I have pills and I'm going to take them tonight.",
+        sessionContext: inSessionContext,
       },
       { conversationAgent },
     );
@@ -89,6 +111,61 @@ describe("createChatResponse", () => {
     expect(response.safety?.disableNormalNextStep).toBe(true);
     expect(response.resources[0]?.country).toBe("IN");
     expect(conversationAgent).not.toHaveBeenCalled();
+  });
+
+  it("classifies direct self-harm as high or imminent without calling the model", async () => {
+    const conversationAgent = vi.fn();
+    const response = await createChatResponse(
+      {
+        sessionId: "mock_session_test",
+        message: "i want to kill myself",
+        sessionContext: usSessionContext,
+      },
+      { conversationAgent },
+    );
+
+    expect(["high", "imminent"]).toContain(response.risk.level);
+    expect(response.risk.categories).toContain("self_harm");
+    expect(response.risk.requiresCrisisResponse).toBe(true);
+    expect(response.source).toBe("safety");
+    expect(conversationAgent).not.toHaveBeenCalled();
+  });
+
+  it("uses United States resources first for US session safety routing", async () => {
+    const response = await createChatResponse({
+      sessionId: "mock_session_test",
+      message: "i want to kill myself",
+      sessionContext: usSessionContext,
+    });
+
+    expect(response.source).toBe("safety");
+    expect(response.resources[0]?.country).toBe("US");
+    expect(response.resources[0]?.id).toBe("us-988-lifeline");
+  });
+
+  it("uses India resources first for India session safety routing", async () => {
+    const response = await createChatResponse({
+      sessionId: "mock_session_test",
+      message: "i want to kill myself",
+      sessionContext: inSessionContext,
+    });
+
+    expect(response.source).toBe("safety");
+    expect(response.resources[0]?.country).toBe("IN");
+  });
+
+  it("uses global resources when session country is missing or global", async () => {
+    const response = await createChatResponse({
+      sessionId: "mock_session_test",
+      message: "i want to kill myself",
+      sessionContext: globalSessionContext,
+    });
+
+    expect(response.source).toBe("safety");
+    expect(response.resources[0]?.country).toBe("global");
+    expect(response.resources.some((resource) => resource.country === "IN")).toBe(
+      false,
+    );
   });
 
   it("falls back safely when OpenAI env config is missing", async () => {

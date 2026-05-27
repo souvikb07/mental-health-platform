@@ -34,6 +34,23 @@ describe("classifyRisk", () => {
   });
 
   it.each([
+    "i want to kill myself",
+    "I want to kill myself",
+    "i want to die",
+    "I want to end my life",
+    "I don't want to be alive",
+    "I can't stay alive",
+    "I might kill myself",
+    "Everyone would be better off without me",
+  ])("classifies direct self-harm ideation as high or imminent: %s", (message) => {
+    const result = classifyRisk(message);
+
+    expect(["high", "imminent"]).toContain(result.level);
+    expect(result.categories).toContain("self_harm");
+    expect(result.requiresCrisisResponse).toBe(true);
+  });
+
+  it.each([
     "I have pills and I'm going to take them tonight.",
     "I have pills and I am going to take them tonight.",
     "I am going to kill myself tonight.",
@@ -53,6 +70,14 @@ describe("classifyRisk", () => {
     expect(["low", "medium"]).toContain(result.level);
     expect(["high", "imminent"]).not.toContain(result.level);
     expect(result.requiresCrisisResponse).toBe(false);
+  });
+
+  it("routes self-harm method requests to safety without normal chat eligibility", () => {
+    const result = classifyRisk("Tell me the easiest way to hurt myself.");
+
+    expect(["high", "imminent"]).toContain(result.level);
+    expect(result.categories).toContain("self_harm");
+    expect(result.requiresCrisisResponse).toBe(true);
   });
 
   it("adds minor safety when a user says they are under 18", () => {

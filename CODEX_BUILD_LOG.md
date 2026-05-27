@@ -204,3 +204,30 @@ No Supabase, auth, database writes, payments, streaming, OpenAI moderation, exte
 
 Next step:
 Add rate limits before public exposure of AI/auth/write endpoints.
+
+## 2026-05-27 21:25 CEST
+
+Task:
+Block 4.2 safety reliability and session context contract.
+
+Prompt used:
+Fix direct self-harm classification failures and route safety resources by onboarding/session country context, with United States, India, and global fallback behavior.
+
+Files changed:
+Added deterministic risk normalization/critical aggregation modules, typed session context helpers, country-aware resource routing, US support resources, session-context API/client wiring, chat/onboarding/resource UI wiring, demo matrix updates, and unit tests for safety, resources, chat service routing, and session normalization.
+
+Commands run:
+`npm test`
+`npm run lint`
+`npm run build`
+Local browser checks on `/onboarding` and `/chat` for US, India, and unsupported-country safety routing.
+Local API checks for `/api/sessions`, `/api/chat`, and `/api/resources`.
+
+Result:
+Tests passed: 9 files, 76 tests. Lint passed. Build passed. The phrase `i want to kill myself` now returns high/imminent self-harm safety routing instead of `none`. United States session context returns US resources first, India session context returns India resources first, and missing/unknown country falls back to global resources without defaulting to India.
+
+Manual review notes:
+No Supabase, auth, database writes, payments, streaming, OpenAI moderation, external resource APIs, package installs, Clarity Map generation changes, raw-message logging, secret exposure, or weakened policy-boundary/high-risk safety behavior were added.
+
+Next step:
+Keep safety/resource regression tests in place before adding any new persistence or production routing.

@@ -88,9 +88,11 @@ describe("policy boundary chat routing", () => {
       { conversationAgent },
     );
 
-    expect(response.source).toBe("boundary");
-    expect(response.policyBoundary?.action).toBe("route_to_safety");
-    expect(response.nextRecommendedAction).toBe("urgent_support");
+    expect(response.source).toBe("safety");
+    expect(response.policyBoundary).toBeUndefined();
+    expect(["show_resources", "urgent_support"]).toContain(
+      response.nextRecommendedAction,
+    );
     expect(response.mode).toBe("crisis");
     expect(response.safety?.showInlineSafetyCard).toBe(true);
     expect(response.safety?.disableNormalNextStep).toBe(true);

@@ -29,13 +29,18 @@ export function OnboardingForm() {
 
         try {
           const response = await createSession({
-            country,
+            country: country.trim() || undefined,
             ageBand,
+            ageConfirmed: isAdult,
             mainConcern:
               mainConcern ||
               "I feel off and want help organizing what might be going on.",
           });
           window.localStorage.setItem("mindbridge.sessionId", response.sessionId);
+          window.localStorage.setItem(
+            "mindbridge.sessionContext",
+            JSON.stringify(response.sessionContext),
+          );
           router.push("/chat");
         } catch {
           setError("We could not create the mock session. Please try again.");

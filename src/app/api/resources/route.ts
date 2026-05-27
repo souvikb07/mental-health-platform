@@ -7,6 +7,7 @@ export function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const parsed = resourcesQuerySchema.safeParse({
     country: searchParams.get("country") ?? undefined,
+    countryCode: searchParams.get("countryCode") ?? undefined,
     topic: searchParams.get("topic") ?? undefined,
     riskLevel: searchParams.get("riskLevel") ?? undefined,
   });

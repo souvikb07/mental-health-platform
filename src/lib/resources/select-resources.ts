@@ -1,9 +1,12 @@
 import { mockResources } from "@/lib/mock/mock-resources";
+import { normalizeCountryCode } from "@/lib/session/session-context";
+import type { CountryCode } from "@/types/session-context";
 import type { RiskCategory, RiskLevel } from "@/types/risk";
 import type { SupportResource } from "@/types/resource";
 
 export type ResourceSelectionInput = {
   country?: string;
+  countryCode?: CountryCode;
   riskLevel?: RiskLevel;
   categories?: RiskCategory[];
   topic?: string;
@@ -12,16 +15,22 @@ export type ResourceSelectionInput = {
 
 export function selectResources({
   country,
+  countryCode,
   riskLevel,
   categories = [],
   topic,
   limit = 4,
 }: ResourceSelectionInput): SupportResource[] {
-  const normalizedCountry = normalizeCountry(country);
+  const normalizedCountry = countryCode ?? normalizeCountryCode(country);
   const topics = new Set(
     [topic, ...categories].filter((value): value is string => Boolean(value)),
   );
 
+  const usMatches = rankResources(
+    mockResources.filter((resource) =>
+      matchesResource(resource, "US", riskLevel, topics),
+    ),
+  );
   const indiaMatches = rankResources(
     mockResources.filter((resource) =>
       matchesResource(resource, "IN", riskLevel, topics),
@@ -33,21 +42,14 @@ export function selectResources({
     ),
   );
 
-  const ordered =
-    normalizedCountry === "IN"
-      ? [...indiaMatches, ...globalMatches]
-      : [...globalMatches, ...indiaMatches];
+  const ordered = getCountryOrderedResources({
+    countryCode: normalizedCountry,
+    usMatches,
+    indiaMatches,
+    globalMatches,
+  });
 
   return dedupeResources(ordered).slice(0, limit);
-}
-
-function normalizeCountry(country?: string): "IN" | "global" {
-  if (!country) {
-    return "IN";
-  }
-
-  const normalized = country.trim().toLowerCase();
-  return ["india", "in", "bharat"].includes(normalized) ? "IN" : "global";
 }
 
 function matchesResource(
@@ -66,6 +68,28 @@ function matchesResource(
     resource.topics.some((resourceTopic) => topics.has(resourceTopic));
 
   return matchesRisk && matchesTopic;
+}
+
+function getCountryOrderedResources({
+  countryCode,
+  usMatches,
+  indiaMatches,
+  globalMatches,
+}: {
+  countryCode: CountryCode;
+  usMatches: SupportResource[];
+  indiaMatches: SupportResource[];
+  globalMatches: SupportResource[];
+}) {
+  if (countryCode === "US") {
+    return [...usMatches, ...globalMatches];
+  }
+
+  if (countryCode === "IN") {
+    return [...indiaMatches, ...globalMatches];
+  }
+
+  return globalMatches;
 }
 
 function rankResources(resources: SupportResource[]) {

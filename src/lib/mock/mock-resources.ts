@@ -2,6 +2,51 @@ import type { SupportResource } from "@/types/resource";
 
 export const mockResources: SupportResource[] = [
   {
+    id: "us-988-lifeline",
+    title: "United States 988 Lifeline",
+    description:
+      "In the United States, 988 can connect people with crisis support by call, text, or chat.",
+    type: "crisis",
+    country: "US",
+    topics: ["emergency", "crisis", "self_harm", "support"],
+    riskLevels: ["high", "imminent"],
+    actionLabel: "Call or text 988",
+    href: "tel:988",
+    phone: "988",
+    priority: 1,
+    availabilityNote:
+      "United States crisis support access point; availability and fit can vary by situation.",
+  },
+  {
+    id: "us-emergency-911",
+    title: "United States emergency services",
+    description:
+      "If there may be immediate danger, contact local emergency services or go to the nearest emergency department.",
+    type: "emergency",
+    country: "US",
+    topics: ["emergency", "crisis", "self_harm", "harm_to_others", "medical_emergency"],
+    riskLevels: ["high", "imminent"],
+    actionLabel: "Call 911",
+    href: "tel:911",
+    phone: "911",
+    priority: 2,
+    availabilityNote:
+      "General emergency response number in the United States; not a guaranteed mental-health crisis service.",
+  },
+  {
+    id: "us-trusted-person",
+    title: "Reach a trusted person nearby",
+    description:
+      "If you might not be safe alone, contact someone you trust and ask them to stay with you or help you reach local support.",
+    type: "trusted-person",
+    country: "US",
+    topics: ["support", "minor_safety", "self_harm", "abuse", "safety"],
+    riskLevels: ["medium", "high", "imminent"],
+    actionLabel: "Use this step",
+    href: "/resources",
+    priority: 3,
+  },
+  {
     id: "in-emergency-112",
     title: "India emergency response number",
     description:
@@ -18,6 +63,22 @@ export const mockResources: SupportResource[] = [
       "General emergency response number in India; not a guaranteed mental-health crisis service.",
   },
   {
+    id: "in-tele-manas",
+    title: "India Tele MANAS support access",
+    description:
+      "Tele MANAS is a Government of India mental health support access point that may help you find appropriate support.",
+    type: "crisis",
+    country: "IN",
+    topics: ["crisis", "self_harm", "support", "professional_support"],
+    riskLevels: ["medium", "high", "imminent"],
+    actionLabel: "Call 14416",
+    href: "tel:14416",
+    phone: "14416",
+    priority: 2,
+    availabilityNote:
+      "India mental health support access point; availability, language, and fit can vary.",
+  },
+  {
     id: "in-trusted-adult-or-person",
     title: "Reach a trusted person in India",
     description:
@@ -28,7 +89,7 @@ export const mockResources: SupportResource[] = [
     riskLevels: ["medium", "high", "imminent"],
     actionLabel: "Use this step",
     href: "/resources",
-    priority: 2,
+    priority: 3,
   },
   {
     id: "in-qualified-professional",
@@ -41,7 +102,7 @@ export const mockResources: SupportResource[] = [
     riskLevels: ["low", "medium", "high"],
     actionLabel: "Plan outreach",
     href: "/resources",
-    priority: 3,
+    priority: 4,
   },
   {
     id: "trusted-person-plan",

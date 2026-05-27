@@ -6,13 +6,19 @@ import { ResourceCard } from "@/components/product/resource-card";
 import { fetchResources } from "@/lib/api/client";
 import { mockResources } from "@/lib/mock/mock-resources";
 import type { SupportResource } from "@/types/resource";
+import type { SessionContext } from "@/types/session-context";
 
 export function ResourcesLoader() {
   const [resources, setResources] = useState<SupportResource[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchResources({ country: "global", topic: "stress" })
+    const sessionContext = getStoredSessionContext();
+
+    fetchResources({
+      countryCode: sessionContext?.countryCode ?? "GLOBAL",
+      topic: "stress",
+    })
       .then((response) => setResources(response.resources))
       .catch(() => {
         setError("Showing local fallback because the mock API did not respond.");
@@ -38,4 +44,18 @@ export function ResourcesLoader() {
       </div>
     </div>
   );
+}
+
+function getStoredSessionContext(): SessionContext | undefined {
+  const stored = window.localStorage.getItem("mindbridge.sessionContext");
+
+  if (!stored) {
+    return undefined;
+  }
+
+  try {
+    return JSON.parse(stored) as SessionContext;
+  } catch {
+    return undefined;
+  }
 }

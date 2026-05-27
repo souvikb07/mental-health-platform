@@ -43,6 +43,7 @@ export async function createChatResponse(
 ): Promise<ChatResponse> {
   const risk = classifyRisk(request.message);
   const safetyRoute = routeSafety(risk);
+  const countryCode = request.sessionContext?.countryCode ?? "GLOBAL";
   const policyBoundary = safetyRoute.safety?.disableNormalNextStep
     ? undefined
     : classifyPolicyBoundary(request.message);
@@ -52,9 +53,11 @@ export async function createChatResponse(
     policyBoundary?.action === "route_to_safety";
   const resources = shouldShowResources
     ? selectResources({
-        country: "India",
+        countryCode,
         riskLevel:
-          policyBoundary?.action === "route_to_safety" ? "imminent" : risk.level,
+          policyBoundary?.action === "route_to_safety"
+            ? "imminent"
+            : risk.level,
         categories:
           policyBoundary?.action === "route_to_safety"
             ? ["self_harm"]
@@ -83,7 +86,7 @@ export async function createChatResponse(
 
   return {
     assistantMessage: {
-    id: `mock_assistant_${Date.now()}`,
+      id: `mock_assistant_${Date.now()}`,
       role: "assistant",
       content,
       createdAt: new Date().toISOString(),
