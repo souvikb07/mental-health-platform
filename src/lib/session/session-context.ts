@@ -1,4 +1,21 @@
-import type { CountryCode, SessionContext } from "@/types/session-context";
+import type {
+  CountryCode,
+  MainConcernCategory,
+  SessionContext,
+} from "@/types/session-context";
+
+export const mainConcernOptions: Array<{
+  id: MainConcernCategory;
+  label: string;
+}> = [
+  { id: "overwhelmed", label: "Overwhelmed" },
+  { id: "anxious_worried", label: "Anxious / worried" },
+  { id: "low_numb_disconnected", label: "Low / numb / disconnected" },
+  { id: "work_study_stress", label: "Work or study stress" },
+  { id: "relationship_family", label: "Relationship or family" },
+  { id: "sleep_energy", label: "Sleep or energy" },
+  { id: "not_sure", label: "I’m not sure" },
+];
 
 export function normalizeCountryCode(country?: string | null): CountryCode {
   if (!country) {
@@ -32,16 +49,32 @@ export function createSessionContext(input: {
   country?: string;
   ageBand?: string;
   mainConcern?: string;
+  mainConcernCategory?: MainConcernCategory;
+  mainConcernText?: string;
   ageConfirmed?: boolean;
+  consentAccepted?: boolean;
 }): SessionContext {
   const countryCode = normalizeCountryCode(input.country);
+  const mainConcernLabel = input.mainConcernCategory
+    ? getMainConcernLabel(input.mainConcernCategory)
+    : undefined;
 
   return {
     sessionId: input.sessionId,
     countryCode,
     countryLabel: input.country?.trim() || undefined,
     ageConfirmed: input.ageConfirmed,
+    consentAccepted: input.consentAccepted,
     ageBand: input.ageBand,
     mainConcern: input.mainConcern,
+    mainConcernCategory: input.mainConcernCategory,
+    mainConcernLabel,
+    mainConcernText: input.mainConcernText?.trim() || undefined,
   };
+}
+
+export function getMainConcernLabel(category: MainConcernCategory) {
+  return (
+    mainConcernOptions.find((option) => option.id === category)?.label ?? category
+  );
 }

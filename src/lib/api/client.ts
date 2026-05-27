@@ -10,7 +10,11 @@ import type {
   SafetyUi,
 } from "@/types/risk";
 import type { SupportResource } from "@/types/resource";
-import type { CountryCode, SessionContext } from "@/types/session-context";
+import type {
+  CountryCode,
+  MainConcernCategory,
+  SessionContext,
+} from "@/types/session-context";
 
 type ApiError = {
   error: {
@@ -20,10 +24,13 @@ type ApiError = {
 };
 
 export type CreateSessionInput = {
-  country?: string;
+  country: string;
   ageBand?: string;
   ageConfirmed?: boolean;
-  mainConcern: string;
+  consentAccepted?: boolean;
+  mainConcern?: string;
+  mainConcernCategory: MainConcernCategory;
+  mainConcernText?: string;
 };
 
 export type CreateSessionResponse = {

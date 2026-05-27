@@ -281,3 +281,28 @@ No AI triage, OpenAI moderation, Supabase, auth, database writes, payments, stre
 
 Next step:
 Continue adding targeted regression tests for ambiguous distress language before broadening any safety taxonomy.
+
+## 2026-05-28 00:19 CEST
+
+Task:
+Block 4.4.1 onboarding journey contract cleanup.
+
+Prompt used:
+Require a clear onboarding support location and main reason before guided chat, using a dropdown for USA/India, required main-reason options, required 18+ confirmation, and required safety consent.
+
+Files changed:
+Updated `src/components/product/onboarding-form.tsx`, `src/types/session-context.ts`, `src/lib/session/session-context.ts`, `src/lib/validation/sessions.ts`, `src/lib/validation/chat.ts`, `src/lib/server/sessions.ts`, `src/lib/api/client.ts`, and `tests/unit/session-context.test.ts`.
+
+Commands run:
+`npm test`
+`npm run lint`
+`npm run build`
+
+Result:
+Tests passed: 10 files, 106 tests. Lint passed. Build passed. Onboarding now requires a support location dropdown selection, a main reason option, 18+ confirmation, and safety consent before continuing to chat.
+
+Manual review notes:
+Browser QA passed for USA + Overwhelmed leading to US safety resources first, and India + Sleep or energy leading to India safety resources first. GLOBAL remains internal fallback only for invalid/missing backend context. No AI triage, OpenAI moderation, Supabase, auth, database writes, payments, streaming, external resource APIs, package installs, Clarity Map changes, safety weakening, raw-message logging, secret exposure, diagnosis, treatment plans, medication advice, or therapy-replacement language were added.
+
+Next step:
+Keep onboarding context static until a later block explicitly adds AI-generated context intake or dynamic opening messages.
