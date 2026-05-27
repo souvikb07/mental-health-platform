@@ -39,6 +39,7 @@ describe("createChatResponse", () => {
 
     expect(response.risk.level).toBe("low");
     expect(response.nextRecommendedAction).toBe("continue_chat");
+    expect(response.safetyState).toBe("normal_support");
     expect(response.safety).toBeNull();
     expect(response.assistantMessage.content).toBe("OpenAI-style reflective response.");
     expect(response.source).toBe("openai");
@@ -60,6 +61,7 @@ describe("createChatResponse", () => {
 
     expect(response.risk.level).toBe("medium");
     expect(response.nextRecommendedAction).toBe("continue_with_supportive_nudge");
+    expect(response.safetyState).toBe("elevated_distress");
     expect(response.assistantMessage.content).toBe("Supportive medium-risk response.");
     expect(conversationAgent).toHaveBeenCalledTimes(1);
   });
@@ -79,6 +81,7 @@ describe("createChatResponse", () => {
 
     expect(response.risk.level).toBe("high");
     expect(response.nextRecommendedAction).toBe("show_resources");
+    expect(response.safetyState).toBe("active_suicidal_ideation");
     expect(response.source).toBe("safety");
     expect(response.safety?.showInlineSafetyCard).toBe(true);
     expect(response.safety?.disableNormalNextStep).toBe(true);
@@ -105,6 +108,7 @@ describe("createChatResponse", () => {
     expect(response.risk.categories).toContain("self_harm");
     expect(response.risk.requiresCrisisResponse).toBe(true);
     expect(response.nextRecommendedAction).toBe("urgent_support");
+    expect(response.safetyState).toBe("imminent_risk");
     expect(response.mode).toBe("crisis");
     expect(response.source).toBe("safety");
     expect(response.safety?.showInlineSafetyCard).toBe(true);
@@ -127,6 +131,7 @@ describe("createChatResponse", () => {
     expect(["high", "imminent"]).toContain(response.risk.level);
     expect(response.risk.categories).toContain("self_harm");
     expect(response.risk.requiresCrisisResponse).toBe(true);
+    expect(response.safetyState).toBe("active_suicidal_ideation");
     expect(response.source).toBe("safety");
     expect(conversationAgent).not.toHaveBeenCalled();
   });
@@ -139,6 +144,7 @@ describe("createChatResponse", () => {
     });
 
     expect(response.source).toBe("safety");
+    expect(response.safetyState).toBe("active_suicidal_ideation");
     expect(response.resources[0]?.country).toBe("US");
     expect(response.resources[0]?.id).toBe("us-988-lifeline");
   });
@@ -151,6 +157,7 @@ describe("createChatResponse", () => {
     });
 
     expect(response.source).toBe("safety");
+    expect(response.safetyState).toBe("active_suicidal_ideation");
     expect(response.resources[0]?.country).toBe("IN");
   });
 
@@ -162,6 +169,7 @@ describe("createChatResponse", () => {
     });
 
     expect(response.source).toBe("safety");
+    expect(response.safetyState).toBe("active_suicidal_ideation");
     expect(response.resources[0]?.country).toBe("global");
     expect(response.resources.some((resource) => resource.country === "IN")).toBe(
       false,
@@ -178,8 +186,31 @@ describe("createChatResponse", () => {
     });
 
     expect(response.source).toBe("fallback");
+    expect(response.safetyState).toBe("normal_support");
     expect(response.assistantMessage.content).toContain("physically tired");
     vi.unstubAllEnvs();
+  });
+
+  it("keeps the public chat response shape stable", async () => {
+    const response = await createChatResponse({
+      sessionId: "mock_session_test",
+      message: "Can you diagnose me with depression?",
+    });
+
+    expect(response).toMatchObject({
+      assistantMessage: {
+        role: "assistant",
+      },
+      risk: expect.any(Object),
+      nextRecommendedAction: expect.any(String),
+      mode: expect.any(String),
+      resources: expect.any(Array),
+      source: "boundary",
+      safetyState: "policy_boundary",
+    });
+    expect(response).toHaveProperty("safety");
+    expect(response).toHaveProperty("policyBoundary");
+    expect(response).not.toHaveProperty("safetyDecision");
   });
 });
 

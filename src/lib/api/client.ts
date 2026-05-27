@@ -1,5 +1,6 @@
 import type { ClarityMap } from "@/types/clarity-map";
 import type { FeedbackSubmission } from "@/types/feedback";
+import type { SafetyState } from "@/lib/safety-core";
 import type { PolicyBoundaryResult } from "@/types/policy-boundary";
 import type {
   ApiChatMessage,
@@ -40,6 +41,7 @@ export type ChatResponse = {
   resources: SupportResource[];
   source?: "openai" | "fallback" | "safety" | "boundary";
   policyBoundary?: PolicyBoundaryResult;
+  safetyState?: SafetyState;
 };
 
 export type ClarityMapResponse = {
