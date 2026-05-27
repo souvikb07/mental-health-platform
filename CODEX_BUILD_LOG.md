@@ -231,3 +231,28 @@ No Supabase, auth, database writes, payments, streaming, OpenAI moderation, exte
 
 Next step:
 Keep safety/resource regression tests in place before adding any new persistence or production routing.
+
+## 2026-05-27 23:40 CEST
+
+Task:
+Block 4.4 Safety Playbook Engine.
+
+Prompt used:
+Refactor the existing deterministic safety orchestration into a small Safety Core / Safety Playbook Engine inside the modular monolith while preserving current high/imminent safety routing, policy-boundary behavior, and US/India/GLOBAL resource routing.
+
+Files changed:
+Added `src/lib/safety-core/index.ts`, `src/lib/safety-core/contracts.ts`, `src/lib/safety-core/safety-state-machine.ts`, `src/lib/safety-core/safety-playbooks.ts`, and `src/lib/safety-core/safety-orchestrator.ts`. Updated `src/lib/server/chat.ts` to call `safetyOrchestrator.evaluate()`, updated API client typing for additive `safetyState`, and added/updated unit tests for playbook behavior, response shape, policy routing, and chat-service safety decisions.
+
+Commands run:
+`npm test`
+`npm run lint`
+`npm run build`
+
+Result:
+Tests passed: 10 files, 85 tests. Lint passed. Build passed. `chat.ts` now delegates risk, policy boundary, playbook, safety UI, and resource decisions to Safety Core, while chat still decides OpenAI versus fallback source for allowed normal conversation.
+
+Manual review notes:
+No AI triage, OpenAI moderation, Supabase, auth, database writes, payments, streaming, external resource APIs, package installs, Clarity Map changes, raw-message logging, frontend secret exposure, diagnosis, treatment plans, medication advice, or therapy-replacement language were added. The public chat response shape is preserved with additive `safetyState`.
+
+Next step:
+When session persistence exists, connect authoritative previous safety state so high/imminent sessions cannot be downgraded by a later benign message.
