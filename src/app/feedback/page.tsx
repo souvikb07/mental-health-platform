@@ -16,8 +16,8 @@ export default function FeedbackPage() {
           Help judge whether the mock journey is clear.
         </h1>
         <p className="mt-3 text-sm leading-7 text-slate-600">
-          This form is local-only for Block 1. It does not save to a database or
-          send analytics.
+          This form posts to an internal mock API for Block 2. It does not save
+          to a database or send analytics.
         </p>
       </div>
       <SafetyNotice />

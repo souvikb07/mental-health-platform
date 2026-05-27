@@ -3,10 +3,9 @@ import { ArrowRight } from "lucide-react";
 
 import { PageContainer } from "@/components/layout/page-container";
 import { JourneyStepper } from "@/components/product/journey-stepper";
-import { ResourceCard } from "@/components/product/resource-card";
+import { ResourcesLoader } from "@/components/product/resources-loader";
 import { SafetyNotice } from "@/components/product/safety-notice";
 import { Button } from "@/components/ui/button";
-import { mockResources } from "@/lib/mock/mock-resources";
 
 export default function ResourcesPage() {
   return (
@@ -31,11 +30,7 @@ export default function ResourcesPage() {
         </Button>
       </div>
       <SafetyNotice tone="urgent" />
-      <div className="grid gap-4 md:grid-cols-2">
-        {mockResources.map((resource) => (
-          <ResourceCard key={resource.id} resource={resource} />
-        ))}
-      </div>
+      <ResourcesLoader />
     </PageContainer>
   );
 }

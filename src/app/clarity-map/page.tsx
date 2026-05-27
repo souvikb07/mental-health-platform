@@ -1,7 +1,6 @@
 import { PageContainer } from "@/components/layout/page-container";
-import { ClarityMapCard } from "@/components/product/clarity-map-card";
+import { ClarityMapLoader } from "@/components/product/clarity-map-loader";
 import { JourneyStepper } from "@/components/product/journey-stepper";
-import { mockClarityMap } from "@/lib/mock/mock-clarity-map";
 
 export default function ClarityMapPage() {
   return (
@@ -13,7 +12,7 @@ export default function ClarityMapPage() {
           A non-diagnostic summary of patterns and next steps.
         </h1>
       </div>
-      <ClarityMapCard clarityMap={mockClarityMap} />
+      <ClarityMapLoader />
     </PageContainer>
   );
 }
