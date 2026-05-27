@@ -34,6 +34,7 @@ export type ChatResponse = {
   mode: SafetyMode;
   safety: SafetyUi | null;
   resources: SupportResource[];
+  source?: "openai" | "fallback" | "safety";
 };
 
 export type ClarityMapResponse = {
