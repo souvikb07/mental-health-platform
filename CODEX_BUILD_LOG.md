@@ -706,3 +706,33 @@ Reworked onboarding into a calmer two-column setup page with visible safety/trus
 
 Next step:
 FE-4 chat UI polish, keeping context-intake, `/api/chat`, safety/resource rendering, and enhanced Clarity Map response handling unchanged.
+
+## 2026-05-28 21:49 CEST
+
+Task:
+FE-4 chat UI polish only.
+
+Prompt used:
+Polish the chat route and chat panel into a calmer, demo-ready guided reflection experience using the FE-2 baseline and Stitch chat reference while preserving context-intake, `/api/chat`, safety/resource rendering, storage keys, and enhanced Clarity Map response handling.
+
+Files changed:
+Updated `src/app/chat/page.tsx`, `src/components/product/chat-panel.tsx`, and `CODEX_BUILD_LOG.md`.
+
+Commands run:
+`git status --short`
+Read-only inspection of project handoff docs, Stitch design docs, `reference/stitch/chat/stitch.html`, `CODEX_BUILD_LOG.md`, and the current chat page/panel
+`npm test`
+`npm run lint`
+`npm run build`
+`git diff --check`
+`RUN_REAL_AI_EVALS=true EVAL_BASE_URL=http://localhost:3000 npm run eval:ai:smoke`
+Browser manual QA for `/chat`, onboarding handoff, normal chat, insufficient-context Clarity Map handling, normal Clarity Map navigation, self-safety, boundary, third-party support, and 390px mobile layout.
+
+Result:
+Tests passed: 24 files, 253 tests. Lint passed. Build passed. `git diff --check` passed. Real AI smoke eval passed 13/13 with 0 failures and 6 warnings; OpenAI-backed sources appeared, safety routes passed, and boundary routes passed.
+
+Manual review notes:
+Reworked the chat surface into a wider guided reflection shell with warm card styling, clearer chat header, rounded assistant/user bubbles, visible typing/loading state, clearer composer actions, inline insufficient-context notice styling, prominent backend safety/boundary/resource presentation, and an aside with reflection guardrails plus existing safety notices. Browser QA confirmed onboarding creates a fresh chat with one context-aware opener and no fake user message, normal messages render as plain visible text, insufficient-context Clarity Map responses stay inline without navigation, normal generation stores and navigates to `/clarity-map`, self-safety and third-party self-harm support show backend safety cards/resources with the Clarity Map CTA paused, and boundary requests stay inline without generating a diagnostic map. At 390px width, chat input, support resources, safety cards, and the paused CTA remained visible with no horizontal overflow. The browser security policy blocked a direct localStorage/sessionStorage clear attempt, so the no-session `/chat` CTA was confirmed by passing unit coverage rather than re-created manually in-browser during this block.
+
+Next step:
+FE-5 Clarity Map UI polish, keeping generated sessionStorage map rendering, `safety_blocked`, `boundary_blocked`, and non-diagnostic Harmony Signal behavior unchanged.
