@@ -499,3 +499,51 @@ Tests passed: 17 files, 183 tests. Lint passed. Build passed. Real AI smoke eval
 
 Manual review notes:
 Added `RiskSignalTag` with `third_party_self_harm` and `third_party_self_harm_imminent`, propagated `signalTags` through deterministic risk aggregation, and mapped those tags to the existing `third_party_self_harm` Safety Core state. Explicit third-party self-harm now routes to safety without relying on AI triage; imminent third-party cases route to `urgent_support` and `crisis`. Direct self-harm, imminent self-harm, diagnosis boundary, negation, and idiom false-positive tests still pass.
+
+## 2026-05-28 16:15 CEST
+
+Task:
+Block 5A Clarity Map backend contract and AI generator.
+
+Prompt used:
+Add a backend-only enhanced `/api/clarity-map` path that generates a structured, non-diagnostic, evidence-grounded Clarity Map from onboarding context and transcript, with OpenAI Structured Outputs when configured, deterministic fallback when missing/failing, and Safety Core gating before generation.
+
+Files changed:
+Added `src/lib/ai/clarity-map/clarity-map-schema.ts`, `src/lib/ai/clarity-map/clarity-map-prompt.ts`, `src/lib/ai/clarity-map/clarity-map-agent.ts`, `src/lib/ai/clarity-map/clarity-map-fallback.ts`, `src/lib/ai/clarity-map/index.ts`, `tests/unit/clarity-map-schema.test.ts`, `tests/unit/clarity-map-agent.test.ts`, `tests/unit/clarity-map-service.test.ts`, and `tests/unit/clarity-map-route.test.ts`. Updated `src/types/clarity-map.ts`, `src/lib/validation/clarity-map.ts`, `src/lib/server/clarity-map.ts`, `src/app/api/clarity-map/route.ts`, and `src/lib/api/client.ts`.
+
+Commands run:
+`npm test`
+`npm run lint`
+`npm run build`
+`RUN_REAL_AI_EVALS=true EVAL_BASE_URL=http://localhost:3000 npm run eval:ai:smoke`
+Manual local API checks for enhanced normal, insufficient context, safety-blocked, and boundary-blocked `/api/clarity-map` requests.
+
+Result:
+Tests passed: 21 files, 210 tests. Lint passed. Build passed. Real AI smoke eval passed 13/13 with 0 failures, OpenAI-backed sources appeared, safety routes passed, and boundary routes passed.
+
+Manual review notes:
+Legacy `{ sessionId }` requests still return the old mock-compatible `{ clarityMap }` response. Enhanced requests return typed `clarity_map`, `safety_blocked`, `boundary_blocked`, or `insufficient_context` responses. Safety Core gates high/imminent and policy-boundary cases before model generation. The structured parser rejects unsafe language and unknown fields, validates evidence IDs, and recomputes Harmony score/band from component values.
+
+## 2026-05-28 16:23 CEST
+
+Task:
+Block 5A fix for Clarity Map boundary gating order.
+
+Prompt used:
+Run Safety Core and policy-boundary gating on the latest meaningful user message before returning `insufficient_context` in the enhanced `/api/clarity-map` path.
+
+Files changed:
+Updated `src/lib/server/clarity-map.ts`, `tests/unit/clarity-map-service.test.ts`, and `tests/unit/clarity-map-route.test.ts`.
+
+Commands run:
+`npm test`
+`npm run lint`
+`npm run build`
+`RUN_REAL_AI_EVALS=true EVAL_BASE_URL=http://localhost:3000 npm run eval:ai:smoke`
+Manual local API checks for one-message boundary-blocked, one-message safety-blocked, and enhanced normal `/api/clarity-map` requests.
+
+Result:
+Tests passed: 21 files, 215 tests. Lint passed. Build passed. Real AI smoke eval passed 13/13 with 0 failures and 6 warnings; OpenAI-backed sources appeared, safety routes passed, and boundary routes passed.
+
+Manual review notes:
+The enhanced Clarity Map service now checks safety and policy-boundary blocks before thin-transcript handling, while keeping legacy `{ sessionId }` behavior and normal enhanced transcript generation unchanged. Manual checks confirmed a one-message diagnosis request returns `boundary_blocked`, a one-message imminent self-harm request returns `safety_blocked`, and a normal enhanced transcript returns `clarity_map`.

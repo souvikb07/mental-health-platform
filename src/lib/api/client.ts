@@ -1,4 +1,4 @@
-import type { ClarityMap } from "@/types/clarity-map";
+import type { ClarityMap, StructuredClarityMap } from "@/types/clarity-map";
 import type { ContextIntakeResult } from "@/lib/ai/context-intake/context-intake-schema";
 import type { FeedbackSubmission } from "@/types/feedback";
 import type { SafetyState } from "@/lib/safety-core";
@@ -78,6 +78,44 @@ export type ClarityMapResponse = {
   clarityMap: ClarityMap;
 };
 
+export type EnhancedClarityMapInput = {
+  sessionId: string;
+  sessionContext: SessionContext;
+  messages: ApiChatMessage[];
+  lastRisk?: ApiRiskClassification;
+  lastSafetyState?: SafetyState;
+};
+
+export type EnhancedClarityMapResponse =
+  | {
+      type: "clarity_map";
+      source: "openai" | "fallback";
+      clarityMap: StructuredClarityMap;
+    }
+  | {
+      type: "safety_blocked";
+      source: "safety";
+      assistantMessage: ApiChatMessage;
+      risk: ApiRiskClassification;
+      safety: SafetyUi | null;
+      resources: SupportResource[];
+    }
+  | {
+      type: "boundary_blocked";
+      source: "boundary";
+      assistantMessage: ApiChatMessage;
+      policyBoundary: PolicyBoundaryResult;
+    }
+  | {
+      type: "insufficient_context";
+      source: "fallback";
+      message: string;
+    };
+
+export type ClarityMapApiResponse =
+  | ClarityMapResponse
+  | EnhancedClarityMapResponse;
+
 export type ResourcesResponse = {
   resources: SupportResource[];
 };
@@ -104,6 +142,10 @@ export function fetchContextIntake(input: { sessionContext: SessionContext }) {
 
 export function fetchClarityMap(input: { sessionId: string }) {
   return postJson<ClarityMapResponse>("/api/clarity-map", input);
+}
+
+export function fetchEnhancedClarityMap(input: EnhancedClarityMapInput) {
+  return postJson<EnhancedClarityMapResponse>("/api/clarity-map", input);
 }
 
 export function fetchResources(query: {
