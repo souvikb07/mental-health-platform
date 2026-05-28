@@ -331,3 +331,54 @@ The triage classifier is server-only and not imported by client components or li
 
 Next step:
 In a later block, evaluate how to combine this AI signal with deterministic Safety Core without allowing model output to directly override final routing.
+
+## 2026-05-28 09:06 CEST
+
+Task:
+Block 4.5B plug AI structured triage into Safety Core.
+
+Prompt used:
+Integrate the server-only structured triage classifier into Safety Core as an optional semantic signal provider, tighten runtime triage parsing to reject unknown properties, and preserve deterministic high/imminent and policy-boundary routing.
+
+Files changed:
+Updated `src/lib/ai/triage/triage-schema.ts`, `src/lib/safety-core/contracts.ts`, `src/lib/safety-core/safety-orchestrator.ts`, `src/lib/safety-core/safety-playbooks.ts`, `src/lib/safety-core/safety-state-machine.ts`, `src/lib/server/chat.ts`, `tests/unit/chat-service.test.ts`, `tests/unit/safety-playbook-engine.test.ts`, and `tests/unit/triage-schema.test.ts`. Added `src/lib/safety-core/ai-triage-adapter.ts`.
+
+Commands run:
+`npm test`
+`npm run lint`
+`npm run build`
+Local `/api/sessions` and `/api/chat` checks for deterministic self-harm safety, diagnosis boundary, and normal fallback chat on the existing dev server.
+
+Result:
+Tests passed: 12 files, 133 tests. Lint passed. Build passed. `parseTriageSignal` now rejects extra root properties, missing fields, invalid enum values, and invalid array enum members. Safety Core can optionally call AI triage for eligible ambiguous messages and aggregate it with deterministic results using highest severity wins.
+
+Manual review notes:
+Deterministic high/imminent and clear policy boundaries short-circuit before AI triage. Missing or unavailable triage preserves deterministic behavior. AI triage can escalate subtle cases in tests, including passive ideation and third-party self-harm, without exposing the raw model output publicly. No OpenAI moderation, Supabase, auth, database writes, payments, streaming, external resource APIs, package installs, Clarity Map changes, UI redesign, raw-message logging, secret exposure, diagnosis, treatment plans, medication advice, or therapy-replacement language were added.
+
+Next step:
+Review real-model eval traces before enabling any production reliance on AI triage escalation.
+
+## 2026-05-28 10:09 CEST
+
+Task:
+Block 4.5B fix for AI triage Safety Core wiring and strict parser verification.
+
+Prompt used:
+Patch Block 4.5B so Safety Core demonstrably calls AI triage for eligible messages, skips it for deterministic high/imminent and clear policy boundaries, rejects extra triage parser keys, and fully supports or removes `third_party_self_harm`.
+
+Files changed:
+Updated `src/lib/ai/triage/triage-schema.ts`, `src/lib/safety-core/contracts.ts`, `src/lib/safety-core/index.ts`, `src/lib/safety-core/safety-orchestrator.ts`, and `tests/unit/safety-playbook-engine.test.ts`.
+
+Commands run:
+`npm test`
+`npm run lint`
+`npm run build`
+
+Result:
+Tests passed: 12 files, 134 tests. Lint passed. Build passed. Safety Core now skips the default AI triage classifier when triage env config is missing, while injected triage classifiers are used in tests to prove actual integration. `parseTriageSignal` has a strict root key-set check and rejects unknown root keys.
+
+Manual review notes:
+`third_party_self_harm` remains fully supported as an internal Safety Core state with a contract type, playbook, severity mapping, adapter mapping, response copy, and tests. Deterministic high/imminent and clear policy boundaries remain non-downgradable and short-circuit before AI triage. No new integrations, packages, UI changes, Clarity Map changes, raw-message logging, diagnosis, treatment plans, medication advice, or therapy-replacement language were added.
+
+Next step:
+Run real-model evals before expanding AI triage reliance beyond the current optional escalation path.

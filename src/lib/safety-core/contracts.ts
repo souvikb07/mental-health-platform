@@ -1,4 +1,5 @@
 import type { PolicyBoundaryResult } from "@/types/policy-boundary";
+import type { AiTriageResult, TriagePromptInput } from "@/lib/ai/triage";
 import type {
   ApiRiskClassification,
   NextRecommendedAction,
@@ -13,6 +14,7 @@ export type SafetyState =
   | "elevated_distress"
   | "passive_suicidal_ideation"
   | "active_suicidal_ideation"
+  | "third_party_self_harm"
   | "imminent_risk"
   | "self_harm_method_request"
   | "medical_emergency"
@@ -46,6 +48,21 @@ export type SafetyEvaluationInput = {
   previousState?: SafetyState;
 };
 
+export type SafetyEvaluationOptions = {
+  aiTriageClassifier?: (
+    input: TriagePromptInput,
+  ) => Promise<AiTriageResult>;
+};
+
+export type AiTriageDecisionMetadata = {
+  available: boolean;
+  used: boolean;
+  escalated: boolean;
+  confidence?: "low" | "medium" | "high";
+  rationaleCode?: string;
+  subject?: string;
+};
+
 export type SafetyDecision = {
   risk: ApiRiskClassification;
   safetyState: SafetyState;
@@ -59,4 +76,5 @@ export type SafetyDecision = {
   responseContent: string | null;
   responseSource: "safety" | "boundary" | null;
   policyBoundary?: PolicyBoundaryResult;
+  aiTriage?: AiTriageDecisionMetadata;
 };

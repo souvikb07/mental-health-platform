@@ -49,6 +49,18 @@ export const safetyPlaybooks: Record<SafetyState, SafetyPlaybook> = {
     resourceTopics: ["self_harm", "crisis", "support"],
     mode: "support",
   },
+  third_party_self_harm: {
+    state: "third_party_self_harm",
+    severity: "high",
+    nextRecommendedAction: "show_resources",
+    responseType: "safety",
+    allowNormalChat: false,
+    allowClarityMap: false,
+    showSafetyCard: true,
+    showResources: true,
+    resourceTopics: ["self_harm", "crisis", "support"],
+    mode: "support",
+  },
   imminent_risk: {
     state: "imminent_risk",
     severity: "imminent",

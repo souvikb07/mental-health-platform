@@ -4,6 +4,7 @@ import {
   type ConversationAgentResult,
 } from "@/lib/ai/conversation-agent";
 import { validateAssistantResponse } from "@/lib/ai/post-response-validator";
+import type { AiTriageResult, TriagePromptInput } from "@/lib/ai/triage";
 import { safetyOrchestrator, type SafetyState } from "@/lib/safety-core";
 import type { ChatRequest } from "@/lib/validation/chat";
 import type { PolicyBoundaryResult } from "@/types/policy-boundary";
@@ -32,16 +33,24 @@ type ChatResponseDependencies = {
   conversationAgent?: (
     input: ConversationAgentInput,
   ) => Promise<ConversationAgentResult>;
+  aiTriageClassifier?: (
+    input: TriagePromptInput,
+  ) => Promise<AiTriageResult>;
 };
 
 export async function createChatResponse(
   request: ChatRequest,
   dependencies: ChatResponseDependencies = {},
 ): Promise<ChatResponse> {
-  const safetyDecision = safetyOrchestrator.evaluate({
-    message: request.message,
-    sessionContext: request.sessionContext,
-  });
+  const safetyDecision = await safetyOrchestrator.evaluate(
+    {
+      message: request.message,
+      sessionContext: request.sessionContext,
+    },
+    {
+      aiTriageClassifier: dependencies.aiTriageClassifier,
+    },
+  );
 
   if (!safetyDecision.allowNormalChat) {
     return {

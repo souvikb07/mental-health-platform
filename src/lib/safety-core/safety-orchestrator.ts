@@ -1,11 +1,18 @@
+import { classifyWithAiTriage } from "@/lib/ai/triage";
 import { selectResources } from "@/lib/resources/select-resources";
 import { classifyPolicyBoundary } from "@/lib/safety/policy-boundary-classifier";
 import { getPolicyBoundaryResponse } from "@/lib/safety/policy-boundary-copy";
 import { classifyRisk } from "@/lib/safety/risk-classifier";
 import { routeSafety } from "@/lib/safety/safety-router";
+import {
+  adaptTriageSignal,
+  mergeTriageCandidate,
+} from "@/lib/safety-core/ai-triage-adapter";
 import type {
+  AiTriageDecisionMetadata,
   SafetyDecision,
   SafetyEvaluationInput,
+  SafetyEvaluationOptions,
   SafetyState,
 } from "@/lib/safety-core/contracts";
 import { getSafetyPlaybook } from "@/lib/safety-core/safety-playbooks";
@@ -13,28 +20,41 @@ import { determineSafetyState } from "@/lib/safety-core/safety-state-machine";
 import type { PolicyBoundaryResult } from "@/types/policy-boundary";
 import type { ApiRiskClassification, SafetyUi } from "@/types/risk";
 
-export function evaluateSafety({
+export async function evaluateSafety({
   message,
   sessionContext,
   previousState,
-}: SafetyEvaluationInput): SafetyDecision {
-  const risk = classifyRisk(message);
+}: SafetyEvaluationInput, options: SafetyEvaluationOptions = {}): Promise<SafetyDecision> {
+  const deterministicRisk = classifyRisk(message);
   const policyBoundaryCandidate = classifyPolicyBoundary(message);
-  const safetyState = determineSafetyState({
-    risk,
+  const deterministicState = determineSafetyState({
+    risk: deterministicRisk,
     policyBoundary: policyBoundaryCandidate,
     previousState,
   });
+  const aiTriage = await getAiTriageDecision({
+    message,
+    sessionContext,
+    deterministicRisk,
+    deterministicState,
+    policyBoundaryCandidate,
+    classifier: options.aiTriageClassifier ?? classifyWithAiTriage,
+    hasInjectedClassifier: Boolean(options.aiTriageClassifier),
+  });
+  const risk = aiTriage?.risk ?? deterministicRisk;
+  const safetyState = aiTriage?.safetyState ?? deterministicState;
+  const resolvedPolicyBoundary =
+    aiTriage?.policyBoundary ?? policyBoundaryCandidate;
   const playbook = getSafetyPlaybook(safetyState);
   const exposedPolicyBoundary =
     playbook.responseType === "boundary" ||
-    (playbook.allowNormalChat && policyBoundaryCandidate.action === "allow")
-      ? policyBoundaryCandidate
+    (playbook.allowNormalChat && resolvedPolicyBoundary.action === "allow")
+      ? resolvedPolicyBoundary
       : undefined;
   const safetyRoute = routeSafety(risk);
   const boundaryResponse = getBoundaryResponse({
     playbookResponseType: playbook.responseType,
-    policyBoundary: policyBoundaryCandidate,
+    policyBoundary: resolvedPolicyBoundary,
   });
   const safety = getSafetyUi({
     safetyRouteSafety: safetyRoute.safety,
@@ -69,7 +89,150 @@ export function evaluateSafety({
     }),
     responseSource: getResponseSource(safetyState, exposedPolicyBoundary),
     policyBoundary: exposedPolicyBoundary,
+    aiTriage: aiTriage?.metadata,
   };
+}
+
+async function getAiTriageDecision({
+  message,
+  sessionContext,
+  deterministicRisk,
+  deterministicState,
+  policyBoundaryCandidate,
+  classifier,
+  hasInjectedClassifier,
+}: {
+  message: string;
+  sessionContext: SafetyEvaluationInput["sessionContext"];
+  deterministicRisk: ApiRiskClassification;
+  deterministicState: SafetyState;
+  policyBoundaryCandidate: PolicyBoundaryResult;
+  classifier: NonNullable<SafetyEvaluationOptions["aiTriageClassifier"]>;
+  hasInjectedClassifier: boolean;
+}) {
+  if (
+    !shouldRunAiTriage({
+      message,
+      deterministicRisk,
+      deterministicState,
+      policyBoundaryCandidate,
+    })
+  ) {
+    return {
+      metadata: {
+        available: false,
+        used: false,
+        escalated: false,
+      } satisfies AiTriageDecisionMetadata,
+    };
+  }
+
+  if (!hasInjectedClassifier && !hasAiTriageConfig()) {
+    return {
+      metadata: {
+        available: false,
+        used: false,
+        escalated: false,
+      } satisfies AiTriageDecisionMetadata,
+    };
+  }
+
+  const triageResult = await classifier({
+    message,
+    sessionContext,
+    deterministicRisk,
+    policyBoundary: policyBoundaryCandidate,
+  });
+
+  if (!triageResult.available) {
+    return {
+      metadata: {
+        available: false,
+        used: false,
+        escalated: false,
+      } satisfies AiTriageDecisionMetadata,
+    };
+  }
+
+  const candidate = adaptTriageSignal(triageResult.signal);
+  const merged = mergeTriageCandidate({
+    deterministicRisk,
+    deterministicState,
+    deterministicPolicyBoundary: policyBoundaryCandidate,
+    candidate,
+  });
+
+  return {
+    risk: merged.risk,
+    safetyState: merged.safetyState,
+    policyBoundary: merged.policyBoundary,
+    metadata: {
+      available: true,
+      used: true,
+      escalated: merged.escalated,
+      confidence: candidate.confidence,
+      rationaleCode: candidate.rationaleCode,
+      subject: candidate.subject,
+    } satisfies AiTriageDecisionMetadata,
+  };
+}
+
+export function shouldRunAiTriage({
+  message,
+  deterministicRisk,
+  deterministicState,
+  policyBoundaryCandidate,
+}: {
+  message: string;
+  deterministicRisk: ApiRiskClassification;
+  deterministicState: SafetyState;
+  policyBoundaryCandidate: PolicyBoundaryResult;
+}) {
+  const meaningfulMessage = message.trim().length >= 8;
+
+  if (!meaningfulMessage) {
+    return false;
+  }
+
+  if (["high", "imminent"].includes(deterministicRisk.level)) {
+    return false;
+  }
+
+  if (
+    [
+      "imminent_risk",
+      "active_suicidal_ideation",
+      "self_harm_method_request",
+      "medical_emergency",
+      "harm_to_others",
+    ].includes(deterministicState)
+  ) {
+    return false;
+  }
+
+  if (
+    policyBoundaryCandidate.categories.some((category) =>
+      [
+        "diagnosis_request",
+        "medication_request",
+        "treatment_protocol_request",
+        "therapy_replacement_request",
+        "prompt_injection",
+        "self_harm_method_request",
+      ].includes(category),
+    )
+  ) {
+    return false;
+  }
+
+  return ["none", "low", "medium"].includes(deterministicRisk.level);
+}
+
+function hasAiTriageConfig() {
+  return Boolean(
+    process.env.OPENAI_API_KEY?.trim() &&
+      process.env.OPENAI_TRIAGE_MODEL?.trim(),
+  );
 }
 
 function shouldShowResources({
@@ -109,6 +272,10 @@ function getSafetyUi({
 
   if (playbookState === "policy_boundary") {
     return null;
+  }
+
+  if (playbookState === "third_party_self_harm") {
+    return thirdPartySelfHarmSafety;
   }
 
   if (playbookState === "self_harm_method_request" && boundaryResponse) {
@@ -160,6 +327,10 @@ function getResponseContent({
 
   if (safetyState === "self_harm_method_request") {
     return boundaryResponse ?? safetyMessage;
+  }
+
+  if (safetyState === "third_party_self_harm") {
+    return thirdPartySelfHarmSafety.message;
   }
 
   return safetyMessage;
@@ -220,4 +391,13 @@ function getResourceTopic({
 
 export const safetyOrchestrator = {
   evaluate: evaluateSafety,
+};
+
+const thirdPartySelfHarmSafety = {
+  showInlineSafetyCard: true,
+  disableNormalNextStep: true,
+  title: "Support for someone else",
+  message:
+    "That sounds serious. If this person may be in immediate danger, contact local emergency services or a trusted person near them. If you can, stay connected with them and encourage immediate support.",
+  tone: "support" as const,
 };

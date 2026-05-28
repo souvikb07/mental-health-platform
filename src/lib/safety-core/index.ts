@@ -1,6 +1,7 @@
 export type {
   SafetyDecision,
   SafetyEvaluationInput,
+  SafetyEvaluationOptions,
   SafetyPlaybook,
   SafetyResponseType,
   SafetyState,
