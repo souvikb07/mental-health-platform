@@ -826,3 +826,33 @@ Removed the main-header Demo link and reframed `/demo` as a safety and routing p
 
 Next step:
 Proceed to final demo/pitch prep after a quick human clean-browser spot check for direct `/chat` no-session behavior if available.
+
+## 2026-05-28 23:31 CEST
+
+Task:
+FE-7b exact Stitch-style header polish.
+
+Prompt used:
+Make the global site header visually match `reference/stitch/landing/stitch.html` as closely as possible using safe React/Tailwind, preserving real navigation, the `/onboarding` primary CTA, no Demo link, and all backend/API/safety behavior.
+
+Files changed:
+Updated `src/components/layout/site-header.tsx` and `CODEX_BUILD_LOG.md`.
+
+Commands run:
+`git status --short`
+Read-only inspection of `reference/stitch/landing/stitch.html`, `reference/stitch/DESIGN.md`, project handoff docs, `CODEX_BUILD_LOG.md`, and the existing site header
+`npm test`
+`npm run lint`
+`npm run build`
+`git diff --check`
+`npm run dev`
+Browser manual QA for `/`, `/onboarding`, `/chat`, `/clarity-map`, `/resources`, and `/feedback` at desktop and 390px mobile widths.
+
+Result:
+Tests passed: 24 files, 253 tests. Lint passed. Build passed. `git diff --check` passed. Real AI smoke eval was not run because only the shared header and build log changed.
+
+Manual review notes:
+Reworked the header toward the Stitch landing header: sticky warm background, no bottom border, soft backdrop blur, max-w-7xl canvas, mobile/desktop padding aligned to the Stitch spacing, bold sage MindBridge wordmark, safe inline SVG approximation of the Stitch Material Symbols `eco` icon, subtle brand hover scale/drop shadow, minimal right-side navigation, and a sage rounded-pill onboarding CTA with ambient depth and active/hover motion. The external Material Symbols icon font and Stitch account icon were not imported or recreated as auth/profile UI; the CTA remains a real `/onboarding` link and the existing `Resources` link remains available on desktop. Browser QA confirmed the header renders on all requested routes, has no Demo link, keeps 44px tap targets for visible mobile links, preserves `/onboarding` and `/resources` destinations, and introduces no horizontal overflow.
+
+Next step:
+Proceed to deploy/merge after review.
