@@ -1,0 +1,272 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>MindBridge - Onboarding</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "ink-charcoal": "#2D2C2B",
+                        "on-tertiary-fixed": "#001848",
+                        "on-primary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container-high": "#ece7e5",
+                        "surface-bright": "#fdf8f6",
+                        "on-tertiary-fixed-variant": "#0040a2",
+                        "surface-variant": "#e6e1e0",
+                        "surface-container-highest": "#e6e1e0",
+                        "tertiary-container": "#0049b8",
+                        "error-container": "#ffdad6",
+                        "secondary-container": "#fdcc00",
+                        "inverse-on-surface": "#f5f0ee",
+                        "inverse-surface": "#32302f",
+                        "on-secondary": "#ffffff",
+                        "background": "#fdf8f6",
+                        "surface": "#fdf8f6",
+                        "on-secondary-fixed": "#231a00",
+                        "surface-container-low": "#f8f3f1",
+                        "outline": "#717973",
+                        "on-secondary-fixed-variant": "#574500",
+                        "secondary-fixed": "#ffe086",
+                        "on-tertiary": "#ffffff",
+                        "sage-green": "#2d5a43",
+                        "serene-blue": "#0061EF",
+                        "on-primary-container": "#9fcfb2",
+                        "on-background": "#1c1b1a",
+                        "surface-dim": "#ded9d7",
+                        "warm-clay": "#F9F4F2",
+                        "primary-fixed": "#bceecf",
+                        "on-surface-variant": "#414943",
+                        "on-surface": "#1c1b1a",
+                        "tertiary-fixed": "#dae2ff",
+                        "secondary": "#735c00",
+                        "surface-tint": "#3a674f",
+                        "outline-variant": "#c0c9c1",
+                        "primary": "#14422d",
+                        "inverse-primary": "#a1d1b4",
+                        "tertiary": "#003488",
+                        "on-secondary-container": "#6e5700",
+                        "soft-white": "#FFFFFF",
+                        "sunny-yellow": "#FFCE00",
+                        "tertiary-fixed-dim": "#b2c5ff",
+                        "on-primary-fixed": "#002112",
+                        "primary-fixed-dim": "#a1d1b4",
+                        "on-tertiary-container": "#afc3ff",
+                        "secondary-fixed-dim": "#efc100",
+                        "on-primary-fixed-variant": "#224f39",
+                        "primary-container": "#2d5a43",
+                        "on-error": "#ffffff",
+                        "error": "#ba1a1a",
+                        "surface-container": "#f2edeb"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    spacing: {
+                        "base": "8px",
+                        "element-gap-md": "32px", // Increased for airier feel
+                        "container-padding-desktop": "40px",
+                        "container-padding-mobile": "20px",
+                        "section-gap": "64px",
+                        "element-gap-sm": "16px", // Increased for airier feel
+                        "gutter": "24px"
+                    },
+                    fontFamily: {
+                        "body-md": ["Manrope", "sans-serif"],
+                        "headline-lg": ["Manrope", "sans-serif"],
+                        "headline-md": ["Manrope", "sans-serif"],
+                        "body-lg": ["Manrope", "sans-serif"],
+                        "display-lg": ["Manrope", "sans-serif"],
+                        "headline-lg-mobile": ["Manrope", "sans-serif"],
+                        "label-sm": ["Manrope", "sans-serif"],
+                        "label-md": ["Manrope", "sans-serif"]
+                    },
+                    fontSize: {
+                        "body-md": ["16px", { lineHeight: "24px", fontWeight: "400" }],
+                        "headline-lg": ["32px", { lineHeight: "40px", letterSpacing: "-0.01em", fontWeight: "700" }],
+                        "headline-md": ["24px", { lineHeight: "32px", fontWeight: "600" }],
+                        "body-lg": ["18px", { lineHeight: "28px", fontWeight: "400" }],
+                        "display-lg": ["48px", { lineHeight: "56px", letterSpacing: "-0.02em", fontWeight: "800" }],
+                        "headline-lg-mobile": ["28px", { lineHeight: "36px", fontWeight: "700" }],
+                        "label-sm": ["12px", { lineHeight: "16px", fontWeight: "500" }],
+                        "label-md": ["14px", { lineHeight: "20px", letterSpacing: "0.01em", fontWeight: "600" }]
+                    },
+                    keyframes: {
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        shimmer: {
+                            '100%': { transform: 'translateX(100%)' }
+                        }
+                    },
+                    animation: {
+                        fadeInUp: 'fadeInUp 0.8s ease-out forwards',
+                        shimmer: 'shimmer 2s infinite'
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined[data-weight="fill"] {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen flex flex-col font-body-md antialiased selection:bg-primary-fixed selection:text-on-primary-fixed"><header class="bg-background dark:bg-on-background docked full-width top-0 z-50 sticky transition-all duration-300" id="top-nav">
+<div class="flex justify-between items-center w-full px-container-padding-mobile md:px-container-padding-desktop py-4 max-w-7xl mx-auto">
+<!-- Brand -->
+<a class="text-headline-md font-headline-md font-extrabold text-sage-green dark:text-primary-fixed-dim flex items-center gap-2" href="#">
+<span class="material-symbols-outlined" data-weight="fill" style="font-variation-settings: &quot;FILL&quot; 1;">eco</span>
+            MindBridge
+        </a>
+<!-- Actions -->
+<div class="flex items-center gap-4">
+<button class="text-sage-green dark:text-primary-fixed-dim hover:bg-surface-container rounded-full p-2 scale-95 active:scale-90 transition-transform duration-300">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Top Navigation (Suppressed per Semantic Shell Mandate for Onboarding/Linear intent) -->
+<!-- Main Canvas -->
+<main class="flex items-center justify-center p-container-padding-mobile md:p-container-padding-desktop py-section-gap overflow-hidden">
+<div class="w-full max-w-md bg-soft-white rounded-xl shadow-[0px_10px_30px_rgba(45,90,67,0.08)] p-element-gap-md md:p-container-padding-desktop flex flex-col gap-element-gap-md opacity-0 animate-fadeInUp"><div class="bg-warm-clay border border-outline-variant rounded-xl p-4 flex gap-3 items-start mb-2 transition-all duration-300 hover:shadow-sm">
+<div class="flex-shrink-0 w-8 h-8 rounded-full bg-sage-green text-soft-white flex items-center justify-center">
+<span class="material-symbols-outlined text-xl" data-weight="fill">shield</span>
+</div>
+<div class="space-y-1">
+<h4 class="font-label-md text-label-md text-on-surface">Safety boundary</h4>
+<p class="font-label-sm text-label-sm text-on-surface-variant leading-tight">
+            MindBridge is for reflection and support routing. It is not therapy, diagnosis, treatment, medical advice, emergency support, or a replacement for professional care.
+        </p>
+</div>
+</div>
+<!-- Header -->
+<div class="text-center space-y-base">
+<div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary-fixed-dim text-sage-green mb-element-gap-sm transition-transform duration-500 hover:rotate-12 hover:scale-110">
+<span class="material-symbols-outlined text-4xl" data-weight="fill">spa</span>
+</div>
+<h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-sage-green">Welcome to MindBridge</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Let's personalize your journey. Just a few quick details to get started.</p>
+</div>
+<!-- Form -->
+<form class="flex flex-col gap-element-gap-md mt-element-gap-sm">
+<!-- Country -->
+<div class="flex flex-col gap-base">
+<label class="font-label-md text-label-md text-on-surface" for="country">Country</label>
+<div class="relative group">
+<select class="w-full appearance-none bg-warm-clay border-2 border-transparent focus:border-sage-green focus:ring-4 focus:ring-sage-green/20 rounded-lg px-4 py-3 font-body-md text-body-md text-on-background transition-all duration-300 outline-none cursor-pointer pr-10 hover:bg-surface-container-high" id="country" name="country">
+<option disabled="" selected="" value="">Select your location</option>
+<option value="us">United States</option>
+<option value="uk">United Kingdom</option>
+<option value="ca">Canada</option>
+<option value="au">Australia</option>
+<option value="other">Other</option>
+</select>
+<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-outline transition-transform duration-300 group-focus-within:rotate-180">
+<span class="material-symbols-outlined">expand_more</span>
+</div>
+</div>
+</div>
+<!-- Main Reason -->
+<div class="flex flex-col gap-base"><label class="font-label-md text-label-md text-on-surface">Main reason for visit</label>
+<div class="flex flex-wrap gap-2">
+<label class="cursor-pointer">
+<input checked="" class="peer sr-only" name="reason" type="checkbox" value="Overwhelmed">
+<div class="px-4 py-1.5 rounded-full border border-outline-variant text-label-md font-medium transition-all duration-300 peer-checked:bg-sage-green peer-checked:text-soft-white peer-checked:border-sage-green hover:bg-surface-container-high peer-checked:scale-105 peer-focus-visible:ring-4 peer-focus-visible:ring-sage-green/30">Overwhelmed</div>
+</label>
+<label class="cursor-pointer">
+<input class="peer sr-only" name="reason" type="checkbox" value="Anxious / worried">
+<div class="px-4 py-1.5 rounded-full border border-outline-variant text-label-md font-medium transition-all duration-300 peer-checked:bg-sage-green peer-checked:text-soft-white peer-checked:border-sage-green hover:bg-surface-container-high peer-checked:scale-105 peer-focus-visible:ring-4 peer-focus-visible:ring-sage-green/30">Anxious / worried</div>
+</label>
+<label class="cursor-pointer">
+<input class="peer sr-only" name="reason" type="checkbox" value="Low / numb / disconnected">
+<div class="px-4 py-1.5 rounded-full border border-outline-variant text-label-md font-medium transition-all duration-300 peer-checked:bg-sage-green peer-checked:text-soft-white peer-checked:border-sage-green hover:bg-surface-container-high peer-checked:scale-105 peer-focus-visible:ring-4 peer-focus-visible:ring-sage-green/30">Low / numb / disconnected</div>
+</label>
+<label class="cursor-pointer">
+<input class="peer sr-only" name="reason" type="checkbox" value="Work or study stress">
+<div class="px-4 py-1.5 rounded-full border border-outline-variant text-label-md font-medium transition-all duration-300 peer-checked:bg-sage-green peer-checked:text-soft-white peer-checked:border-sage-green hover:bg-surface-container-high peer-checked:scale-105 peer-focus-visible:ring-4 peer-focus-visible:ring-sage-green/30">Work or study stress</div>
+</label>
+<label class="cursor-pointer">
+<input class="peer sr-only" name="reason" type="checkbox" value="Relationship or family">
+<div class="px-4 py-1.5 rounded-full border border-outline-variant text-label-md font-medium transition-all duration-300 peer-checked:bg-sage-green peer-checked:text-soft-white peer-checked:border-sage-green hover:bg-surface-container-high peer-checked:scale-105 peer-focus-visible:ring-4 peer-focus-visible:ring-sage-green/30">Relationship or family</div>
+</label>
+<label class="cursor-pointer">
+<input class="peer sr-only" name="reason" type="checkbox" value="Sleep or energy">
+<div class="px-4 py-1.5 rounded-full border border-outline-variant text-label-md font-medium transition-all duration-300 peer-checked:bg-sage-green peer-checked:text-soft-white peer-checked:border-sage-green hover:bg-surface-container-high peer-checked:scale-105 peer-focus-visible:ring-4 peer-focus-visible:ring-sage-green/30">Sleep or energy</div>
+</label>
+<label class="cursor-pointer">
+<input class="peer sr-only" name="reason" type="checkbox" value="I'm not sure">
+<div class="px-4 py-1.5 rounded-full border border-outline-variant text-label-md font-medium transition-all duration-300 peer-checked:bg-sage-green peer-checked:text-soft-white peer-checked:border-sage-green hover:bg-surface-container-high peer-checked:scale-105 peer-focus-visible:ring-4 peer-focus-visible:ring-sage-green/30">I'm not sure</div>
+</label>
+</div></div>
+<!-- Actions -->
+<div class="pt-element-gap-sm mt-auto relative">
+<button class="w-full bg-sage-green text-soft-white rounded-full py-3 px-6 font-label-md text-label-md transition-all duration-300 hover:bg-primary hover:shadow-lg active:scale-[0.98] flex justify-center items-center gap-2 shadow-[0px_4px_12px_rgba(45,90,67,0.15)] relative overflow-hidden group focus:outline-none focus:ring-4 focus:ring-sage-green/30" type="button">
+<div class="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-soft-white/20 to-transparent group-hover:animate-shimmer"></div>
+<span class="relative z-10 flex items-center gap-2">
+                            Continue
+                            <span class="material-symbols-outlined text-sm transition-transform duration-300 group-hover:translate-x-1">arrow_forward</span>
+</span>
+</button>
+<p class="text-center font-label-sm text-label-sm text-outline mt-base transition-opacity duration-300 hover:opacity-80">
+                        Your information is kept private and secure.
+                    </p>
+</div>
+</form>
+</div>
+</main>
+<!-- Bottom Navigation (Suppressed per Semantic Shell Mandate for Onboarding/Linear intent) -->
+<footer class="bg-warm-clay dark:bg-surface-container-highest full-width bottom-0 mt-auto">
+<div class="flex flex-col md:flex-row justify-between items-center w-full px-container-padding-mobile md:px-container-padding-desktop py-section-gap max-w-7xl mx-auto gap-element-gap-md">
+<div class="text-label-md font-headline-md font-bold text-sage-green dark:text-primary-fixed-dim flex items-center gap-2 transition-transform duration-300 hover:scale-105">
+<span class="material-symbols-outlined" data-icon="eco">eco</span>
+            MindBridge
+        </div>
+<div class="font-body-md text-body-md text-on-surface-variant text-center md:text-left">
+            © 2026 MindBridge. Your journey to clarity.
+        </div>
+<nav class="flex gap-4 items-center">
+<a class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant hover:text-sage-green dark:hover:text-primary-fixed-dim underline transition-colors duration-300" href="#">Privacy Policy</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant hover:text-sage-green dark:hover:text-primary-fixed-dim underline transition-colors duration-300" href="#">Terms of Service</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant hover:text-sage-green dark:hover:text-primary-fixed-dim underline transition-colors duration-300" href="#">Emergency Resources</a>
+</nav>
+</div>
+</footer><script>
+    window.addEventListener('scroll', () => {
+        const header = document.getElementById('top-nav');
+        if (window.scrollY > 20) {
+            header.classList.add('shadow-sm', 'bg-opacity-95', 'backdrop-blur-sm');
+        } else {
+            header.classList.remove('shadow-sm', 'bg-opacity-95', 'backdrop-blur-sm');
+        }
+    });
+
+    // Add a simple interaction for the continue button to demonstrate progress state
+    const continueBtn = document.querySelector('button[type="button"]');
+    if(continueBtn) {
+        continueBtn.addEventListener('click', function(e) {
+            const originalText = this.innerHTML;
+            this.innerHTML = '<span class="material-symbols-outlined animate-spin text-sm">progress_activity</span><span class="relative z-10">Processing...</span>';
+            this.classList.add('opacity-80', 'cursor-not-allowed');
+            setTimeout(() => {
+                this.innerHTML = originalText;
+                this.classList.remove('opacity-80', 'cursor-not-allowed');
+            }, 1500);
+        });
+    }
+</script></body></html>

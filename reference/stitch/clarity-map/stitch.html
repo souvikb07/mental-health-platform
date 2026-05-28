@@ -1,0 +1,282 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Clarity Map - MindBridge</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "ink-charcoal": "#2D2C2B",
+                        "on-tertiary-fixed": "#001848",
+                        "on-primary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container-high": "#ece7e5",
+                        "surface-bright": "#fdf8f6",
+                        "on-tertiary-fixed-variant": "#0040a2",
+                        "surface-variant": "#e6e1e0",
+                        "surface-container-highest": "#e6e1e0",
+                        "tertiary-container": "#0049b8",
+                        "error-container": "#ffdad6",
+                        "secondary-container": "#fdcc00",
+                        "inverse-on-surface": "#f5f0ee",
+                        "inverse-surface": "#32302f",
+                        "on-secondary": "#ffffff",
+                        "background": "#fdf8f6",
+                        "surface": "#fdf8f6",
+                        "on-secondary-fixed": "#231a00",
+                        "surface-container-low": "#f8f3f1",
+                        "outline": "#717973",
+                        "on-secondary-fixed-variant": "#574500",
+                        "secondary-fixed": "#ffe086",
+                        "on-tertiary": "#ffffff",
+                        "sage-green": "#2d5a43",
+                        "serene-blue": "#0061EF",
+                        "on-primary-container": "#9fcfb2",
+                        "on-background": "#1c1b1a",
+                        "surface-dim": "#ded9d7",
+                        "warm-clay": "#F9F4F2",
+                        "primary-fixed": "#bceecf",
+                        "on-surface-variant": "#414943",
+                        "on-surface": "#1c1b1a",
+                        "tertiary-fixed": "#dae2ff",
+                        "secondary": "#735c00",
+                        "surface-tint": "#3a674f",
+                        "outline-variant": "#c0c9c1",
+                        "primary": "#14422d",
+                        "inverse-primary": "#a1d1b4",
+                        "tertiary": "#003488",
+                        "on-secondary-container": "#6e5700",
+                        "soft-white": "#FFFFFF",
+                        "sunny-yellow": "#FFCE00",
+                        "tertiary-fixed-dim": "#b2c5ff",
+                        "on-primary-fixed": "#002112",
+                        "primary-fixed-dim": "#a1d1b4",
+                        "on-tertiary-container": "#afc3ff",
+                        "secondary-fixed-dim": "#efc100",
+                        "on-primary-fixed-variant": "#224f39",
+                        "primary-container": "#2d5a43",
+                        "on-error": "#ffffff",
+                        "error": "#ba1a1a",
+                        "surface-container": "#f2edeb"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "2xl": "1rem",
+                        "3xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                    spacing: {
+                        "base": "8px",
+                        "element-gap-md": "24px",
+                        "container-padding-desktop": "40px",
+                        "container-padding-mobile": "20px",
+                        "section-gap": "64px",
+                        "element-gap-sm": "12px",
+                        "gutter": "24px"
+                    },
+                    fontFamily: {
+                        "body-md": ["Manrope", "sans-serif"],
+                        "headline-lg": ["Manrope", "sans-serif"],
+                        "headline-md": ["Manrope", "sans-serif"],
+                        "body-lg": ["Manrope", "sans-serif"],
+                        "display-lg": ["Manrope", "sans-serif"],
+                        "headline-lg-mobile": ["Manrope", "sans-serif"],
+                        "label-sm": ["Manrope", "sans-serif"],
+                        "label-md": ["Manrope", "sans-serif"]
+                    },
+                    fontSize: {
+                        "body-md": ["16px", { lineHeight: "24px", fontWeight: "400" }],
+                        "headline-lg": ["32px", { lineHeight: "40px", letterSpacing: "-0.01em", fontWeight: "700" }],
+                        "headline-md": ["24px", { lineHeight: "32px", fontWeight: "600" }],
+                        "body-lg": ["18px", { lineHeight: "28px", fontWeight: "400" }],
+                        "display-lg": ["48px", { lineHeight: "56px", letterSpacing: "-0.02em", fontWeight: "800" }],
+                        "headline-lg-mobile": ["28px", { lineHeight: "36px", fontWeight: "700" }],
+                        "label-sm": ["12px", { lineHeight: "16px", fontWeight: "500" }],
+                        "label-md": ["14px", { lineHeight: "20px", letterSpacing: "0.01em", fontWeight: "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'Manrope', sans-serif; }
+        .ambient-shadow { box-shadow: 0px 10px 30px rgba(45, 90, 67, 0.08); }
+        .pulse-animation { animation: pulse-soft 3s infinite; }
+        @keyframes pulse-soft {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.9; transform: scale(0.98); }
+        }
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom, 20px); }
+
+        .checkbox-wrapper input:checked + div {
+            background-color: theme('colors.sage-green');
+            border-color: theme('colors.sage-green');
+        }
+        .checkbox-wrapper input:checked + div span {
+            opacity: 1;
+            transform: scale(1);
+        }
+        .checkbox-wrapper input:checked ~ div p.task-title {
+            color: theme('colors.outline');
+            text-decoration: line-through;
+        }
+        .checkbox-wrapper input:checked ~ div p.task-desc {
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface min-h-screen flex flex-col font-body-md text-body-md">
+<!-- TopAppBar -->
+<header class="bg-background dark:bg-on-background docked full-width top-0 z-50 sticky transition-all duration-300" id="top-nav">
+<div class="flex justify-between items-center w-full px-container-padding-mobile md:px-container-padding-desktop py-4 max-w-7xl mx-auto">
+<!-- Brand -->
+<a class="text-headline-md font-headline-md font-extrabold text-sage-green dark:text-primary-fixed-dim flex items-center gap-2 transition-all duration-300 hover:scale-[1.02] hover:drop-shadow-[0_0_12px_rgba(45,90,67,0.3)]" href="#">
+<span class="material-symbols-outlined transition-colors duration-300" data-weight="fill" style="font-variation-settings: &quot;FILL&quot; 1;">eco</span>
+            MindBridge
+        </a>
+<!-- Actions -->
+<div class="flex items-center gap-4">
+<button class="text-sage-green dark:text-primary-fixed-dim hover:bg-surface-container rounded-full p-2 scale-95 active:scale-90 transition-all duration-300 ease-in-out hover:text-primary">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Main Canvas -->
+<main class="flex-grow px-container-padding-mobile md:px-container-padding-desktop max-w-7xl mx-auto w-full pt-8 pb-32">
+<!-- Welcome / Intent -->
+<section class="mb-section-gap text-center md:text-left max-w-2xl"><nav class="mb-4"><a class="text-sage-green font-label-md" href="#">Clarity Map</a></nav><h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-sage-green mb-2">A non-diagnostic summary of patterns and next steps.</h1></section>
+<!-- Bento Grid Layout for Summary -->
+<div class="flex flex-col gap-8 bg-soft-white rounded-3xl p-6 md:p-8 ambient-shadow border border-outline-variant/20">
+<div class="flex gap-4 items-start"><div class="p-2 bg-primary-container text-soft-white rounded-lg flex items-center justify-center"><span class="material-symbols-outlined">description</span></div><div><h2 class="text-headline-md font-bold text-on-surface">Clarity Map</h2><p class="text-label-sm text-on-surface-variant">This is not a diagnosis. It is a reflection map based only on what you shared here.</p></div></div>
+<div class="bg-[#eaf8f1] rounded-2xl p-6 border border-primary-container/10">
+<h3 class="font-label-md text-on-surface-variant mb-4 uppercase tracking-wider">Harmony Signal</h3>
+<h4 class="text-headline-md font-bold text-on-surface mb-2 flex items-center gap-2">
+            Work or study pressure is clearer than the recovery path: <span class="text-sage-green">58/100</span>
+</h4>
+<p class="text-label-md text-on-surface-variant mb-4 italic">Mixed</p>
+<p class="text-body-md text-on-surface-variant">This non-clinical reflection signal is based only on this conversation. The conversation suggests a recognizable external pressure with recovery needs still forming.</p>
+</div>
+<section><h3 class="font-label-md text-on-surface-variant mb-4 uppercase tracking-wider">Key Insight</h3><h4 class="text-headline-md font-bold text-on-surface mb-4">Performance pressure may be spilling into recovery time</h4><p class="text-body-md text-on-surface-variant mb-6">A pattern that may be present is that work or study demands may be carrying into time that needs rest. The latest detail to keep in view is: "I think I do not have a clean boundary between work time and home time."</p><div class="flex flex-col gap-3"><div class="bg-surface-container-low p-4 rounded-xl text-on-surface-variant transition-transform hover:scale-[1.01] duration-300">The user connected the concern to work or study.</div><div class="bg-surface-container-low p-4 rounded-xl text-on-surface-variant transition-transform hover:scale-[1.01] duration-300">The transcript suggests pressure may continue after the task ends.</div><div class="bg-surface-container-low p-4 rounded-xl text-on-surface-variant transition-transform hover:scale-[1.01] duration-300">A boundary around availability or recovery may be useful.</div></div></section>
+<section class="bg-surface-container-low/30 border border-outline-variant/30 rounded-2xl p-6"><h3 class="font-label-md text-on-surface-variant mb-4 uppercase tracking-wider">Boundary Focus</h3><h4 class="text-headline-md font-bold text-on-surface mb-4">Separate effort time from recovery time</h4><ul class="flex flex-col gap-4 text-on-surface-variant"><li class="flex items-start gap-2"><span class="material-symbols-outlined text-sage-green opacity-80">radio_button_unchecked</span> The boundary may involve when work or study gets to occupy attention.</li><li class="flex items-start gap-2"><span class="material-symbols-outlined text-sage-green opacity-80">radio_button_unchecked</span> A small shutdown ritual could help mark the end of effort.</li><li class="flex items-start gap-2"><span class="material-symbols-outlined text-sage-green opacity-80">radio_button_unchecked</span> Create a five-minute end-of-work note: done, pending, and next smallest step.</li></ul></section>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<section>
+<h3 class="font-label-md text-on-surface-variant mb-6 uppercase tracking-wider">Next 24 hours</h3>
+<div class="flex flex-col gap-4">
+<label class="checkbox-wrapper cursor-pointer group flex gap-3 p-4 bg-surface-container-low rounded-xl items-start transition-all duration-300 hover:bg-surface-container-high hover:shadow-sm">
+<input class="sr-only" type="checkbox">
+<div class="w-6 h-6 border-2 border-outline-variant rounded flex items-center justify-center transition-colors duration-300 mt-0.5 shrink-0">
+<span class="material-symbols-outlined text-white text-[18px] opacity-0 scale-50 transition-all duration-300">check</span>
+</div>
+<div>
+<p class="task-title font-bold text-on-surface transition-colors duration-300">Write a short shutdown note: done, pending, and next smallest step.</p>
+<p class="task-desc text-label-sm text-on-surface-variant transition-opacity duration-300 mt-1">A concrete stopping point can reduce replaying after work or study ends.</p>
+</div>
+</label>
+<label class="checkbox-wrapper cursor-pointer group flex gap-3 p-4 bg-surface-container-low rounded-xl items-start transition-all duration-300 hover:bg-surface-container-high hover:shadow-sm">
+<input class="sr-only" type="checkbox">
+<div class="w-6 h-6 border-2 border-outline-variant rounded flex items-center justify-center transition-colors duration-300 mt-0.5 shrink-0">
+<span class="material-symbols-outlined text-white text-[18px] opacity-0 scale-50 transition-all duration-300">check</span>
+</div>
+<div>
+<p class="task-title font-bold text-on-surface transition-colors duration-300">Name one work or study expectation that can be narrowed.</p>
+<p class="task-desc text-label-sm text-on-surface-variant transition-opacity duration-300 mt-1">A small practical step can reduce pressure while you keep reflecting.</p>
+</div>
+</label>
+<label class="checkbox-wrapper cursor-pointer group flex gap-3 p-4 bg-surface-container-low rounded-xl items-start transition-all duration-300 hover:bg-surface-container-high hover:shadow-sm">
+<input class="sr-only" type="checkbox">
+<div class="w-6 h-6 border-2 border-outline-variant rounded flex items-center justify-center transition-colors duration-300 mt-0.5 shrink-0">
+<span class="material-symbols-outlined text-white text-[18px] opacity-0 scale-50 transition-all duration-300">check</span>
+</div>
+<div>
+<p class="task-title font-bold text-on-surface transition-colors duration-300">Protect one small recovery pocket after the next work or study block.</p>
+<p class="task-desc text-label-sm text-on-surface-variant transition-opacity duration-300 mt-1">A visible recovery cue can help separate effort time from the rest of the day.</p>
+</div>
+</label>
+</div>
+</section>
+<section>
+<h3 class="font-label-md text-on-surface-variant mb-6 uppercase tracking-wider">Next 7 days</h3>
+<div class="flex flex-col gap-4">
+<label class="checkbox-wrapper cursor-pointer group flex gap-3 p-4 bg-surface-container-low rounded-xl items-start transition-all duration-300 hover:bg-surface-container-high hover:shadow-sm">
+<input class="sr-only" type="checkbox">
+<div class="w-6 h-6 border-2 border-outline-variant rounded flex items-center justify-center transition-colors duration-300 mt-0.5 shrink-0">
+<span class="material-symbols-outlined text-white text-[18px] opacity-0 scale-50 transition-all duration-300">check</span>
+</div>
+<div>
+<p class="task-title font-bold text-on-surface transition-colors duration-300">Try one repeatable shutdown cue after work or study.</p>
+<p class="task-desc text-label-sm text-on-surface-variant transition-opacity duration-300 mt-1">Watching the pattern for a few days can clarify what support step fits.</p>
+</div>
+</label>
+<label class="checkbox-wrapper cursor-pointer group flex gap-3 p-4 bg-surface-container-low rounded-xl items-start transition-all duration-300 hover:bg-surface-container-high hover:shadow-sm">
+<input class="sr-only" type="checkbox">
+<div class="w-6 h-6 border-2 border-outline-variant rounded flex items-center justify-center transition-colors duration-300 mt-0.5 shrink-0">
+<span class="material-symbols-outlined text-white text-[18px] opacity-0 scale-50 transition-all duration-300">check</span>
+</div>
+<div>
+<p class="task-title font-bold text-on-surface transition-colors duration-300">Notice one moment when the pressure eases, even slightly.</p>
+<p class="task-desc text-label-sm text-on-surface-variant transition-opacity duration-300 mt-1">Small shifts can show what conditions make things more manageable.</p>
+</div>
+</label>
+<label class="checkbox-wrapper cursor-pointer group flex gap-3 p-4 bg-surface-container-low rounded-xl items-start transition-all duration-300 hover:bg-surface-container-high hover:shadow-sm">
+<input class="sr-only" type="checkbox">
+<div class="w-6 h-6 border-2 border-outline-variant rounded flex items-center justify-center transition-colors duration-300 mt-0.5 shrink-0">
+<span class="material-symbols-outlined text-white text-[18px] opacity-0 scale-50 transition-all duration-300">check</span>
+</div>
+<div>
+<p class="task-title font-bold text-on-surface transition-colors duration-300">Consider discussing this pattern with a qualified professional if it continues or disrupts daily life.</p>
+<p class="task-desc text-label-sm text-on-surface-variant transition-opacity duration-300 mt-1">Professional support may help you explore the pattern more fully.</p>
+</div>
+</label>
+</div>
+</section>
+</div>
+<div class="bg-[#eaf8f1] rounded-2xl p-6 border border-primary-container/10">
+<h3 class="font-label-md text-on-surface-variant mb-4 uppercase tracking-wider">Support Path</h3>
+<p class="text-on-surface font-bold mb-2">Start with practical workload reflection and consider professional or workplace support if functioning is affected.</p>
+<p class="text-label-sm text-on-surface-variant">A qualified professional may be able to help you explore these patterns; this map is not a diagnosis.</p>
+</div>
+<div class="pt-4">
+<button class="bg-sage-green text-soft-white rounded-lg py-3 px-6 font-label-md flex items-center gap-2 hover:opacity-90 hover:shadow-md transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0">
+<span class="material-symbols-outlined">arrow_forward</span>View resources
+        </button>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="bg-warm-clay dark:bg-surface-container-highest full-width bottom-0 mt-auto">
+<div class="flex flex-col md:flex-row justify-between items-center w-full px-container-padding-mobile md:px-container-padding-desktop py-section-gap max-w-7xl mx-auto gap-element-gap-md">
+<div class="text-label-md font-headline-md font-bold text-sage-green dark:text-primary-fixed-dim flex items-center gap-2">
+<span class="material-symbols-outlined" data-icon="eco">eco</span>
+            MindBridge
+        </div>
+<div class="font-body-md text-body-md text-on-surface-variant text-center md:text-left">
+            © 2026 MindBridge. Your journey to clarity.
+        </div>
+<nav class="flex gap-4 items-center">
+<a class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant hover:text-sage-green dark:hover:text-primary-fixed-dim underline transition-all duration-200" href="#">Privacy Policy</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant hover:text-sage-green dark:hover:text-primary-fixed-dim underline transition-all duration-200" href="#">Terms of Service</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant hover:text-sage-green dark:hover:text-primary-fixed-dim underline transition-all duration-200" href="#">Emergency Resources</a>
+</nav>
+</div>
+</footer>
+<script>
+    // Simple scroll effect for header
+    window.addEventListener('scroll', () => {
+        const header = document.getElementById('top-nav');
+        if (window.scrollY > 20) {
+            header.classList.add('shadow-sm', 'bg-opacity-95', 'backdrop-blur-sm');
+        } else {
+            header.classList.remove('shadow-sm', 'bg-opacity-95', 'backdrop-blur-sm');
+        }
+    });
+</script>
+</body></html>

@@ -1,0 +1,295 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>MindBridge | Find your center, naturally.</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-surface": "#1c1b1a",
+                      "surface-tint": "#3a674f",
+                      "on-background": "#1c1b1a",
+                      "tertiary-container": "#0049b8",
+                      "on-tertiary-fixed": "#001848",
+                      "tertiary": "#003488",
+                      "tertiary-fixed-dim": "#b2c5ff",
+                      "surface-container-lowest": "#ffffff",
+                      "tertiary-fixed": "#dae2ff",
+                      "sunny-yellow": "#FFCE00",
+                      "inverse-surface": "#32302f",
+                      "outline-variant": "#c0c9c1",
+                      "on-surface-variant": "#414943",
+                      "background": "#fdf8f6",
+                      "surface-container-highest": "#e6e1e0",
+                      "secondary": "#735c00",
+                      "inverse-on-surface": "#f5f0ee",
+                      "on-primary-container": "#9fcfb2",
+                      "secondary-container": "#fdcc00",
+                      "soft-white": "#FFFFFF",
+                      "primary-fixed-dim": "#a1d1b4",
+                      "on-primary-fixed": "#002112",
+                      "ink-charcoal": "#2D2C2B",
+                      "outline": "#717973",
+                      "on-secondary": "#ffffff",
+                      "surface-bright": "#fdf8f6",
+                      "surface-container-high": "#ece7e5",
+                      "on-tertiary-container": "#afc3ff",
+                      "on-secondary-container": "#6e5700",
+                      "secondary-fixed": "#ffe086",
+                      "on-primary-fixed-variant": "#224f39",
+                      "surface-container-low": "#f8f3f1",
+                      "on-primary": "#ffffff",
+                      "surface-variant": "#e6e1e0",
+                      "surface-dim": "#ded9d7",
+                      "on-error-container": "#93000a",
+                      "on-tertiary-fixed-variant": "#0040a2",
+                      "serene-blue": "#0061EF",
+                      "warm-clay": "#F9F4F2",
+                      "on-secondary-fixed": "#231a00",
+                      "sage-green": "#2d5a43",
+                      "primary-container": "#2d5a43",
+                      "error": "#ba1a1a",
+                      "on-error": "#ffffff",
+                      "surface": "#fdf8f6",
+                      "primary-fixed": "#bceecf",
+                      "primary": "#14422d",
+                      "on-tertiary": "#ffffff",
+                      "error-container": "#ffdad6",
+                      "surface-container": "#f2edeb",
+                      "on-secondary-fixed-variant": "#574500",
+                      "secondary-fixed-dim": "#efc100",
+                      "inverse-primary": "#a1d1b4"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "base": "8px",
+                      "section-gap": "64px",
+                      "element-gap-md": "24px",
+                      "gutter": "24px",
+                      "element-gap-sm": "12px",
+                      "container-padding-desktop": "40px",
+                      "container-padding-mobile": "20px"
+              },
+              "fontFamily": {
+                      "headline-md": ["manrope"],
+                      "label-md": ["manrope"],
+                      "headline-lg-mobile": ["manrope"],
+                      "display-lg": ["manrope"],
+                      "body-md": ["manrope"],
+                      "label-sm": ["manrope"],
+                      "headline-lg": ["manrope"],
+                      "body-lg": ["manrope"]
+              },
+              "fontSize": {
+                      "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                      "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                      "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "700"}],
+                      "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                      "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+        body {
+            background-color: #fdf8f6; /* background */
+            color: #1c1b1a; /* on-background */
+        }
+        .ambient-shadow {
+            box-shadow: 0px 10px 30px rgba(45, 90, 67, 0.08);
+        }
+        
+        /* Entrance Animations */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-up {
+            animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+        }
+        .delay-100 { animation-delay: 100ms; }
+        .delay-200 { animation-delay: 200ms; }
+        
+        /* Scroll Reveal */
+        .reveal-on-scroll {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .reveal-on-scroll.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Respect Reduced Motion */
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            ::before,
+            ::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+                transform: none !important;
+            }
+            .animate-fade-up, .reveal-on-scroll {
+                opacity: 1 !important;
+                transform: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col font-body-md text-body-md">
+<!-- TopAppBar -->
+<header class="bg-background dark:bg-on-background docked full-width top-0 z-50 sticky transition-all duration-300" id="top-nav">
+<div class="flex justify-between items-center w-full px-container-padding-mobile md:px-container-padding-desktop py-4 max-w-7xl mx-auto">
+<!-- Brand -->
+<a class="text-headline-md font-headline-md font-extrabold text-sage-green dark:text-primary-fixed-dim flex items-center gap-2 transition-all duration-300 hover:scale-[1.02] hover:drop-shadow-[0_0_12px_rgba(45,90,67,0.3)]" href="#">
+<span class="material-symbols-outlined transition-colors duration-300" data-weight="fill" style="font-variation-settings: &quot;FILL&quot; 1;">eco</span>
+            MindBridge
+        </a>
+<!-- Actions -->
+<div class="flex items-center gap-4">
+<button class="text-sage-green dark:text-primary-fixed-dim hover:bg-surface-container rounded-full p-2 scale-95 active:scale-90 transition-all duration-300 ease-in-out hover:text-primary">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-grow flex flex-col items-center px-container-padding-mobile md:px-container-padding-desktop py-section-gap max-w-7xl mx-auto w-full relative overflow-hidden">
+<!-- Hero Text -->
+<div class="w-full flex flex-col items-center text-center mt-8 md:mt-12 mb-12 animate-fade-up">
+<h1 class="font-display-lg text-display-lg text-ink-charcoal max-w-4xl leading-tight">
+            The bridge to understanding your mental health
+        </h1>
+</div>
+<!-- Hero Image -->
+<div class="w-full max-w-5xl mx-auto mb-24 rounded-[40px] overflow-hidden h-64 md:h-80 shadow-sm border border-outline-variant/10 animate-fade-up delay-100">
+<img alt="Abstract path illustration" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAYtiWfU8nBvTxbbAIxFni2QwOfepLWf24Q0O3pELVsLfNWWDJrgSUkrAk-YpOcSwpsh5GLlILpe3bK-lbSizy_NgaV7te2B3jlR0r37YmOCmp8oZqRFTiGtKTYwJaAk6fwihVk8xFaTGufIuzPIpStFDGy9vv8oeB9lyeJO4TAQLr6CcJ0vZJrkoAfMfhRxlk2jUvbN1mT0wShCsMMGby_NWjK4Pt3UrQTHHC6YfWgbc2O_YhQTVy-MTEtk6AfZNESnTnThIWMOY4">
+</div>
+<!-- How it works -->
+<div class="w-full max-w-5xl mx-auto mb-24 reveal-on-scroll">
+<h2 class="font-headline-lg text-headline-lg text-ink-charcoal text-center mb-16">How it works</h2>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
+<div class="flex flex-col items-center">
+<span class="material-symbols-outlined text-5xl text-sage-green mb-6" data-icon="forum">forum</span>
+<h3 class="font-headline-md text-headline-md text-ink-charcoal mb-2">1. Share your story</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Talk with our empathetic AI.</p>
+</div>
+<div class="flex flex-col items-center">
+<span class="material-symbols-outlined text-5xl text-sage-green mb-6" data-icon="map">map</span>
+<h3 class="font-headline-md text-headline-md text-ink-charcoal mb-2">2. Gain clarity</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Receive a non-diagnostic map of your patterns.</p>
+</div>
+<div class="flex flex-col items-center">
+<span class="material-symbols-outlined text-5xl text-sage-green mb-6" data-icon="volunteer_activism">volunteer_activism</span>
+<h3 class="font-headline-md text-headline-md text-ink-charcoal mb-2">3. Take your next step</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Get matched with resources and community.</p>
+</div>
+</div>
+</div>
+<!-- The bridge to the right support -->
+<div class="w-full max-w-4xl mx-auto mb-16 reveal-on-scroll">
+<h2 class="font-headline-lg text-headline-lg text-ink-charcoal text-center mb-16">The bridge to the right support</h2>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+<div class="flex items-start gap-4">
+<span class="material-symbols-outlined text-4xl text-sage-green mt-1" data-icon="check_circle">check_circle</span>
+<div>
+<h3 class="font-headline-md text-headline-md text-ink-charcoal mb-2">No waiting lists</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Connect instantly with the support you need.</p>
+</div>
+</div>
+<div class="flex items-start gap-4">
+<span class="material-symbols-outlined text-4xl text-sage-green mt-1" data-icon="health_and_safety">health_and_safety</span>
+<div>
+<h3 class="font-headline-md text-headline-md text-ink-charcoal mb-2">Judgment-free space</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Explore your thoughts in a safe, secure, and private environment.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Consolidated CTA -->
+<div class="w-full flex justify-center mb-12 animate-fade-up delay-200">
+<button class="bg-primary text-soft-white font-label-md text-label-md px-8 py-4 rounded-full ambient-shadow hover:bg-sage-green transition-all duration-500 ease-out transform hover:-translate-y-1.5 hover:shadow-[0_15px_30px_-5px_rgba(45,90,67,0.3)] active:translate-y-0 active:scale-95">
+            Start a clarity session
+        </button>
+</div>
+</main>
+<!-- Footer -->
+<footer class="bg-warm-clay dark:bg-surface-container-highest full-width bottom-0 mt-auto">
+<div class="flex flex-col md:flex-row justify-between items-center w-full px-container-padding-mobile md:px-container-padding-desktop py-section-gap max-w-7xl mx-auto gap-element-gap-md">
+<div class="text-label-md font-headline-md font-bold text-sage-green dark:text-primary-fixed-dim flex items-center gap-2">
+<span class="material-symbols-outlined" data-icon="eco">eco</span>
+            MindBridge
+        </div>
+<div class="font-body-md text-body-md text-on-surface-variant text-center md:text-left">
+            © 2026 MindBridge. Your journey to clarity.
+        </div>
+<nav class="flex gap-4 items-center">
+<a class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant hover:text-sage-green dark:hover:text-primary-fixed-dim underline transition-all duration-200" href="#">Privacy Policy</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant hover:text-sage-green dark:hover:text-primary-fixed-dim underline transition-all duration-200" href="#">Terms of Service</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant hover:text-sage-green dark:hover:text-primary-fixed-dim underline transition-all duration-200" href="#">Emergency Resources</a>
+</nav>
+</div>
+</footer>
+<script>
+    // Simple scroll effect for header
+    window.addEventListener('scroll', () => {
+        const header = document.getElementById('top-nav');
+        if (window.scrollY > 20) {
+            header.classList.add('shadow-sm', 'bg-opacity-95', 'backdrop-blur-sm');
+        } else {
+            header.classList.remove('shadow-sm', 'bg-opacity-95', 'backdrop-blur-sm');
+        }
+    });
+
+    // Intersection Observer for scroll reveal animations
+    document.addEventListener("DOMContentLoaded", () => {
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        
+        if (!prefersReducedMotion) {
+            const observerOptions = {
+                root: null,
+                rootMargin: '0px',
+                threshold: 0.15
+            };
+
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, observerOptions);
+
+            document.querySelectorAll('.reveal-on-scroll').forEach(el => {
+                observer.observe(el);
+            });
+        } else {
+            // If reduced motion is preferred, make them immediately visible
+            document.querySelectorAll('.reveal-on-scroll').forEach(el => {
+                el.classList.add('is-visible');
+            });
+        }
+    });
+</script>
+</body></html>
