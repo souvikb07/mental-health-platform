@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { getMockClarityMap } from "@/lib/server/clarity-map";
+import { createClarityMapResponse } from "@/lib/server/clarity-map";
 import { clarityMapRequestSchema } from "@/lib/validation/clarity-map";
 
 export async function POST(request: Request) {
@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     return validationError();
   }
 
-  return NextResponse.json(getMockClarityMap(parsed.data));
+  return NextResponse.json(await createClarityMapResponse(parsed.data));
 }
 
 function validationError() {
