@@ -1,17 +1,31 @@
 // @vitest-environment jsdom
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ChatPanel } from "../../src/components/product/chat-panel";
-import type { ContextIntakeResponse } from "../../src/lib/api/client";
+import type {
+  ChatResponse,
+  ContextIntakeResponse,
+  EnhancedClarityMapResponse,
+} from "../../src/lib/api/client";
+import type { StructuredClarityMap } from "../../src/types/clarity-map";
 import type { SessionContext } from "../../src/types/session-context";
 
 const apiMocks = vi.hoisted(() => ({
   fetchContextIntake: vi.fn(),
+  fetchEnhancedClarityMap: vi.fn(),
   sendChatMessage: vi.fn(),
 }));
 
+const navigationMocks = vi.hoisted(() => ({
+  push: vi.fn(),
+}));
+
 vi.mock("@/lib/api/client", () => apiMocks);
+vi.mock("next/navigation", () => ({
+  useRouter: () => navigationMocks,
+}));
 
 const sessionContext: SessionContext = {
   sessionId: "mock_session_chat_panel",
@@ -49,8 +63,11 @@ const openerResponse: ContextIntakeResponse = {
 describe("ChatPanel context opener", () => {
   beforeEach(() => {
     window.localStorage.clear();
+    window.sessionStorage.clear();
     apiMocks.fetchContextIntake.mockReset();
+    apiMocks.fetchEnhancedClarityMap.mockReset();
     apiMocks.sendChatMessage.mockReset();
+    navigationMocks.push.mockReset();
   });
 
   afterEach(() => {
@@ -111,4 +128,393 @@ describe("ChatPanel context opener", () => {
       screen.getAllByText(openerResponse.assistantMessage.content),
     ).toHaveLength(1);
   });
+
+  it("sends session context and current chat messages when generating a clarity map", async () => {
+    const user = userEvent.setup();
+    window.localStorage.setItem(
+      "mindbridge.sessionContext",
+      JSON.stringify(sessionContext),
+    );
+    apiMocks.fetchContextIntake.mockResolvedValue(openerResponse);
+    apiMocks.sendChatMessage.mockResolvedValue(chatResponse);
+    apiMocks.fetchEnhancedClarityMap.mockResolvedValue(clarityMapResponse);
+
+    render(<ChatPanel />);
+
+    await screen.findByText(openerResponse.assistantMessage.content);
+    await user.type(
+      screen.getByLabelText("Your message"),
+      "I feel overwhelmed after work.",
+    );
+    await user.click(screen.getByRole("button", { name: "Send message" }));
+    await screen.findByText(chatResponse.assistantMessage.content);
+    await user.click(
+      screen.getByRole("button", { name: /generate clarity map/i }),
+    );
+
+    await waitFor(() => {
+      expect(apiMocks.fetchEnhancedClarityMap).toHaveBeenCalledTimes(1);
+    });
+
+    const payload = apiMocks.fetchEnhancedClarityMap.mock.calls[0][0];
+    expect(payload.sessionId).toBe(sessionContext.sessionId);
+    expect(payload.sessionContext).toEqual(sessionContext);
+    expect(payload.messages).toHaveLength(3);
+    expect(payload.messages.map((item: { role: string }) => item.role)).toEqual([
+      "assistant",
+      "user",
+      "assistant",
+    ]);
+    expect(
+      payload.messages.every(
+        (item: { createdAt?: string }) =>
+          typeof item.createdAt === "string" && item.createdAt.length > 0,
+      ),
+    ).toBe(true);
+  });
+
+  it("normalizes an older cached opener without createdAt before generating", async () => {
+    const user = userEvent.setup();
+    window.localStorage.setItem(
+      "mindbridge.sessionContext",
+      JSON.stringify(sessionContext),
+    );
+    window.localStorage.setItem(
+      `mindbridge.contextOpener.${sessionContext.sessionId}`,
+      JSON.stringify({
+        id: openerResponse.assistantMessage.id,
+        role: openerResponse.assistantMessage.role,
+        content: openerResponse.assistantMessage.content,
+      }),
+    );
+    apiMocks.fetchEnhancedClarityMap.mockResolvedValue(clarityMapResponse);
+
+    render(<ChatPanel />);
+
+    await screen.findByText(openerResponse.assistantMessage.content);
+    await user.click(
+      screen.getByRole("button", { name: /generate clarity map/i }),
+    );
+
+    await waitFor(() => {
+      expect(apiMocks.fetchEnhancedClarityMap).toHaveBeenCalledTimes(1);
+    });
+    expect(
+      apiMocks.fetchEnhancedClarityMap.mock.calls[0][0].messages[0].createdAt,
+    ).toEqual(expect.any(String));
+  });
+
+  it("shows a loading state while generating", async () => {
+    const user = userEvent.setup();
+    window.localStorage.setItem(
+      "mindbridge.sessionContext",
+      JSON.stringify(sessionContext),
+    );
+    apiMocks.fetchContextIntake.mockResolvedValue(openerResponse);
+
+    let resolveResponse: (response: EnhancedClarityMapResponse) => void;
+    apiMocks.fetchEnhancedClarityMap.mockReturnValue(
+      new Promise((resolve) => {
+        resolveResponse = resolve;
+      }),
+    );
+
+    render(<ChatPanel />);
+
+    await screen.findByText(openerResponse.assistantMessage.content);
+    await user.click(
+      screen.getByRole("button", { name: /generate clarity map/i }),
+    );
+
+    expect(
+      (screen.getByRole("button", { name: "Generating..." }) as HTMLButtonElement)
+        .disabled,
+    ).toBe(true);
+
+    resolveResponse!(clarityMapResponse);
+    await waitFor(() => {
+      expect(navigationMocks.push).toHaveBeenCalled();
+    });
+  });
+
+  it("stores generated clarity maps in sessionStorage and navigates", async () => {
+    const user = userEvent.setup();
+    window.localStorage.setItem(
+      "mindbridge.sessionContext",
+      JSON.stringify(sessionContext),
+    );
+    apiMocks.fetchContextIntake.mockResolvedValue(openerResponse);
+    apiMocks.fetchEnhancedClarityMap.mockResolvedValue(clarityMapResponse);
+
+    render(<ChatPanel />);
+
+    await screen.findByText(openerResponse.assistantMessage.content);
+    await user.click(
+      screen.getByRole("button", { name: /generate clarity map/i }),
+    );
+
+    await waitFor(() => {
+      expect(navigationMocks.push).toHaveBeenCalledWith(
+        `/clarity-map?sessionId=${sessionContext.sessionId}`,
+      );
+    });
+    expect(
+      window.sessionStorage.getItem(
+        `mindbridge:clarity-map:${sessionContext.sessionId}`,
+      ),
+    ).toContain('"type":"clarity_map"');
+    expect(
+      window.sessionStorage.getItem("mindbridge:last-clarity-map-session"),
+    ).toBe(sessionContext.sessionId);
+  });
+
+  it("shows insufficient context inline and does not navigate", async () => {
+    const user = userEvent.setup();
+    window.localStorage.setItem(
+      "mindbridge.sessionContext",
+      JSON.stringify(sessionContext),
+    );
+    apiMocks.fetchContextIntake.mockResolvedValue(openerResponse);
+    apiMocks.fetchEnhancedClarityMap.mockResolvedValue({
+      type: "insufficient_context",
+      source: "fallback",
+      message: "Share one or two more messages first.",
+    });
+
+    render(<ChatPanel />);
+
+    await screen.findByText(openerResponse.assistantMessage.content);
+    await user.click(
+      screen.getByRole("button", { name: /generate clarity map/i }),
+    );
+
+    expect(
+      await screen.findByText("Share one or two more messages first."),
+    ).toBeTruthy();
+    expect(navigationMocks.push).not.toHaveBeenCalled();
+    expect(window.sessionStorage.length).toBe(0);
+  });
+
+  it("shows safety-blocked responses inline and does not navigate", async () => {
+    const user = userEvent.setup();
+    window.localStorage.setItem(
+      "mindbridge.sessionContext",
+      JSON.stringify(sessionContext),
+    );
+    apiMocks.fetchContextIntake.mockResolvedValue(openerResponse);
+    apiMocks.fetchEnhancedClarityMap.mockResolvedValue(safetyBlockedResponse);
+
+    render(<ChatPanel />);
+
+    await screen.findByText(openerResponse.assistantMessage.content);
+    await user.click(
+      screen.getByRole("button", { name: /generate clarity map/i }),
+    );
+
+    expect(await screen.findByText("Safety support comes first.")).toBeTruthy();
+    expect(await screen.findByText("988 Lifeline")).toBeTruthy();
+    expect(navigationMocks.push).not.toHaveBeenCalled();
+    expect(window.sessionStorage.length).toBe(0);
+  });
+
+  it("shows boundary-blocked responses inline and does not navigate", async () => {
+    const user = userEvent.setup();
+    window.localStorage.setItem(
+      "mindbridge.sessionContext",
+      JSON.stringify(sessionContext),
+    );
+    apiMocks.fetchContextIntake.mockResolvedValue(openerResponse);
+    apiMocks.fetchEnhancedClarityMap.mockResolvedValue(boundaryBlockedResponse);
+
+    render(<ChatPanel />);
+
+    await screen.findByText(openerResponse.assistantMessage.content);
+    await user.click(
+      screen.getByRole("button", { name: /generate clarity map/i }),
+    );
+
+    expect(await screen.findByText("MindBridge cannot diagnose.")).toBeTruthy();
+    expect(navigationMocks.push).not.toHaveBeenCalled();
+    expect(window.sessionStorage.length).toBe(0);
+  });
+
+  it("pauses clarity map generation after a self-safety chat response", async () => {
+    const user = userEvent.setup();
+    window.localStorage.setItem(
+      "mindbridge.sessionContext",
+      JSON.stringify(sessionContext),
+    );
+    apiMocks.fetchContextIntake.mockResolvedValue(openerResponse);
+    apiMocks.sendChatMessage.mockResolvedValue(selfSafetyChatResponse);
+
+    render(<ChatPanel />);
+
+    await screen.findByText(openerResponse.assistantMessage.content);
+    await user.type(
+      screen.getByLabelText("Your message"),
+      "I do not feel safe with myself tonight.",
+    );
+    await user.click(screen.getByRole("button", { name: "Send message" }));
+
+    expect(await screen.findByText("Safety support comes first.")).toBeTruthy();
+    expect(
+      (screen.getByRole("button", {
+        name: "Clarity map paused for safety",
+      }) as HTMLButtonElement).disabled,
+    ).toBe(true);
+  });
 });
+
+const chatResponse: ChatResponse = {
+  assistantMessage: {
+    id: "assistant_after_user",
+    role: "assistant",
+    content: "That sounds heavy. What part feels most difficult?",
+    createdAt: "2026-05-28T00:02:00.000Z",
+  },
+  risk: {
+    level: "low",
+    categories: [],
+    requiresCrisisResponse: false,
+  },
+  nextRecommendedAction: "continue_chat",
+  mode: "normal",
+  safety: null,
+  resources: [],
+  source: "fallback",
+};
+
+const clarityMap: StructuredClarityMap = {
+  schemaVersion: "clarity_map.v1",
+  status: "generated",
+  disclaimer: "This is not a diagnosis. It is a reflection map.",
+  harmonySignal: {
+    label: "Pressure is visible",
+    score: 60,
+    band: "mixed",
+    explanation: "The transcript suggests pressure with some clarity.",
+    components: {
+      emotionalLoad: 3,
+      triggerClarity: 2,
+      supportConnection: 2,
+      actionReadiness: 2,
+      safetyStability: 3,
+    },
+  },
+  keyInsight: {
+    title: "Overload may be crowding clarity",
+    summary: "Work pressure may be following the user into recovery time.",
+    evidence: [
+      { point: "The user named overwhelm.", evidenceMessageIds: ["u1"] },
+      { point: "The user mentioned work.", evidenceMessageIds: ["u1"] },
+      { point: "The user asked for a small step.", evidenceMessageIds: ["u2"] },
+    ],
+  },
+  boundaryFocus: {
+    title: "Protect one recovery boundary",
+    boundaryType: "energy_boundary",
+    insights: ["A small boundary may help.", "Recovery time may need protection."],
+    smallExperiment: "Shrink one task today.",
+  },
+  actionPlan: {
+    next24Hours: [
+      { action: "Write two sentences.", whyThisHelps: "It clarifies pressure." },
+      { action: "Take a short pause.", whyThisHelps: "It supports reflection." },
+      { action: "Text a trusted person.", whyThisHelps: "It adds support." },
+    ],
+    next7Days: [
+      { action: "Track pressure moments.", whyThisHelps: "It reveals patterns." },
+      { action: "Try a shutdown cue.", whyThisHelps: "It protects recovery." },
+      { action: "Consider support.", whyThisHelps: "It can help explore patterns." },
+    ],
+  },
+  supportPath: {
+    recommendation: "Start with practical reflection and trusted support.",
+    suggestedResourceTopics: ["stress", "support"],
+    professionalSupportNote: "This is not a diagnosis.",
+  },
+  confidence: "medium",
+};
+
+const clarityMapResponse: EnhancedClarityMapResponse = {
+  type: "clarity_map",
+  source: "fallback",
+  clarityMap,
+};
+
+const safetyBlockedResponse: EnhancedClarityMapResponse = {
+  type: "safety_blocked",
+  source: "safety",
+  assistantMessage: {
+    id: "clarity_safety",
+    role: "assistant",
+    content: "Safety support comes first.",
+    createdAt: "2026-05-28T00:03:00.000Z",
+  },
+  risk: {
+    level: "imminent",
+    categories: ["self_harm"],
+    requiresCrisisResponse: true,
+  },
+  safety: {
+    showInlineSafetyCard: true,
+    disableNormalNextStep: true,
+    title: "Urgent support",
+    message: "Please contact local emergency support now.",
+    tone: "urgent",
+  },
+  resources: [
+    {
+      id: "us-988",
+      title: "988 Lifeline",
+      description: "A US crisis support line.",
+      type: "crisis",
+      country: "US",
+      topics: ["self_harm"],
+      riskLevels: ["high", "imminent"],
+      actionLabel: "Open",
+      href: "https://988lifeline.org",
+    },
+  ],
+};
+
+const selfSafetyChatResponse: ChatResponse = {
+  assistantMessage: {
+    id: "chat_safety",
+    role: "assistant",
+    content: "Safety support comes first.",
+    createdAt: "2026-05-28T00:03:00.000Z",
+  },
+  risk: {
+    level: "imminent",
+    categories: ["self_harm"],
+    requiresCrisisResponse: true,
+  },
+  nextRecommendedAction: "urgent_support",
+  mode: "crisis",
+  safety: {
+    showInlineSafetyCard: true,
+    disableNormalNextStep: true,
+    title: "Urgent support",
+    message: "Please contact local emergency support now.",
+    tone: "urgent",
+  },
+  resources: [],
+  source: "safety",
+  safetyState: "imminent_risk",
+};
+
+const boundaryBlockedResponse: EnhancedClarityMapResponse = {
+  type: "boundary_blocked",
+  source: "boundary",
+  assistantMessage: {
+    id: "clarity_boundary",
+    role: "assistant",
+    content: "MindBridge cannot diagnose.",
+    createdAt: "2026-05-28T00:03:00.000Z",
+  },
+  policyBoundary: {
+    action: "answer_with_boundary",
+    categories: ["diagnosis_request"],
+  },
+};

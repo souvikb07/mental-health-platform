@@ -547,3 +547,74 @@ Tests passed: 21 files, 215 tests. Lint passed. Build passed. Real AI smoke eval
 
 Manual review notes:
 The enhanced Clarity Map service now checks safety and policy-boundary blocks before thin-transcript handling, while keeping legacy `{ sessionId }` behavior and normal enhanced transcript generation unchanged. Manual checks confirmed a one-message diagnosis request returns `boundary_blocked`, a one-message imminent self-harm request returns `safety_blocked`, and a normal enhanced transcript returns `clarity_map`.
+
+## 2026-05-28 16:48 CEST
+
+Task:
+Block 5B Frontend Integration and Basic Clarity Map UI.
+
+Prompt used:
+Wire chat's Generate Clarity Map button to the enhanced `/api/clarity-map` backend using the real session context and current transcript, store successful generated maps in `sessionStorage`, and render generated maps on the real `/clarity-map` page without falling back to the old static mock content.
+
+Files changed:
+Updated `src/components/product/chat-panel.tsx`, `src/components/product/clarity-map-loader.tsx`, `src/components/product/clarity-map-card.tsx`, and `tests/unit/chat-panel.test.tsx`. Added `tests/unit/clarity-map-loader.test.tsx`.
+
+Commands run:
+`npm test`
+`npm run lint`
+`npm run build`
+`RUN_REAL_AI_EVALS=true EVAL_BASE_URL=http://localhost:3000 npm run eval:ai:smoke`
+
+Result:
+Tests passed: 22 files, 226 tests. Lint passed. Build passed. Real AI smoke eval passed 13/13 with 0 failures and 6 warnings; OpenAI-backed sources appeared, safety routes passed, and boundary routes passed.
+
+Manual review notes:
+Generate Clarity Map now sends the current chat transcript with `sessionContext` to the enhanced API. Only `clarity_map` responses are stored in `sessionStorage` and navigate to `/clarity-map?sessionId=...`; insufficient context, safety-blocked, and boundary-blocked responses stay inline in chat. The real `/clarity-map` page reads generated map responses client-side from `sessionStorage` and shows a chat CTA when none exists, instead of silently rendering the old static mock map.
+
+## 2026-05-28 17:18 CEST
+
+Task:
+Block 5B.1 self-safety language safety regression patch.
+
+Prompt used:
+Add deterministic safety coverage for self-directed language such as `I do not feel safe with myself tonight` so it routes through Risk Classifier and Safety Core, blocks normal chat and Clarity Map generation, and preserves contextual false positives.
+
+Files changed:
+Updated `src/lib/safety/risk-rules.ts`, `tests/unit/risk-classifier.test.ts`, `tests/unit/chat-service.test.ts`, `tests/unit/clarity-map-service.test.ts`, and `tests/unit/chat-panel.test.tsx`.
+
+Commands run:
+`npm test`
+`npm run lint`
+`npm run build`
+`RUN_REAL_AI_EVALS=true EVAL_BASE_URL=http://localhost:3000 npm run eval:ai:smoke`
+Manual local API checks for chat safety routing, enhanced `/api/clarity-map` safety blocking, and normal enhanced Clarity Map generation.
+
+Result:
+Tests passed: 22 files, 242 tests. Lint passed. Build passed. Real AI smoke eval passed 13/13 with 0 failures and 6 warnings; OpenAI-backed sources appeared, safety routes passed, and boundary routes passed.
+
+Manual review notes:
+`I do not feel safe with myself tonight.` now returns `source: safety`, `risk.level: imminent`, `self_harm`, `requiresCrisisResponse: true`, `urgent_support`, `mode: crisis`, `safetyState: imminent_risk`, and support resources. Enhanced `/api/clarity-map` returns `safety_blocked` for the same message. Contextual safety phrases such as not feeling safe at work, in a relationship, or in a neighborhood are protected from self-harm imminent classification solely because of "not safe" language.
+
+## 2026-05-28 17:34 CEST
+
+Task:
+Block 5C Harmony Signal Scoring V2.
+
+Prompt used:
+Centralize deterministic Harmony Signal scoring, make fallback component profiles vary by scenario, and tighten OpenAI prompt guidance so generated Clarity Maps feel less hard-coded while staying non-clinical and safety-gated.
+
+Files changed:
+Added `src/lib/ai/clarity-map/harmony-signal.ts`, `tests/unit/harmony-signal.test.ts`, and `tests/unit/clarity-map-fallback.test.ts`. Updated `src/lib/ai/clarity-map/clarity-map-schema.ts`, `src/lib/ai/clarity-map/clarity-map-fallback.ts`, `src/lib/ai/clarity-map/clarity-map-prompt.ts`, `src/lib/ai/clarity-map/index.ts`, `tests/unit/clarity-map-schema.test.ts`, `tests/unit/clarity-map-service.test.ts`, and `CODEX_BUILD_LOG.md`.
+
+Commands run:
+`npm test`
+`npm run lint`
+`npm run build`
+`RUN_REAL_AI_EVALS=true EVAL_BASE_URL=http://localhost:3000 npm run eval:ai:smoke`
+Manual local API checks for work overload, relationship conflict, low energy/disconnection, worry loop, unclear/not sure, and self-safety Clarity Map scenarios.
+
+Result:
+Tests passed: 24 files, 253 tests. Lint passed. Build passed. Real AI smoke eval passed 13/13 with 0 failures and 6 warnings; OpenAI-backed sources appeared, safety routes passed, and boundary routes passed.
+
+Manual review notes:
+The Harmony score is now recomputed with emotional load lowering the score and clarity/support/readiness/safety raising it. Manual fallback examples: work overload scored 57/mixed, relationship conflict 54/strained, low energy/disconnection 38/strained, worry loop 57/mixed, and unclear/not sure 35/strained. Labels varied by scenario. The self-safety scenario returned `safety_blocked` with imminent risk and no normal Harmony Signal. No API response shape or UI layout was changed.

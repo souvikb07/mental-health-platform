@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import type { Dispatch, SetStateAction } from "react";
 import { AlertTriangle, ArrowRight, LifeBuoy, ShieldCheck } from "lucide-react";
 
 import { ResourceCard } from "@/components/product/resource-card";
@@ -10,12 +12,18 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  fetchEnhancedClarityMap,
   fetchContextIntake,
   sendChatMessage,
   type ContextIntakeResponse,
+  type EnhancedClarityMapResponse,
 } from "@/lib/api/client";
 import { cn } from "@/lib/utils";
-import type { ApiRiskClassification, SafetyUi } from "@/types/risk";
+import type {
+  ApiChatMessage,
+  ApiRiskClassification,
+  SafetyUi,
+} from "@/types/risk";
 import type { SupportResource } from "@/types/resource";
 import type { SessionContext } from "@/types/session-context";
 
@@ -23,20 +31,24 @@ type UiMessage = {
   id: string;
   role: "assistant" | "user";
   content: string;
+  createdAt: string;
   risk?: Pick<ApiRiskClassification, "level">;
   safety?: SafetyUi | null;
   resources?: SupportResource[];
 };
 
 export function ChatPanel() {
+  const router = useRouter();
   const [messages, setMessages] = useState<UiMessage[]>([]);
   const [message, setMessage] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [clarityNotice, setClarityNotice] = useState<string | null>(null);
   const [sessionContext, setSessionContext] = useState<SessionContext | null>(
     null,
   );
   const [isContextLoading, setIsContextLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGeneratingClarity, setIsGeneratingClarity] = useState(false);
   const normalNextStepDisabled = messages.some(
     (item) => item.safety?.disableNormalNextStep,
   );
@@ -168,13 +180,16 @@ export function ChatPanel() {
               }
 
               setError(null);
+              setClarityNotice(null);
               setIsSubmitting(true);
               setMessage("");
 
+              const createdAt = new Date().toISOString();
               const userMessage: UiMessage = {
                 id: `mock_user_${Date.now()}`,
                 role: "user",
                 content: trimmedMessage,
+                createdAt,
               };
               setMessages((current) => [...current, userMessage]);
 
@@ -197,6 +212,7 @@ export function ChatPanel() {
                     id: response.assistantMessage.id,
                     role: response.assistantMessage.role,
                     content: response.assistantMessage.content,
+                    createdAt: response.assistantMessage.createdAt,
                     risk: { level: response.risk.level },
                     safety: response.safety,
                     resources: response.resources,
@@ -223,6 +239,11 @@ export function ChatPanel() {
             {error ? (
               <p className="mt-3 text-sm text-red-700">{error}</p>
             ) : null}
+            {clarityNotice ? (
+              <p className="mt-3 rounded-md bg-amber-50 px-3 py-2 text-sm leading-6 text-amber-800">
+                {clarityNotice}
+              </p>
+            ) : null}
             <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-xs leading-6 text-slate-500">
                 Every submitted message crosses the internal safety boundary.
@@ -237,17 +258,34 @@ export function ChatPanel() {
                   {isSubmitting ? "Sending..." : "Send message"}
                 </Button>
                 <Button
-                  asChild={!normalNextStepDisabled}
-                  disabled={normalNextStepDisabled}
+                  type="button"
+                  disabled={
+                    normalNextStepDisabled ||
+                    isGeneratingClarity ||
+                    isContextLoading
+                  }
+                  onClick={() => {
+                    void handleGenerateClarityMap({
+                      messages,
+                      sessionContext,
+                      setClarityNotice,
+                      setError,
+                      setIsGeneratingClarity,
+                      setMessages,
+                      routerPush: router.push,
+                    });
+                  }}
                   className="h-10 bg-emerald-900 px-4 text-white hover:bg-emerald-800 disabled:bg-slate-200 disabled:text-slate-500"
                 >
                   {normalNextStepDisabled ? (
                     <span>Clarity map paused for safety</span>
+                  ) : isGeneratingClarity ? (
+                    <span>Generating...</span>
                   ) : (
-                    <Link href="/clarity-map">
+                    <>
                       Generate clarity map
                       <ArrowRight className="size-4" aria-hidden="true" />
-                    </Link>
+                    </>
                   )}
                 </Button>
               </div>
@@ -267,6 +305,86 @@ export function ChatPanel() {
       </aside>
     </div>
   );
+}
+
+async function handleGenerateClarityMap(input: {
+  messages: UiMessage[];
+  sessionContext: SessionContext | null;
+  setClarityNotice: (message: string | null) => void;
+  setError: (message: string | null) => void;
+  setIsGeneratingClarity: (isGenerating: boolean) => void;
+  setMessages: Dispatch<SetStateAction<UiMessage[]>>;
+  routerPush: (href: string) => void;
+}) {
+  const {
+    messages,
+    sessionContext,
+    setClarityNotice,
+    setError,
+    setIsGeneratingClarity,
+    setMessages,
+    routerPush,
+  } = input;
+
+  if (!sessionContext) {
+    setError("Please start with onboarding before generating a Clarity Map.");
+    return;
+  }
+
+  setError(null);
+  setClarityNotice(null);
+  setIsGeneratingClarity(true);
+
+  try {
+    const response = await fetchEnhancedClarityMap({
+      sessionId: sessionContext.sessionId,
+      sessionContext,
+      messages: messages.map(toApiChatMessage),
+    });
+
+    if (response.type === "clarity_map") {
+      storeGeneratedClarityMap(sessionContext.sessionId, response);
+      routerPush(
+        `/clarity-map?sessionId=${encodeURIComponent(sessionContext.sessionId)}`,
+      );
+      return;
+    }
+
+    if (response.type === "insufficient_context") {
+      setClarityNotice(response.message);
+      return;
+    }
+
+    if (response.type === "safety_blocked") {
+      setMessages((current) => [
+        ...current,
+        {
+          id: response.assistantMessage.id,
+          role: response.assistantMessage.role,
+          content: response.assistantMessage.content,
+          createdAt: response.assistantMessage.createdAt,
+          risk: { level: response.risk.level },
+          safety: response.safety,
+          resources: response.resources,
+        },
+      ]);
+      return;
+    }
+
+    setMessages((current) => [
+      ...current,
+      {
+        id: response.assistantMessage.id,
+        role: response.assistantMessage.role,
+        content: response.assistantMessage.content,
+        createdAt: response.assistantMessage.createdAt,
+      },
+    ]);
+  } catch {
+    setError("We could not generate a Clarity Map right now. Please try again.");
+  } finally {
+    setIsGeneratingClarity(false);
+  }
 }
 
 function ChatMessageBubble({ item }: { item: UiMessage }) {
@@ -319,6 +437,7 @@ function toUiMessage(response: ContextIntakeResponse): UiMessage {
       id: response.assistantMessage.id,
       role: response.assistantMessage.role,
       content: response.assistantMessage.content,
+      createdAt: response.assistantMessage.createdAt,
       risk: { level: response.risk.level },
       safety: response.safety,
       resources: response.resources,
@@ -329,6 +448,16 @@ function toUiMessage(response: ContextIntakeResponse): UiMessage {
     id: response.assistantMessage.id,
     role: response.assistantMessage.role,
     content: response.assistantMessage.content,
+    createdAt: response.assistantMessage.createdAt,
+  };
+}
+
+function toApiChatMessage(message: UiMessage): ApiChatMessage {
+  return {
+    id: message.id,
+    role: message.role,
+    content: message.content,
+    createdAt: normalizeCreatedAt(message.createdAt),
   };
 }
 
@@ -370,7 +499,7 @@ function getStoredContextOpener(storageKey: string): UiMessage | null {
   }
 
   try {
-    return JSON.parse(stored) as UiMessage;
+    return normalizeStoredUiMessage(JSON.parse(stored));
   } catch {
     return null;
   }
@@ -380,10 +509,72 @@ function storeContextOpener(storageKey: string, message: UiMessage) {
   getLocalStorage()?.setItem(storageKey, JSON.stringify(message));
 }
 
+function storeGeneratedClarityMap(
+  sessionId: string,
+  response: Extract<EnhancedClarityMapResponse, { type: "clarity_map" }>,
+) {
+  const storage = getSessionStorage();
+
+  if (!storage) {
+    return;
+  }
+
+  storage.setItem(getClarityMapStorageKey(sessionId), JSON.stringify(response));
+  storage.setItem("mindbridge:last-clarity-map-session", sessionId);
+}
+
+function getClarityMapStorageKey(sessionId: string) {
+  return `mindbridge:clarity-map:${sessionId}`;
+}
+
+function normalizeStoredUiMessage(payload: unknown): UiMessage | null {
+  if (typeof payload !== "object" || payload === null) {
+    return null;
+  }
+
+  const message = payload as Partial<UiMessage>;
+
+  if (
+    typeof message.id !== "string" ||
+    (message.role !== "assistant" && message.role !== "user") ||
+    typeof message.content !== "string"
+  ) {
+    return null;
+  }
+
+  return {
+    id: message.id,
+    role: message.role,
+    content: message.content,
+    createdAt: normalizeCreatedAt(message.createdAt),
+    risk: message.risk,
+    safety: message.safety,
+    resources: message.resources,
+  };
+}
+
+function normalizeCreatedAt(createdAt: unknown) {
+  if (typeof createdAt === "string" && !Number.isNaN(Date.parse(createdAt))) {
+    return createdAt;
+  }
+
+  return new Date().toISOString();
+}
+
 function getLocalStorage() {
   try {
     return typeof window !== "undefined" && window.localStorage
       ? window.localStorage
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+function getSessionStorage() {
+  try {
+    return typeof window !== "undefined" && window.sessionStorage
+      ? window.sessionStorage
       : null;
   } catch {
     return null;

@@ -1,7 +1,8 @@
+import { parseStructuredClarityMap } from "@/lib/ai/clarity-map/clarity-map-schema";
 import {
-  computeHarmonySignal,
-  parseStructuredClarityMap,
-} from "@/lib/ai/clarity-map/clarity-map-schema";
+  deriveFallbackHarmonyComponents,
+  normalizeHarmonySignal,
+} from "@/lib/ai/clarity-map/harmony-signal";
 import type { StructuredClarityMap } from "@/types/clarity-map";
 import type { ApiChatMessage } from "@/types/risk";
 import type { MainConcernCategory, SessionContext } from "@/types/session-context";
@@ -23,10 +24,18 @@ export function getFallbackStructuredClarityMap({
     userMessages.at(-1)?.content.trim() ??
     sessionContext.mainConcernLabel ??
     "what you shared";
-  const components = getComponents(sessionContext.mainConcernCategory);
-  const harmonySignal = computeHarmonySignal({
-    label: config.harmonyLabel,
-    explanation: config.harmonyExplanation,
+  const components = deriveFallbackHarmonyComponents({
+    sessionContext,
+    messages,
+  });
+  const harmonyCopy = getHarmonyCopy({
+    config,
+    components,
+    category: sessionContext.mainConcernCategory,
+  });
+  const harmonySignal = normalizeHarmonySignal({
+    label: harmonyCopy.label,
+    explanation: harmonyCopy.explanation,
     components,
   });
   const map: StructuredClarityMap = {
@@ -62,9 +71,8 @@ export function getFallbackStructuredClarityMap({
     actionPlan: {
       next24Hours: [
         {
-          action: "Write two sentences naming what feels heaviest right now.",
-          whyThisHelps:
-            "A short note can make the pattern easier to see without forcing a big decision.",
+          action: config.firstNext24Hours,
+          whyThisHelps: config.firstNext24HoursWhy,
         },
         {
           action: config.next24Hours,
@@ -72,9 +80,8 @@ export function getFallbackStructuredClarityMap({
             "A small practical step can reduce pressure while you keep reflecting.",
         },
         {
-          action: "Share one low-pressure update with a trusted person if that feels safe.",
-          whyThisHelps:
-            "Support can be easier to access when the ask is specific and small.",
+          action: config.thirdNext24Hours,
+          whyThisHelps: config.thirdNext24HoursWhy,
         },
       ],
       next7Days: [
@@ -102,7 +109,10 @@ export function getFallbackStructuredClarityMap({
       professionalSupportNote:
         "A qualified professional may be able to help you explore these patterns; this map is not a diagnosis.",
     },
-    confidence: userMessages.length >= 3 ? "medium" : "low",
+    confidence:
+      sessionContext.mainConcernCategory === "not_sure" || userMessages.length < 3
+        ? "low"
+        : "medium",
   };
 
   return (
@@ -119,47 +129,66 @@ function getEvidenceIds(userMessages: ApiChatMessage[]) {
   return [ids[0] ?? fallbackId, ids[1] ?? fallbackId, ids[2] ?? fallbackId];
 }
 
-function getComponents(category: MainConcernCategory | undefined) {
-  switch (category) {
-    case "work_study_stress":
-      return {
-        emotionalLoad: 3,
-        triggerClarity: 3,
-        supportConnection: 2,
-        actionReadiness: 2,
-        safetyStability: 3,
-      };
-    case "sleep_energy":
-    case "low_numb_disconnected":
-      return {
-        emotionalLoad: 3,
-        triggerClarity: 2,
-        supportConnection: 2,
-        actionReadiness: 2,
-        safetyStability: 3,
-      };
-    case "relationship_family":
-      return {
-        emotionalLoad: 3,
-        triggerClarity: 2,
-        supportConnection: 2,
-        actionReadiness: 2,
-        safetyStability: 3,
-      };
-    default:
-      return {
-        emotionalLoad: 3,
-        triggerClarity: 2,
-        supportConnection: 2,
-        actionReadiness: 2,
-        safetyStability: 3,
-      };
-  }
-}
-
 function truncate(text: string, maxLength: number) {
   return text.length > maxLength ? `${text.slice(0, maxLength - 3)}...` : text;
 }
+
+function getHarmonyCopy({
+  config,
+  components,
+  category,
+}: {
+  config: FallbackConcernConfig;
+  components: StructuredClarityMap["harmonySignal"]["components"];
+  category: MainConcernCategory | undefined;
+}) {
+  if (category === "not_sure") {
+    return {
+      label: "The signal is still forming",
+      explanation:
+        "This non-clinical reflection signal is based only on this conversation, and the pattern may need a little more detail before it becomes clearer.",
+    };
+  }
+
+  if (category === "low_numb_disconnected" || category === "sleep_energy") {
+    return {
+      label: "Energy and connection may need gentler support",
+      explanation:
+        "This non-clinical reflection signal is based only on this conversation and points to lower energy, lower readiness, or reduced connection.",
+    };
+  }
+
+  if (category === "anxious_worried") {
+    return {
+      label: "A worry loop is visible, with some room to sort it",
+      explanation:
+        "This non-clinical reflection signal is based only on this conversation and suggests the pattern may be clearer than the next step.",
+    };
+  }
+
+  if (category === "relationship_family") {
+    return {
+      label: "Relationship pressure may be pulling on capacity",
+      explanation:
+        "This non-clinical reflection signal is based only on this conversation and suggests support or boundaries may need careful pacing.",
+    };
+  }
+
+  if (components.triggerClarity >= 3 && components.actionReadiness >= 3) {
+    return {
+      label: "The pattern is clearer than the recovery path",
+      explanation:
+        "This non-clinical reflection signal is based only on this conversation and suggests a recognizable pressure point with a practical next step forming.",
+    };
+  }
+
+  return {
+    label: config.harmonyLabel,
+    explanation: `This non-clinical reflection signal is based only on this conversation. ${config.harmonyExplanation}`,
+  };
+}
+
+type FallbackConcernConfig = (typeof fallbackByConcern)[MainConcernCategory];
 
 const fallbackByConcern: Record<
   MainConcernCategory,
@@ -177,6 +206,10 @@ const fallbackByConcern: Record<
     next7Days: string;
     supportRecommendation: string;
     resourceTopics: string[];
+    firstNext24Hours: string;
+    firstNext24HoursWhy: string;
+    thirdNext24Hours: string;
+    thirdNext24HoursWhy: string;
   }
 > = {
   overwhelmed: {
@@ -200,6 +233,13 @@ const fallbackByConcern: Record<
       "Choose one task or expectation to postpone, shrink, or ask for help with today.",
     next24Hours: "Pick one pressure point and decide the smallest next action.",
     next7Days: "Track which situations make the pressure spike most often.",
+    firstNext24Hours: "Write two sentences naming what feels heaviest right now.",
+    firstNext24HoursWhy:
+      "A short note can make the pattern easier to see without forcing a big decision.",
+    thirdNext24Hours:
+      "Share one low-pressure update with a trusted person if that feels safe.",
+    thirdNext24HoursWhy:
+      "Support can be easier to access when the ask is specific and small.",
     supportRecommendation:
       "Start with a trusted-person check-in and consider professional support if overload keeps disrupting daily life.",
     resourceTopics: ["stress", "support", "professional_support"],
@@ -225,6 +265,14 @@ const fallbackByConcern: Record<
       "Set a 10-minute note window for the worry, then shift to one grounding action.",
     next24Hours: "List what is known, unknown, and one thing you can influence.",
     next7Days: "Notice when worry becomes repetitive rather than useful.",
+    firstNext24Hours:
+      "Write the worry in three columns: known, unknown, and influenceable.",
+    firstNext24HoursWhy:
+      "Sorting the loop can show whether it is asking for action, rest, or support.",
+    thirdNext24Hours:
+      "Choose one grounding action that does not require solving the whole worry.",
+    thirdNext24HoursWhy:
+      "A small reset can lower the pressure to keep replaying the same concern.",
     supportRecommendation:
       "Use self-guided reflection first and consider qualified support if worry feels hard to interrupt.",
     resourceTopics: ["stress", "support", "professional_support"],
@@ -250,6 +298,14 @@ const fallbackByConcern: Record<
       "Send one simple message that does not require a long conversation.",
     next24Hours: "Choose one basic care action: food, water, rest, or fresh air.",
     next7Days: "Track one daily energy pattern without judging it.",
+    firstNext24Hours:
+      "Name one basic care need that feels possible rather than ideal.",
+    firstNext24HoursWhy:
+      "Low-pressure care can support reflection without turning it into a performance task.",
+    thirdNext24Hours:
+      "Send one short check-in message that does not require a long reply.",
+    thirdNext24HoursWhy:
+      "Small connection can matter when energy or motivation feels reduced.",
     supportRecommendation:
       "Consider trusted-person support and qualified professional support if disconnection persists or worsens.",
     resourceTopics: ["support", "professional_support"],
@@ -275,6 +331,14 @@ const fallbackByConcern: Record<
       "Create a five-minute end-of-work note: done, pending, and next smallest step.",
     next24Hours: "Name one work or study expectation that can be narrowed.",
     next7Days: "Try one repeatable shutdown cue after work or study.",
+    firstNext24Hours:
+      "Write a short shutdown note: done, pending, and next smallest step.",
+    firstNext24HoursWhy:
+      "A concrete stopping point can reduce replaying after work or study ends.",
+    thirdNext24Hours:
+      "Protect one small recovery pocket after the next work or study block.",
+    thirdNext24HoursWhy:
+      "A visible recovery cue can help separate effort time from the rest of the day.",
     supportRecommendation:
       "Start with practical workload reflection and consider professional or workplace support if functioning is affected.",
     resourceTopics: ["stress", "support", "professional_support"],
@@ -300,6 +364,14 @@ const fallbackByConcern: Record<
       "Write one sentence that names what you can offer and what you cannot offer right now.",
     next24Hours: "Pause before one reply and check what you actually have capacity for.",
     next7Days: "Notice which interactions leave you more tense or more settled.",
+    firstNext24Hours:
+      "Write one sentence about what is yours to hold and what may not be yours.",
+    firstNext24HoursWhy:
+      "A small boundary sentence can reduce over-responsibility without forcing a confrontation.",
+    thirdNext24Hours:
+      "Choose one reply or request that can wait until you feel steadier.",
+    thirdNext24HoursWhy:
+      "Pausing can protect capacity while keeping the next step respectful.",
     supportRecommendation:
       "Consider trusted-person support, and seek qualified support if the relationship pattern feels unsafe or overwhelming.",
     resourceTopics: ["support", "professional_support", "safety"],
@@ -325,6 +397,14 @@ const fallbackByConcern: Record<
       "Choose one low-pressure evening cue, such as dimming lights or setting tomorrow's first step.",
     next24Hours: "Notice the time of day when energy drops most sharply.",
     next7Days: "Track sleep or energy once per day with one short phrase.",
+    firstNext24Hours:
+      "Choose one low-pressure recovery cue for tonight or tomorrow morning.",
+    firstNext24HoursWhy:
+      "A repeatable cue can support energy without making the goal too large.",
+    thirdNext24Hours:
+      "Reduce one optional demand if your energy is already low.",
+    thirdNext24HoursWhy:
+      "Lowering one demand can make the next step more realistic.",
     supportRecommendation:
       "Use gentle tracking first and consider qualified support if sleep or energy changes continue.",
     resourceTopics: ["support", "professional_support"],
@@ -350,6 +430,14 @@ const fallbackByConcern: Record<
       "Write down one moment that felt different today and what was happening around it.",
     next24Hours: "Notice one body, mood, or thought signal without trying to label it.",
     next7Days: "Look for one repeating situation, time, or interaction pattern.",
+    firstNext24Hours:
+      "Write down one moment that felt different and what was happening around it.",
+    firstNext24HoursWhy:
+      "A single observation can help the signal become clearer without forcing a label.",
+    thirdNext24Hours:
+      "Share the uncertainty with someone trusted if that feels supportive.",
+    thirdNext24HoursWhy:
+      "Naming uncertainty can make support easier without needing a finished explanation.",
     supportRecommendation:
       "Continue reflection and consider trusted-person or qualified support if the pattern becomes heavier.",
     resourceTopics: ["support", "professional_support"],

@@ -71,12 +71,30 @@ describe("classifyRisk", () => {
     "I am going to kill myself tonight.",
     "I might hurt myself now.",
     "I am not safe alone.",
+    "I do not feel safe with myself tonight.",
+    "I don’t feel safe with myself tonight.",
+    "I am not sure I can stay safe tonight.",
+    "I cannot trust myself alone right now.",
+    "I can’t trust myself alone right now.",
+    "I might hurt myself tonight.",
+    "I might hurt myself if I am alone.",
   ])("classifies immediate self-harm danger as imminent: %s", (message) => {
     expect(classifyRisk(message)).toMatchObject({
       level: "imminent",
       categories: ["self_harm"],
       requiresCrisisResponse: true,
     });
+  });
+
+  it.each([
+    "I am afraid of what I might do to myself.",
+    "I don’t trust myself right now.",
+  ])("classifies self-directed safety concern as high or imminent: %s", (message) => {
+    const result = classifyRisk(message);
+
+    expect(["high", "imminent"]).toContain(result.level);
+    expect(result.categories).toContain("self_harm");
+    expect(result.requiresCrisisResponse).toBe(true);
   });
 
   it("preserves low-risk behavior for ordinary overwhelm", () => {
@@ -93,6 +111,18 @@ describe("classifyRisk", () => {
     expect(["high", "imminent"]).toContain(result.level);
     expect(result.categories).toContain("self_harm");
     expect(result.requiresCrisisResponse).toBe(true);
+  });
+
+  it.each([
+    "I do not feel safe at work.",
+    "I do not feel safe in this relationship.",
+    "I do not feel safe in my neighborhood.",
+    "I do not feel safe around that person.",
+  ])("does not turn contextual safety language into self-harm crisis: %s", (message) => {
+    const result = classifyRisk(message);
+
+    expect(result.level).not.toBe("imminent");
+    expect(result.categories).not.toContain("self_harm");
   });
 
   it.each([
