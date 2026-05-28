@@ -20,6 +20,7 @@ export function aggregateRiskResults(results: RiskRuleResult[]): RiskRuleResult 
       categories: [],
       reason: "No deterministic risk result provided.",
       resourceTopics: [],
+      signalTags: [],
     };
   }
 
@@ -28,6 +29,9 @@ export function aggregateRiskResults(results: RiskRuleResult[]): RiskRuleResult 
     categories: [...new Set(results.flatMap((result) => result.categories))],
     resourceTopics: [
       ...new Set(results.flatMap((result) => result.resourceTopics)),
+    ],
+    signalTags: [
+      ...new Set(results.flatMap((result) => result.signalTags ?? [])),
     ],
   };
 }

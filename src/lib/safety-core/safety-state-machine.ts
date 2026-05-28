@@ -41,6 +41,14 @@ function determineCurrentSafetyState({
   risk,
   policyBoundary,
 }: Omit<SafetyStateInput, "previousState">): SafetyState {
+  if (risk.signalTags?.includes("third_party_self_harm_imminent")) {
+    return "third_party_self_harm";
+  }
+
+  if (risk.signalTags?.includes("third_party_self_harm")) {
+    return "third_party_self_harm";
+  }
+
   if (policyBoundary?.categories.includes("self_harm_method_request")) {
     return "self_harm_method_request";
   }

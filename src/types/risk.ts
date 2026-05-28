@@ -9,6 +9,10 @@ export type RiskCategory =
   | "minor_safety"
   | "medical_emergency";
 
+export type RiskSignalTag =
+  | "third_party_self_harm"
+  | "third_party_self_harm_imminent";
+
 export type MockRiskClassification = {
   level: RiskLevel;
   categories: RiskCategory[];
@@ -22,6 +26,7 @@ export type ApiRiskClassification = {
   requiresCrisisResponse: boolean;
   reason?: string;
   resourceTopics?: string[];
+  signalTags?: RiskSignalTag[];
 };
 
 export type ApiChatMessage = {

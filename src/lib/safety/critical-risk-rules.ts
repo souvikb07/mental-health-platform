@@ -73,6 +73,7 @@ export function findCriticalRiskRule(message: string): RiskRuleResult {
       categories: [],
       reason: "No critical safety rule matched.",
       resourceTopics: [],
+      signalTags: [],
     };
   }
 
@@ -81,5 +82,6 @@ export function findCriticalRiskRule(message: string): RiskRuleResult {
     categories: match.categories,
     reason: match.reason,
     resourceTopics: match.resourceTopics,
+    signalTags: match.signalTags,
   };
 }

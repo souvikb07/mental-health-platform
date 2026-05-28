@@ -453,3 +453,49 @@ The eval script exits with clear instructions and no API calls unless `RUN_REAL_
 
 Manual review notes:
 The harness does not import server modules or read OpenAI keys directly; it calls local HTTP routes (`/api/context-intake` and `/api/chat`) and relies on the local Next.js server to read `.env.local`. Eval cases are synthetic and cover context intake, normal chat, safety routes, policy boundaries, AI-triage-sensitive semantic cases, negation, idiom false positives, and a multilingual risk signal. No app behavior, Safety Core behavior, context-intake behavior, integrations, packages, persistence, streaming, moderation, or UI were changed.
+
+## 2026-05-28 12:10 CEST
+
+Task:
+Block 4.7 bugfix for real AI smoke eval initialization.
+
+Prompt used:
+Fix `ReferenceError: Cannot access 'forbiddenTextPatterns' before initialization` in the real AI smoke eval script without changing eval behavior.
+
+Files changed:
+Updated `scripts/evals/run-real-ai-smoke.mjs`.
+
+Commands run:
+`npm run eval:ai:smoke`
+`npm test`
+`npm run lint`
+`npm run build`
+
+Result:
+Disabled-mode eval now exits cleanly with instructions and no API calls. Tests passed: 17 files, 164 tests. Lint passed. Build passed.
+
+Manual review notes:
+Moved `forbiddenTextPatterns` above top-level eval execution so `summarizePayload()` cannot access it before initialization. No eval cases, product behavior, API routes, Safety Core logic, packages, or assertions were changed.
+
+## 2026-05-28 15:05 CEST
+
+Task:
+Block 4.7.1 safety fix for deterministic third-party self-harm routing.
+
+Prompt used:
+Add type-safe deterministic third-party self-harm risk signals and map them through Safety Core to `third_party_self_harm`, without chat-specific branching or reason-text parsing.
+
+Files changed:
+Updated `src/types/risk.ts`, `src/lib/safety/risk-rules.ts`, `src/lib/safety/critical-risk-rules.ts`, `src/lib/safety/risk-aggregator.ts`, `src/lib/safety/risk-classifier.ts`, `src/lib/safety-core/safety-state-machine.ts`, `src/lib/safety-core/safety-orchestrator.ts`, `tests/unit/risk-classifier.test.ts`, `tests/unit/safety-playbook-engine.test.ts`, and `tests/unit/chat-service.test.ts`.
+
+Commands run:
+`npm test`
+`npm run lint`
+`npm run build`
+`RUN_REAL_AI_EVALS=true EVAL_BASE_URL=http://localhost:3000 npm run eval:ai:smoke`
+
+Result:
+Tests passed: 17 files, 183 tests. Lint passed. Build passed. Real AI smoke eval passed 13/13 with 0 failures, OpenAI-backed sources appeared, safety routes passed, and boundary routes passed.
+
+Manual review notes:
+Added `RiskSignalTag` with `third_party_self_harm` and `third_party_self_harm_imminent`, propagated `signalTags` through deterministic risk aggregation, and mapped those tags to the existing `third_party_self_harm` Safety Core state. Explicit third-party self-harm now routes to safety without relying on AI triage; imminent third-party cases route to `urgent_support` and `crisis`. Direct self-harm, imminent self-harm, diagnosis boundary, negation, and idiom false-positive tests still pass.

@@ -1,10 +1,11 @@
-import type { RiskCategory, RiskLevel } from "@/types/risk";
+import type { RiskCategory, RiskLevel, RiskSignalTag } from "@/types/risk";
 
 export type RiskRuleResult = {
   level: RiskLevel;
   categories: RiskCategory[];
   reason: string;
   resourceTopics: string[];
+  signalTags?: RiskSignalTag[];
 };
 
 type RiskRule = {
@@ -12,10 +13,23 @@ type RiskRule = {
   categories: RiskCategory[];
   reason: string;
   resourceTopics: string[];
+  signalTags?: RiskSignalTag[];
   patterns: RegExp[];
 };
 
 const imminentRules: RiskRule[] = [
+  {
+    level: "imminent",
+    categories: ["self_harm"],
+    reason: "Message reports possible immediate self-harm danger for another person.",
+    resourceTopics: ["self_harm", "crisis", "emergency"],
+    signalTags: ["third_party_self_harm", "third_party_self_harm_imminent"],
+    patterns: [
+      /\b(friend|partner|boyfriend|girlfriend|brother|sister|parent|mother|father|roommate|classmate|coworker|someone i know)\b.*\b(has|have)\b.*\b(pills|medication|meds)\b.*\b(says|said|told me|tells me|will|is going to|are going to).*\b(take them|take it|do it)\b.*\b(tonight|now)\b/i,
+      /\b(friend|partner|boyfriend|girlfriend|brother|sister|parent|mother|father|roommate|classmate|coworker|someone i know)\b.*\b(says|said|told me|tells me).*\b(he|she|they)\b.*\b(will|is going to|are going to)\b.*\b(kill himself|kill herself|kill themselves|end his life|end her life|end their life|take his life|take her life|take their life|do it)\b.*\b(tonight|now)\b/i,
+      /\b(friend|partner|boyfriend|girlfriend|brother|sister|parent|mother|father|roommate|classmate|coworker|someone i know)\b.*\b(has|have)\b.*\b(a plan|plan)\b.*\b(alone|tonight|now)\b/i,
+    ],
+  },
   {
     level: "imminent",
     categories: ["self_harm"],
@@ -48,6 +62,17 @@ const imminentRules: RiskRule[] = [
 ];
 
 const highRules: RiskRule[] = [
+  {
+    level: "high",
+    categories: ["self_harm"],
+    reason: "Message reports self-harm intent for another person.",
+    resourceTopics: ["self_harm", "crisis", "support"],
+    signalTags: ["third_party_self_harm"],
+    patterns: [
+      /\b(friend|partner|boyfriend|girlfriend|brother|sister|parent|mother|father|roommate|classmate|coworker|someone i know)\b.*\b(says|said|told me|tells me)?\s*(he|she|they)?\s*(wants|want|wanted)\s+to\s+(kill himself|kill herself|kill themselves|die(?! laughing)|end his life|end her life|end their life|take his life|take her life|take their life)\b/i,
+      /\b(friend|partner|boyfriend|girlfriend|brother|sister|parent|mother|father|roommate|classmate|coworker|someone i know)\b.*\b(says|said|told me|tells me).*\b(he|she|they)\b.*\b(is|are)\s+going\s+to\s+(kill himself|kill herself|kill themselves|end his life|end her life|end their life|take his life|take her life|take their life)\b/i,
+    ],
+  },
   {
     level: "high",
     categories: ["self_harm"],
@@ -167,6 +192,7 @@ export function findRiskRule(message: string): RiskRuleResult {
         categories: match.categories,
         reason: match.reason,
         resourceTopics: match.resourceTopics,
+        signalTags: match.signalTags,
       };
     }
   }
@@ -176,5 +202,6 @@ export function findRiskRule(message: string): RiskRuleResult {
     categories: [],
     reason: "No deterministic safety rule matched.",
     resourceTopics: [],
+    signalTags: [],
   };
 }

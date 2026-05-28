@@ -33,6 +33,7 @@ export function classifyRisk(message: string): ApiRiskClassification {
     requiresCrisisResponse: ["high", "imminent"].includes(level),
     reason: result.reason,
     resourceTopics,
+    signalTags: result.signalTags,
   };
 }
 

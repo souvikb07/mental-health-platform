@@ -95,6 +95,51 @@ describe("classifyRisk", () => {
     expect(result.requiresCrisisResponse).toBe(true);
   });
 
+  it.each([
+    "My friend says he wants to kill himself.",
+    "My friend wants to kill herself.",
+    "My partner said they want to die.",
+    "My brother says he is going to kill himself.",
+    "Someone I know says they want to end their life.",
+    "My roommate told me she wants to take her life.",
+  ])("classifies explicit third-party self-harm reports as high: %s", (message) => {
+    const result = classifyRisk(message);
+
+    expect(result.level).toBe("high");
+    expect(result.categories).toContain("self_harm");
+    expect(result.signalTags).toContain("third_party_self_harm");
+    expect(result.requiresCrisisResponse).toBe(true);
+  });
+
+  it.each([
+    "My friend has pills and says he will take them tonight.",
+    "My partner says they are going to do it now.",
+    "My roommate has a plan and is alone.",
+  ])("classifies imminent third-party self-harm reports as imminent: %s", (message) => {
+    const result = classifyRisk(message);
+
+    expect(result.level).toBe("imminent");
+    expect(result.categories).toContain("self_harm");
+    expect(result.signalTags).toEqual(
+      expect.arrayContaining([
+        "third_party_self_harm",
+        "third_party_self_harm_imminent",
+      ]),
+    );
+    expect(result.requiresCrisisResponse).toBe(true);
+  });
+
+  it.each([
+    "This homework is killing me.",
+    "My friend killed it at the presentation.",
+    "My friend said that movie made him want to die laughing.",
+  ])("does not classify idioms as third-party self-harm: %s", (message) => {
+    const result = classifyRisk(message);
+
+    expect(result.signalTags ?? []).not.toContain("third_party_self_harm");
+    expect(result.level).not.toBe("imminent");
+  });
+
   it("adds minor safety when a user says they are under 18", () => {
     const result = classifyRisk("I am 15 and cutting myself.");
 
