@@ -1,4 +1,5 @@
 import type { ClarityMap } from "@/types/clarity-map";
+import type { ContextIntakeResult } from "@/lib/ai/context-intake/context-intake-schema";
 import type { FeedbackSubmission } from "@/types/feedback";
 import type { SafetyState } from "@/lib/safety-core";
 import type { PolicyBoundaryResult } from "@/types/policy-boundary";
@@ -51,6 +52,28 @@ export type ChatResponse = {
   safetyState?: SafetyState;
 };
 
+export type ContextIntakeResponse =
+  | {
+      type: "opener";
+      assistantMessage: ApiChatMessage;
+      contextIntake: ContextIntakeResult;
+      source: "openai" | "fallback";
+    }
+  | {
+      type: "safety";
+      assistantMessage: ApiChatMessage;
+      risk: ApiRiskClassification;
+      safety: SafetyUi | null;
+      resources: SupportResource[];
+      source: "safety";
+    }
+  | {
+      type: "boundary";
+      assistantMessage: ApiChatMessage;
+      policyBoundary: PolicyBoundaryResult;
+      source: "boundary";
+    };
+
 export type ClarityMapResponse = {
   clarityMap: ClarityMap;
 };
@@ -73,6 +96,10 @@ export function sendChatMessage(input: {
   sessionContext?: SessionContext;
 }) {
   return postJson<ChatResponse>("/api/chat", input);
+}
+
+export function fetchContextIntake(input: { sessionContext: SessionContext }) {
+  return postJson<ContextIntakeResponse>("/api/context-intake", input);
 }
 
 export function fetchClarityMap(input: { sessionId: string }) {

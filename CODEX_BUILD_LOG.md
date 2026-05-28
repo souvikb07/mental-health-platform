@@ -382,3 +382,51 @@ Manual review notes:
 
 Next step:
 Run real-model evals before expanding AI triage reliance beyond the current optional escalation path.
+
+## 2026-05-28 10:50 CEST
+
+Task:
+Block 4.6 AI context intake and dynamic chat start.
+
+Prompt used:
+Add a server-only context-intake agent and `/api/context-intake` route that generate a safe structured opening assistant message from onboarding context, with deterministic fallback when context-intake OpenAI config is missing.
+
+Files changed:
+Added `src/lib/ai/context-intake/context-intake-schema.ts`, `src/lib/ai/context-intake/context-intake-prompt.ts`, `src/lib/ai/context-intake/context-intake-agent.ts`, `src/lib/ai/context-intake/context-intake-fallback.ts`, `src/lib/ai/context-intake/index.ts`, `src/lib/server/context-intake.ts`, `src/app/api/context-intake/route.ts`, `tests/unit/context-intake-schema.test.ts`, `tests/unit/context-intake-agent.test.ts`, `tests/unit/server-context-intake.test.ts`, and `tests/unit/chat-panel.test.tsx`. Updated `src/lib/api/client.ts`, `src/components/product/chat-panel.tsx`, and `.env.example`.
+
+Commands run:
+`npm test`
+`npm run lint`
+`npm run build`
+Local browser QA for onboarding-to-chat opener behavior, plus local `/api/context-intake` and `/api/chat` checks for safety preflight and US/India resource ordering.
+
+Result:
+Tests passed: 16 files, 153 tests. Lint passed. Build passed. `/chat` no longer seeds fake mock messages and starts from one cached context-aware opener when session context exists. Missing session context shows an onboarding CTA. Optional high-risk onboarding text returns a safety response before the context-intake model is called.
+
+Manual review notes:
+The context-intake agent is server-only, uses the Responses API with `store: false` and non-streaming structured output, and falls back deterministically when `OPENAI_API_KEY` or `OPENAI_CONTEXT_INTAKE_MODEL` is missing. The model receives only minimal onboarding context and no chat history, Clarity Map, resources, raw logs, or long-term memory. Existing chat safety, policy-boundary behavior, AI triage, and US/India/GLOBAL resource routing were preserved.
+
+Next step:
+Evaluate real context-intake outputs before tuning opener copy or adding richer intake context.
+
+## 2026-05-28 11:10 CEST
+
+Task:
+Block 4.6 validation fix for `/api/context-intake`.
+
+Prompt used:
+Tighten `/api/context-intake` validation so normal context-intake requests enforce the visible onboarding contract server-side.
+
+Files changed:
+Updated `src/app/api/context-intake/route.ts` and added `tests/unit/context-intake-route.test.ts`.
+
+Commands run:
+`npm test`
+`npm run lint`
+`npm run build`
+
+Result:
+Tests passed: 17 files, 164 tests. Lint passed. Build passed. `/api/context-intake` now requires `ageConfirmed: true`, `consentAccepted: true`, `mainConcernCategory`, `mainConcernLabel`, and country code `US` or `IN`; `GLOBAL` remains available only in lower-level fallback/resource logic, not as accepted visible onboarding input for this route.
+
+Manual review notes:
+Valid US and IN onboarding contexts still return openers, missing OpenAI context-intake config still falls back safely, and optional high-risk onboarding text still routes to Safety Core before opener generation.
