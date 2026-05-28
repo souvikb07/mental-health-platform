@@ -137,6 +137,7 @@ function RatingRow({
                 : "flex size-10 items-center justify-center rounded-full border border-border/70 bg-card text-sm font-semibold text-muted-foreground hover:bg-muted"
             }
             aria-pressed={rating === value}
+            aria-label={`${label} ${rating} out of 5`}
           >
             {rating}
           </button>

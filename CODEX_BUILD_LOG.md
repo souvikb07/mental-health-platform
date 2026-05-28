@@ -795,3 +795,34 @@ Reworked `/resources` into a practical support-options page with warmer hierarch
 
 Next step:
 FE-7 responsive/mobile QA and demo readiness, checking the full Landing -> Onboarding -> Chat -> Clarity Map -> Resources -> Feedback journey across desktop/mobile without changing backend behavior.
+
+## 2026-05-28 22:50 CEST
+
+Task:
+FE-7a targeted demo-readiness fixes.
+
+Prompt used:
+Address only the highest-priority FE-7 findings: remove trust-undermining demo exposure, reframe `/demo`, fix third-party resource wording, remove duplicate feedback rating accessible names, add a visible Clarity Map Action Plan label, improve header/journey tap targets, and recheck no-session chat without changing backend/API/safety behavior.
+
+Files changed:
+Updated `src/components/layout/site-header.tsx`, `src/app/demo/page.tsx`, `src/lib/mock/mock-resources.ts`, `src/components/product/feedback-form.tsx`, `src/components/product/clarity-map-card.tsx`, `src/components/product/journey-stepper.tsx`, and `CODEX_BUILD_LOG.md`.
+
+Commands run:
+`git status --short`
+Read-only inspection of project handoff docs, Stitch design docs, `CODEX_BUILD_LOG.md`, and approved frontend/resource files
+`rg "not be safe alone|safe alone|If you might" src`
+`npm test`
+`npm run lint`
+`npm run build`
+`git diff --check`
+`RUN_REAL_AI_EVALS=true EVAL_BASE_URL=http://localhost:3000 npm run eval:ai:smoke`
+Browser manual QA for header/demo exposure, `/demo` mobile overflow, third-party self-harm resource copy, generated Clarity Map Action Plan label, feedback rating accessibility/submission, self-safety, boundary, and 390px mobile checks.
+
+Result:
+Tests passed: 24 files, 253 tests. Lint passed. Build passed. `git diff --check` passed. Real AI smoke eval passed 13/13 with 0 failures and 6 warnings; OpenAI-backed sources appeared, safety routes passed, and boundary routes passed.
+
+Manual review notes:
+Removed the main-header Demo link and reframed `/demo` as a safety and routing preview without “walking skeleton,” “mock data,” or local-build language. Contained the `/demo` safety matrix so it no longer creates document-level horizontal overflow at 390px. Updated app-owned trusted-person resource descriptions to avoid self-directed “you might not be safe alone” wording in third-party support flows; backend safety messages and routing were not changed. Feedback rating buttons now expose unique accessible names while preserving the same values and feedback payload. Generated Clarity Maps now include a visible “Action Plan” section label above Next 24 hours and Next 7 days without changing generated content or storage behavior. Header and journey links have larger tap targets. Browser QA confirmed the third-party flow shows support-for-someone-else copy, resources, and paused Clarity Map behavior without the old resource wording; self-safety still shows resources and pauses the map; boundary requests stay inline without a diagnostic map; feedback still submits successfully; and mobile checks showed no horizontal overflow on the checked routes. The browser security policy still blocked direct local/session storage clearing for a true clean `/chat` test; alternate localhost origins did not hydrate normally in the dev browser, so no chat code was changed. Existing unit coverage for the no-session CTA still passed.
+
+Next step:
+Proceed to final demo/pitch prep after a quick human clean-browser spot check for direct `/chat` no-session behavior if available.

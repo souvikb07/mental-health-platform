@@ -31,7 +31,7 @@ export function JourneyStepper({ current }: JourneyStepperProps) {
               <Link
                 href={step.href}
                 className={cn(
-                  "flex h-8 items-center gap-2 rounded-md px-3 text-xs font-medium text-slate-600 transition hover:bg-emerald-50 hover:text-emerald-950",
+                  "flex h-10 items-center gap-2 rounded-md px-3 text-xs font-medium text-slate-600 transition hover:bg-emerald-50 hover:text-emerald-950",
                   isCurrent && "bg-emerald-900 text-white hover:bg-emerald-900 hover:text-white",
                 )}
                 aria-current={isCurrent ? "step" : undefined}

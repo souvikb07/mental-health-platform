@@ -221,15 +221,21 @@ export function StructuredClarityMapCard({
           </p>
         </section>
 
-        <section className="grid gap-4 md:grid-cols-2">
-          <ActionBlock
-            title="Next 24 hours"
-            items={clarityMap.actionPlan.next24Hours}
-          />
-          <ActionBlock
-            title="Next 7 days"
-            items={clarityMap.actionPlan.next7Days}
-          />
+        <section className="rounded-3xl border border-border/60 bg-muted/50 p-5 sm:p-6">
+          <SectionEyebrow icon={CheckCircle2}>Action Plan</SectionEyebrow>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
+            Practical next steps based only on this conversation.
+          </p>
+          <div className="mt-5 grid gap-4 md:grid-cols-2">
+            <ActionBlock
+              title="Next 24 hours"
+              items={clarityMap.actionPlan.next24Hours}
+            />
+            <ActionBlock
+              title="Next 7 days"
+              items={clarityMap.actionPlan.next7Days}
+            />
+          </div>
         </section>
 
         <section className="rounded-3xl border border-primary/15 bg-primary/10 p-5 sm:p-6">
