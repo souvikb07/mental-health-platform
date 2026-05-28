@@ -677,3 +677,32 @@ Reworked the landing page from implementation-led MVP language into a product-le
 
 Next step:
 FE-3b onboarding polish, keeping the existing session creation, local storage keys, consent/adult checks, and `/chat` routing unchanged.
+
+## 2026-05-28 21:32 CEST
+
+Task:
+FE-3b onboarding polish only.
+
+Prompt used:
+Polish the onboarding page and onboarding form so the first trust-building step feels calm, intentional, and demo-ready while preserving the existing session creation contract, required consent/adult checks, storage keys, and `/chat` routing.
+
+Files changed:
+Updated `src/app/onboarding/page.tsx`, `src/components/product/onboarding-form.tsx`, and `CODEX_BUILD_LOG.md`.
+
+Commands run:
+`git status --short`
+Read-only inspection of project handoff docs, Stitch design docs, `reference/stitch/onboarding/stitch.html`, `CODEX_BUILD_LOG.md`, and the current onboarding page/form
+`npm test`
+`npm run lint`
+`npm run build`
+`git diff --check`
+Browser manual QA for `/onboarding` at desktop and mobile viewport widths, required-control gating, form completion, submit navigation, and `/chat` handoff.
+
+Result:
+Tests passed: 24 files, 253 tests. Lint passed. Build passed. `git diff --check` passed. No real AI smoke eval was run because no chat, Clarity Map, API client, safety, backend, or generated-flow logic was changed.
+
+Manual review notes:
+Reworked onboarding into a calmer two-column setup page with visible safety/trust copy, clearer explanation of why context is collected, rounded warm surfaces, clearer selected concern state, softer consent/adult acknowledgement cards, and a full-width sage CTA. The form still uses the existing `createSession` call with `country`, `ageConfirmed`, `consentAccepted`, `mainConcernCategory`, and optional `mainConcernText`; it still stores `mindbridge.sessionId` and `mindbridge.sessionContext`, then routes to `/chat`. Browser QA confirmed desktop/mobile rendering without obvious horizontal overflow, USA/India support-location selection, main concern selection, optional note input, disabled submit until required fields/checks are complete, successful navigation to `/chat`, and no submitted note appearing as a fake user message. The loading label exists in code but was too brief to capture manually because session creation completed quickly.
+
+Next step:
+FE-4 chat UI polish, keeping context-intake, `/api/chat`, safety/resource rendering, and enhanced Clarity Map response handling unchanged.
