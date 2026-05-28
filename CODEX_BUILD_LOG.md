@@ -306,3 +306,28 @@ Browser QA passed for USA + Overwhelmed leading to US safety resources first, an
 
 Next step:
 Keep onboarding context static until a later block explicitly adds AI-generated context intake or dynamic opening messages.
+
+## 2026-05-28 02:37 CEST
+
+Task:
+Block 4.5A AI structured triage classifier module.
+
+Prompt used:
+Create a server-only OpenAI Responses API structured-output triage classifier module as a dormant safety signal provider, without wiring it into live chat routing.
+
+Files changed:
+Added `src/lib/ai/triage/triage-schema.ts`, `src/lib/ai/triage/triage-prompt.ts`, `src/lib/ai/triage/triage-classifier.ts`, `src/lib/ai/triage/triage-fallback.ts`, and `src/lib/ai/triage/index.ts`. Added `tests/unit/ai-triage-classifier.test.ts`, `tests/unit/triage-schema.test.ts`, and `tests/evals/safety-triage-cases.ts`. Updated `.env.example` with placeholder-only `OPENAI_TRIAGE_MODEL`.
+
+Commands run:
+`npm test`
+`npm run lint`
+`npm run build`
+
+Result:
+Tests passed: 12 files, 117 tests. Lint passed. Build passed. The triage module uses the Responses API with `store: false`, non-streaming requests, configured `OPENAI_TRIAGE_MODEL`, strict JSON-schema output validation, and safe unavailable results for missing config, API errors, or invalid model output.
+
+Manual review notes:
+The triage classifier is server-only and not imported by client components or live chat routing. It sends only the latest truncated user message plus minimal session, deterministic risk, and policy context when provided. No OpenAI moderation, Supabase, auth, database writes, payments, streaming, external resource APIs, package installs, Clarity Map changes, raw-message logging, secret exposure, diagnosis, treatment plans, medication advice, or therapy-replacement language were added.
+
+Next step:
+In a later block, evaluate how to combine this AI signal with deterministic Safety Core without allowing model output to directly override final routing.
