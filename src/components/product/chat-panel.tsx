@@ -25,25 +25,19 @@ import {
   type ContextIntakeResponse,
   type EnhancedClarityMapResponse,
 } from "@/lib/api/client";
+import {
+  loadChatMessages,
+  loadChatMeta,
+  loadSessionContext,
+  saveChatMessages,
+  saveChatMeta,
+  type JourneyChatMessage,
+} from "@/lib/session/journey-storage";
 import { cn } from "@/lib/utils";
-import type {
-  ApiChatMessage,
-  ApiRiskClassification,
-  SafetyUi,
-} from "@/types/risk";
-import type { SupportResource } from "@/types/resource";
+import type { ApiChatMessage } from "@/types/risk";
 import type { SessionContext } from "@/types/session-context";
 
-type UiMessage = {
-  id: string;
-  role: "assistant" | "user";
-  content: string;
-  createdAt: string;
-  source?: "openai" | "fallback" | "safety" | "boundary";
-  risk?: Pick<ApiRiskClassification, "level">;
-  safety?: SafetyUi | null;
-  resources?: SupportResource[];
-};
+type UiMessage = JourneyChatMessage;
 
 export function ChatPanel() {
   const router = useRouter();
@@ -65,7 +59,7 @@ export function ChatPanel() {
     let isMounted = true;
 
     async function loadContextOpener() {
-      const storedSessionContext = getStoredSessionContext();
+      const storedSessionContext = loadSessionContext();
 
       if (!storedSessionContext) {
         if (isMounted) {
@@ -79,14 +73,14 @@ export function ChatPanel() {
         setSessionContext(storedSessionContext);
       }
 
-      const storageKey = getContextOpenerStorageKey(
-        storedSessionContext.sessionId,
-      );
-      const storedOpener = getStoredContextOpener(storageKey);
+      const storedMessages = loadChatMessages(storedSessionContext.sessionId);
 
-      if (storedOpener) {
+      if (storedMessages.length > 0) {
         if (isMounted) {
-          setMessages([storedOpener]);
+          setMessages(storedMessages);
+          setClarityNotice(
+            loadChatMeta(storedSessionContext.sessionId)?.clarityNotice ?? null,
+          );
           setIsContextLoading(false);
         }
         return;
@@ -97,7 +91,7 @@ export function ChatPanel() {
           sessionContext: storedSessionContext,
         });
         const openerMessage = toUiMessage(response);
-        storeContextOpener(storageKey, openerMessage);
+        persistChatJourney(storedSessionContext.sessionId, [openerMessage]);
 
         if (isMounted) {
           setMessages([openerMessage]);
@@ -219,34 +213,41 @@ export function ChatPanel() {
                 content: trimmedMessage,
                 createdAt,
               };
-              setMessages((current) => [...current, userMessage]);
+              const messagesWithUser = [...messages, userMessage];
+              setMessages(messagesWithUser);
+              persistChatJourney(
+                sessionContext.sessionId,
+                messagesWithUser,
+                null,
+              );
 
               try {
                 const activeSessionContext =
-                  sessionContext ?? getStoredSessionContext();
+                  sessionContext ?? loadSessionContext();
                 const sessionId =
-                  activeSessionContext?.sessionId ??
-                  getLocalStorage()?.getItem("mindbridge.sessionId") ??
-                  "mock_session_demo";
+                  activeSessionContext?.sessionId ?? "mock_session_demo";
                 const response = await sendChatMessage({
                   sessionId,
                   message: trimmedMessage,
                   sessionContext: activeSessionContext,
                 });
+                const assistantMessage: UiMessage = {
+                  id: response.assistantMessage.id,
+                  role: response.assistantMessage.role,
+                  content: response.assistantMessage.content,
+                  createdAt: response.assistantMessage.createdAt,
+                  source: response.source,
+                  risk: { level: response.risk.level },
+                  safety: response.safety,
+                  resources: response.resources,
+                };
+                const messagesWithAssistant = [
+                  ...messagesWithUser,
+                  assistantMessage,
+                ];
 
-                setMessages((current) => [
-                  ...current,
-                  {
-                    id: response.assistantMessage.id,
-                    role: response.assistantMessage.role,
-                    content: response.assistantMessage.content,
-                    createdAt: response.assistantMessage.createdAt,
-                    source: response.source,
-                    risk: { level: response.risk.level },
-                    safety: response.safety,
-                    resources: response.resources,
-                  },
-                ]);
+                setMessages(messagesWithAssistant);
+                persistChatJourney(sessionId, messagesWithAssistant, null);
               } catch {
                 setError("The chat service did not respond. Please try again.");
               } finally {
@@ -394,11 +395,33 @@ async function handleGenerateClarityMap(input: {
 
     if (response.type === "insufficient_context") {
       setClarityNotice(response.message);
+      persistChatJourney(sessionContext.sessionId, messages, response.message);
       return;
     }
 
     if (response.type === "safety_blocked") {
-      setMessages((current) => [
+      setMessages((current) => {
+        const nextMessages: UiMessage[] = [
+          ...current,
+          {
+            id: response.assistantMessage.id,
+            role: response.assistantMessage.role,
+            content: response.assistantMessage.content,
+            createdAt: response.assistantMessage.createdAt,
+            source: response.source,
+            risk: { level: response.risk.level },
+            safety: response.safety,
+            resources: response.resources,
+          },
+        ];
+        persistChatJourney(sessionContext.sessionId, nextMessages);
+        return nextMessages;
+      });
+      return;
+    }
+
+    setMessages((current) => {
+      const nextMessages: UiMessage[] = [
         ...current,
         {
           id: response.assistantMessage.id,
@@ -406,24 +429,11 @@ async function handleGenerateClarityMap(input: {
           content: response.assistantMessage.content,
           createdAt: response.assistantMessage.createdAt,
           source: response.source,
-          risk: { level: response.risk.level },
-          safety: response.safety,
-          resources: response.resources,
         },
-      ]);
-      return;
-    }
-
-    setMessages((current) => [
-      ...current,
-      {
-        id: response.assistantMessage.id,
-        role: response.assistantMessage.role,
-        content: response.assistantMessage.content,
-        createdAt: response.assistantMessage.createdAt,
-        source: response.source,
-      },
-    ]);
+      ];
+      persistChatJourney(sessionContext.sessionId, nextMessages);
+      return nextMessages;
+    });
   } catch {
     setError("We could not generate a Clarity Map right now. Please try again.");
   } finally {
@@ -553,54 +563,6 @@ function toApiChatMessage(message: UiMessage): ApiChatMessage {
   };
 }
 
-function getStoredSessionContext(): SessionContext | undefined {
-  const storage = getLocalStorage();
-  const stored = storage?.getItem("mindbridge.sessionContext");
-
-  if (!stored) {
-    return undefined;
-  }
-
-  try {
-    const parsed = JSON.parse(stored) as Partial<SessionContext>;
-
-    if (typeof parsed.sessionId !== "string" || !parsed.sessionId.trim()) {
-      return undefined;
-    }
-
-    if (!["US", "IN", "GLOBAL"].includes(String(parsed.countryCode))) {
-      return undefined;
-    }
-
-    return parsed as SessionContext;
-  } catch {
-    return undefined;
-  }
-}
-
-function getContextOpenerStorageKey(sessionId: string) {
-  return `mindbridge.contextOpener.${sessionId}`;
-}
-
-function getStoredContextOpener(storageKey: string): UiMessage | null {
-  const storage = getLocalStorage();
-  const stored = storage?.getItem(storageKey);
-
-  if (!stored) {
-    return null;
-  }
-
-  try {
-    return normalizeStoredUiMessage(JSON.parse(stored));
-  } catch {
-    return null;
-  }
-}
-
-function storeContextOpener(storageKey: string, message: UiMessage) {
-  getLocalStorage()?.setItem(storageKey, JSON.stringify(message));
-}
-
 function storeGeneratedClarityMap(
   sessionId: string,
   response: Extract<EnhancedClarityMapResponse, { type: "clarity_map" }>,
@@ -615,35 +577,24 @@ function storeGeneratedClarityMap(
   storage.setItem("mindbridge:last-clarity-map-session", sessionId);
 }
 
-function getClarityMapStorageKey(sessionId: string) {
-  return `mindbridge:clarity-map:${sessionId}`;
+function persistChatJourney(
+  sessionId: string,
+  messages: UiMessage[],
+  clarityNotice: string | null = null,
+) {
+  saveChatMessages(sessionId, messages);
+  saveChatMeta(sessionId, {
+    updatedAt: new Date().toISOString(),
+    messageCount: messages.length,
+    normalNextStepDisabled: messages.some(
+      (item) => item.safety?.disableNormalNextStep,
+    ),
+    clarityNotice,
+  });
 }
 
-function normalizeStoredUiMessage(payload: unknown): UiMessage | null {
-  if (typeof payload !== "object" || payload === null) {
-    return null;
-  }
-
-  const message = payload as Partial<UiMessage>;
-
-  if (
-    typeof message.id !== "string" ||
-    (message.role !== "assistant" && message.role !== "user") ||
-    typeof message.content !== "string"
-  ) {
-    return null;
-  }
-
-  return {
-    id: message.id,
-    role: message.role,
-    content: message.content,
-    createdAt: normalizeCreatedAt(message.createdAt),
-    source: message.source,
-    risk: message.risk,
-    safety: message.safety,
-    resources: message.resources,
-  };
+function getClarityMapStorageKey(sessionId: string) {
+  return `mindbridge:clarity-map:${sessionId}`;
 }
 
 function normalizeCreatedAt(createdAt: unknown) {
@@ -652,16 +603,6 @@ function normalizeCreatedAt(createdAt: unknown) {
   }
 
   return new Date().toISOString();
-}
-
-function getLocalStorage() {
-  try {
-    return typeof window !== "undefined" && window.localStorage
-      ? window.localStorage
-      : null;
-  } catch {
-    return null;
-  }
 }
 
 function getSessionStorage() {

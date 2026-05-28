@@ -856,3 +856,35 @@ Reworked the header toward the Stitch landing header: sticky warm background, no
 
 Next step:
 Proceed to deploy/merge after review.
+
+## 2026-05-28 23:52 CEST
+
+Task:
+FE-Storage-1 — Persist current journey in sessionStorage.
+
+Prompt used:
+Add frontend-only sessionStorage persistence for the active MindBridge journey so session context, chat messages, safety/resource UI state, and generated Clarity Maps survive refresh/back navigation within the same browser session, without backend persistence, API changes, storage-key changes for Clarity Maps, new packages, or Safety Core changes.
+
+Files changed:
+Added `src/lib/session/journey-storage.ts` and `tests/unit/journey-storage.test.ts`. Updated `src/components/product/onboarding-form.tsx`, `src/components/product/chat-panel.tsx`, `src/components/product/resources-loader.tsx`, `src/components/product/feedback-form.tsx`, `tests/unit/chat-panel.test.tsx`, `tests/unit/clarity-map-loader.test.tsx`, and `CODEX_BUILD_LOG.md`.
+
+Commands run:
+`git status --short`
+Read-only inspection of project handoff docs, `CODEX_BUILD_LOG.md`, current session/message components, and relevant tests
+`npm test -- tests/unit/journey-storage.test.ts tests/unit/chat-panel.test.tsx tests/unit/clarity-map-loader.test.tsx`
+`npm test`
+`npm run lint`
+`npm run build`
+`git diff --check`
+`npm run dev` attempted; an existing Next dev server was already running on port 3000
+`RUN_REAL_AI_EVALS=true EVAL_BASE_URL=http://localhost:3000 npm run eval:ai:smoke`
+Route HTTP sanity check for `/`, `/onboarding`, `/chat`, `/clarity-map`, `/resources`, and `/feedback`
+
+Result:
+Focused storage/chat/Clarity Map tests passed: 3 files, 26 tests. Full test suite passed: 25 files, 264 tests. Lint passed. Build passed. `git diff --check` passed. Real AI smoke eval passed 13/13 with 0 failures and 6 warnings; OpenAI-backed sources appeared, safety routes passed, and boundary routes passed. All checked routes returned HTTP 200 from the local dev server.
+
+Manual review notes:
+Added a small frontend-safe journey storage helper using `sessionStorage` keys `mindbridge:session-context`, `mindbridge:last-session-id`, `mindbridge:chat:<sessionId>`, and `mindbridge:chat-meta:<sessionId>`. Onboarding now saves the returned session context to sessionStorage while preserving the existing `createSession` payload, legacy session id/context writes, and `/chat` navigation. Chat now hydrates the current session context and session-scoped chat transcript from sessionStorage, skips `/api/context-intake` when saved messages exist, persists the first context-aware opener when no transcript exists, saves the user message before `/api/chat` returns, saves assistant safety/boundary/resource metadata after responses, restores insufficient-context notices, and keeps safety-paused Clarity Map state after refresh. Resources and feedback now prefer the new sessionStorage journey helpers while preserving existing API calls and payload shapes. Clarity Map storage keys and generated-only loader behavior were not changed; tests confirm the existing last-map pointer still works. No backend, API route, Safety Core, OpenAI, validation, package, lockfile, type, or API client files were changed. Browser automation was not available in this environment, so refresh/back-navigation behavior was verified through focused jsdom tests plus route/server sanity checks rather than a fully clicked browser session.
+
+Next step:
+Review FE-Storage-1 and then do a human clean-browser spot check for the refresh/back-navigation flows before merge/deploy.

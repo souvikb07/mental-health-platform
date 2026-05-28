@@ -36,6 +36,22 @@ describe("ClarityMapLoader", () => {
     expect(screen.getByText("Pressure is visible: 60/100")).toBeTruthy();
   });
 
+  it("renders a stored generated clarity map from the last-session pointer", async () => {
+    window.sessionStorage.setItem(
+      "mindbridge:last-clarity-map-session",
+      "mock_session_loader",
+    );
+    window.sessionStorage.setItem(
+      "mindbridge:clarity-map:mock_session_loader",
+      JSON.stringify(clarityMapResponse),
+    );
+
+    render(<ClarityMapLoader />);
+
+    expect(await screen.findByText("Harmony Signal")).toBeTruthy();
+    expect(screen.getByText("Pressure is visible: 60/100")).toBeTruthy();
+  });
+
   it("shows a chat CTA when no generated clarity map exists", async () => {
     render(<ClarityMapLoader />);
 
