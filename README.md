@@ -67,6 +67,16 @@ Before adding real API keys, auth, database persistence, payments, or production
 
 This repo is pre-production. Do not commit real secrets, `.env` files, raw mental-health content in logs, or browser-exposed service credentials.
 
+## Local AI Smoke Evals
+
+For synthetic-only checks against local OpenAI-powered API paths, see [Real AI Smoke Eval](./docs/evals/real-ai-smoke.md).
+
+```bash
+RUN_REAL_AI_EVALS=true EVAL_BASE_URL=http://localhost:3000 npm run eval:ai:smoke
+```
+
+Do not commit generated `eval-results/` output.
+
 ## Phase 1 definition of done
 
 ```txt
