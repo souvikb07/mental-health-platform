@@ -618,3 +618,33 @@ Tests passed: 24 files, 253 tests. Lint passed. Build passed. Real AI smoke eval
 
 Manual review notes:
 The Harmony score is now recomputed with emotional load lowering the score and clarity/support/readiness/safety raising it. Manual fallback examples: work overload scored 57/mixed, relationship conflict 54/strained, low energy/disconnection 38/strained, worry loop 57/mixed, and unclear/not sure 35/strained. Labels varied by scenario. The self-safety scenario returned `safety_blocked` with imminent risk and no normal Harmony Signal. No API response shape or UI layout was changed.
+
+## 2026-05-28 21:13 CEST
+
+Task:
+FE-2 minimal design tokens and shared layout baseline.
+
+Prompt used:
+Create a narrow MindBridge visual foundation from `reference/stitch/DESIGN.md` while preserving all product behavior, API contracts, storage keys, safety rendering, and route behavior.
+
+Files changed:
+Updated `src/app/globals.css`, `src/components/layout/app-shell.tsx`, `src/components/layout/site-header.tsx`, `src/components/layout/site-footer.tsx`, `src/components/layout/page-container.tsx`, and `CODEX_BUILD_LOG.md`.
+
+Commands run:
+`git status --short`
+`git diff -- src/app/globals.css`
+Read-only inspection of project handoff docs, Stitch design docs, and shared layout files
+`npm test`
+`npm run lint`
+`npm run build`
+`npm run dev`
+Browser manual QA for `/`, `/onboarding`, `/chat`, `/clarity-map`, `/resources`, and `/feedback` at desktop and mobile viewport widths.
+
+Result:
+Tests passed: 24 files, 253 tests. Lint passed. Build passed. No real AI smoke eval was run because no chat, Clarity Map, API client, safety, backend, or generated-flow logic was changed.
+
+Manual review notes:
+Added warm clay, soft surface, sage primary, ink foreground, muted border, calm error, radius, font-stack, and ambient shadow variables while preserving shadcn/Tailwind semantic tokens. Updated only shared shell/header/footer/container styling to consume the token baseline. Manual browser QA found the main routes rendered at desktop and mobile widths with no obvious horizontal overflow, `/clarity-map` without a generated map showed the empty CTA state, and safety/non-diagnostic footer or notice language remained readable. The active browser had existing local chat state on `localhost`, so the no-session `/chat` CTA was not manually re-created in-browser; a clean-origin `127.0.0.1` attempt was blocked from hydrating by Next.js dev-origin protections, and existing unit coverage for that behavior still passed.
+
+Next step:
+FE-3a landing page polish, using the Stitch landing reference as a visual blueprint while preserving the current route flow and safety positioning.
