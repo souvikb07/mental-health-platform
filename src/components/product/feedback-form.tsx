@@ -6,6 +6,7 @@ import { CheckCircle2, MessageSquareText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { submitFeedback } from "@/lib/api/client";
+import { loadLastSessionId } from "@/lib/session/journey-storage";
 import type { FeedbackRating } from "@/types/feedback";
 
 const ratings: FeedbackRating[] = [1, 2, 3, 4, 5];
@@ -44,9 +45,7 @@ export function FeedbackForm() {
 
         try {
           await submitFeedback({
-            sessionId:
-              window.localStorage.getItem("mindbridge.sessionId") ??
-              "mock_session_demo",
+            sessionId: loadLastSessionId() ?? "mock_session_demo",
             clarityRating: clarity,
             helpfulnessRating: helpfulness,
             feltSafe: true,

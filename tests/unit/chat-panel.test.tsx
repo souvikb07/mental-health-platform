@@ -9,6 +9,12 @@ import type {
   ContextIntakeResponse,
   EnhancedClarityMapResponse,
 } from "../../src/lib/api/client";
+import {
+  JOURNEY_LAST_SESSION_ID_KEY,
+  JOURNEY_SESSION_CONTEXT_KEY,
+  getChatMetaStorageKey,
+  getChatStorageKey,
+} from "../../src/lib/session/journey-storage";
 import type { StructuredClarityMap } from "../../src/types/clarity-map";
 import type { SessionContext } from "../../src/types/session-context";
 
@@ -60,6 +66,14 @@ const openerResponse: ContextIntakeResponse = {
   },
 };
 
+function storeSessionContext(context: SessionContext) {
+  window.sessionStorage.setItem(
+    JOURNEY_SESSION_CONTEXT_KEY,
+    JSON.stringify(context),
+  );
+  window.sessionStorage.setItem(JOURNEY_LAST_SESSION_ID_KEY, context.sessionId);
+}
+
 describe("ChatPanel context opener", () => {
   beforeEach(() => {
     window.localStorage.clear();
@@ -83,10 +97,7 @@ describe("ChatPanel context opener", () => {
   });
 
   it("displays one context-aware opener and no fake preloaded user messages", async () => {
-    window.localStorage.setItem(
-      "mindbridge.sessionContext",
-      JSON.stringify(sessionContext),
-    );
+    storeSessionContext(sessionContext);
     apiMocks.fetchContextIntake.mockResolvedValue(openerResponse);
 
     render(<ChatPanel />);
@@ -102,28 +113,43 @@ describe("ChatPanel context opener", () => {
     expect(apiMocks.fetchContextIntake).toHaveBeenCalledTimes(1);
   });
 
-  it("uses a stored opener instead of calling context intake repeatedly", async () => {
-    window.localStorage.setItem(
-      "mindbridge.sessionContext",
-      JSON.stringify(sessionContext),
-    );
-    window.localStorage.setItem(
-      `mindbridge.contextOpener.${sessionContext.sessionId}`,
-      JSON.stringify({
-        id: openerResponse.assistantMessage.id,
-        role: openerResponse.assistantMessage.role,
-        content: openerResponse.assistantMessage.content,
-      }),
+  it("hydrates saved chat messages instead of calling context intake", async () => {
+    storeSessionContext(sessionContext);
+    window.sessionStorage.setItem(
+      getChatStorageKey(sessionContext.sessionId),
+      JSON.stringify([
+        {
+          id: openerResponse.assistantMessage.id,
+          role: openerResponse.assistantMessage.role,
+          content: openerResponse.assistantMessage.content,
+          createdAt: openerResponse.assistantMessage.createdAt,
+        },
+      ]),
     );
 
-    const { rerender } = render(<ChatPanel />);
+    render(<ChatPanel />);
 
     await screen.findByText(openerResponse.assistantMessage.content);
-    rerender(<ChatPanel />);
+    expect(apiMocks.fetchContextIntake).not.toHaveBeenCalled();
+    expect(
+      screen.getAllByText(openerResponse.assistantMessage.content),
+    ).toHaveLength(1);
+  });
 
-    await waitFor(() => {
-      expect(apiMocks.fetchContextIntake).not.toHaveBeenCalled();
-    });
+  it("does not duplicate the opener after a refresh-style remount", async () => {
+    storeSessionContext(sessionContext);
+    apiMocks.fetchContextIntake.mockResolvedValue(openerResponse);
+
+    render(<ChatPanel />);
+
+    await screen.findByText(openerResponse.assistantMessage.content);
+    expect(apiMocks.fetchContextIntake).toHaveBeenCalledTimes(1);
+
+    cleanup();
+    render(<ChatPanel />);
+
+    await screen.findByText(openerResponse.assistantMessage.content);
+    expect(apiMocks.fetchContextIntake).toHaveBeenCalledTimes(1);
     expect(
       screen.getAllByText(openerResponse.assistantMessage.content),
     ).toHaveLength(1);
@@ -131,10 +157,7 @@ describe("ChatPanel context opener", () => {
 
   it("sends session context and current chat messages when generating a clarity map", async () => {
     const user = userEvent.setup();
-    window.localStorage.setItem(
-      "mindbridge.sessionContext",
-      JSON.stringify(sessionContext),
-    );
+    storeSessionContext(sessionContext);
     apiMocks.fetchContextIntake.mockResolvedValue(openerResponse);
     apiMocks.sendChatMessage.mockResolvedValue(chatResponse);
     apiMocks.fetchEnhancedClarityMap.mockResolvedValue(clarityMapResponse);
@@ -175,17 +198,16 @@ describe("ChatPanel context opener", () => {
 
   it("normalizes an older cached opener without createdAt before generating", async () => {
     const user = userEvent.setup();
-    window.localStorage.setItem(
-      "mindbridge.sessionContext",
-      JSON.stringify(sessionContext),
-    );
-    window.localStorage.setItem(
-      `mindbridge.contextOpener.${sessionContext.sessionId}`,
-      JSON.stringify({
-        id: openerResponse.assistantMessage.id,
-        role: openerResponse.assistantMessage.role,
-        content: openerResponse.assistantMessage.content,
-      }),
+    storeSessionContext(sessionContext);
+    window.sessionStorage.setItem(
+      getChatStorageKey(sessionContext.sessionId),
+      JSON.stringify([
+        {
+          id: openerResponse.assistantMessage.id,
+          role: openerResponse.assistantMessage.role,
+          content: openerResponse.assistantMessage.content,
+        },
+      ]),
     );
     apiMocks.fetchEnhancedClarityMap.mockResolvedValue(clarityMapResponse);
 
@@ -206,10 +228,7 @@ describe("ChatPanel context opener", () => {
 
   it("shows a loading state while generating", async () => {
     const user = userEvent.setup();
-    window.localStorage.setItem(
-      "mindbridge.sessionContext",
-      JSON.stringify(sessionContext),
-    );
+    storeSessionContext(sessionContext);
     apiMocks.fetchContextIntake.mockResolvedValue(openerResponse);
 
     let resolveResponse: (response: EnhancedClarityMapResponse) => void;
@@ -237,12 +256,63 @@ describe("ChatPanel context opener", () => {
     });
   });
 
+  it("saves the user message before the assistant response is returned", async () => {
+    const user = userEvent.setup();
+    storeSessionContext(sessionContext);
+    apiMocks.fetchContextIntake.mockResolvedValue(openerResponse);
+
+    let resolveChatResponse: (response: ChatResponse) => void;
+    apiMocks.sendChatMessage.mockReturnValue(
+      new Promise((resolve) => {
+        resolveChatResponse = resolve;
+      }),
+    );
+
+    render(<ChatPanel />);
+
+    await screen.findByText(openerResponse.assistantMessage.content);
+    await user.type(
+      screen.getByLabelText("Your message"),
+      "I feel overwhelmed after work.",
+    );
+    await user.click(screen.getByRole("button", { name: "Send message" }));
+
+    await waitFor(() => {
+      expect(apiMocks.sendChatMessage).toHaveBeenCalledTimes(1);
+    });
+
+    const savedBeforeAssistant = JSON.parse(
+      window.sessionStorage.getItem(getChatStorageKey(sessionContext.sessionId)) ??
+        "[]",
+    ) as Array<{ content: string; role: string }>;
+
+    expect(savedBeforeAssistant.map((item) => item.content)).toContain(
+      "I feel overwhelmed after work.",
+    );
+    expect(savedBeforeAssistant.map((item) => item.content)).not.toContain(
+      chatResponse.assistantMessage.content,
+    );
+    expect(
+      window.localStorage.getItem(getChatStorageKey(sessionContext.sessionId)),
+    ).toBeNull();
+
+    resolveChatResponse!(chatResponse);
+
+    await screen.findByText(chatResponse.assistantMessage.content);
+
+    const savedAfterAssistant = JSON.parse(
+      window.sessionStorage.getItem(getChatStorageKey(sessionContext.sessionId)) ??
+        "[]",
+    ) as Array<{ content: string; role: string }>;
+
+    expect(savedAfterAssistant.map((item) => item.content)).toContain(
+      chatResponse.assistantMessage.content,
+    );
+  });
+
   it("stores generated clarity maps in sessionStorage and navigates", async () => {
     const user = userEvent.setup();
-    window.localStorage.setItem(
-      "mindbridge.sessionContext",
-      JSON.stringify(sessionContext),
-    );
+    storeSessionContext(sessionContext);
     apiMocks.fetchContextIntake.mockResolvedValue(openerResponse);
     apiMocks.fetchEnhancedClarityMap.mockResolvedValue(clarityMapResponse);
 
@@ -270,10 +340,7 @@ describe("ChatPanel context opener", () => {
 
   it("shows insufficient context inline and does not navigate", async () => {
     const user = userEvent.setup();
-    window.localStorage.setItem(
-      "mindbridge.sessionContext",
-      JSON.stringify(sessionContext),
-    );
+    storeSessionContext(sessionContext);
     apiMocks.fetchContextIntake.mockResolvedValue(openerResponse);
     apiMocks.fetchEnhancedClarityMap.mockResolvedValue({
       type: "insufficient_context",
@@ -292,15 +359,19 @@ describe("ChatPanel context opener", () => {
       await screen.findByText("Share one or two more messages first."),
     ).toBeTruthy();
     expect(navigationMocks.push).not.toHaveBeenCalled();
-    expect(window.sessionStorage.length).toBe(0);
+    expect(
+      window.sessionStorage.getItem(
+        `mindbridge:clarity-map:${sessionContext.sessionId}`,
+      ),
+    ).toBeNull();
+    expect(
+      window.sessionStorage.getItem(getChatMetaStorageKey(sessionContext.sessionId)),
+    ).toContain("Share one or two more messages first.");
   });
 
   it("shows safety-blocked responses inline and does not navigate", async () => {
     const user = userEvent.setup();
-    window.localStorage.setItem(
-      "mindbridge.sessionContext",
-      JSON.stringify(sessionContext),
-    );
+    storeSessionContext(sessionContext);
     apiMocks.fetchContextIntake.mockResolvedValue(openerResponse);
     apiMocks.fetchEnhancedClarityMap.mockResolvedValue(safetyBlockedResponse);
 
@@ -314,15 +385,16 @@ describe("ChatPanel context opener", () => {
     expect(await screen.findByText("Safety support comes first.")).toBeTruthy();
     expect(await screen.findByText("988 Lifeline")).toBeTruthy();
     expect(navigationMocks.push).not.toHaveBeenCalled();
-    expect(window.sessionStorage.length).toBe(0);
+    expect(
+      window.sessionStorage.getItem(
+        `mindbridge:clarity-map:${sessionContext.sessionId}`,
+      ),
+    ).toBeNull();
   });
 
   it("shows boundary-blocked responses inline and does not navigate", async () => {
     const user = userEvent.setup();
-    window.localStorage.setItem(
-      "mindbridge.sessionContext",
-      JSON.stringify(sessionContext),
-    );
+    storeSessionContext(sessionContext);
     apiMocks.fetchContextIntake.mockResolvedValue(openerResponse);
     apiMocks.fetchEnhancedClarityMap.mockResolvedValue(boundaryBlockedResponse);
 
@@ -335,15 +407,16 @@ describe("ChatPanel context opener", () => {
 
     expect(await screen.findByText("MindBridge cannot diagnose.")).toBeTruthy();
     expect(navigationMocks.push).not.toHaveBeenCalled();
-    expect(window.sessionStorage.length).toBe(0);
+    expect(
+      window.sessionStorage.getItem(
+        `mindbridge:clarity-map:${sessionContext.sessionId}`,
+      ),
+    ).toBeNull();
   });
 
   it("pauses clarity map generation after a self-safety chat response", async () => {
     const user = userEvent.setup();
-    window.localStorage.setItem(
-      "mindbridge.sessionContext",
-      JSON.stringify(sessionContext),
-    );
+    storeSessionContext(sessionContext);
     apiMocks.fetchContextIntake.mockResolvedValue(openerResponse);
     apiMocks.sendChatMessage.mockResolvedValue(selfSafetyChatResponse);
 
@@ -362,6 +435,63 @@ describe("ChatPanel context opener", () => {
         name: "Clarity map paused for safety",
       }) as HTMLButtonElement).disabled,
     ).toBe(true);
+  });
+
+  it("restores a safety response after a refresh-style remount", async () => {
+    const user = userEvent.setup();
+    storeSessionContext(sessionContext);
+    apiMocks.fetchContextIntake.mockResolvedValue(openerResponse);
+    apiMocks.sendChatMessage.mockResolvedValue(selfSafetyChatResponse);
+
+    render(<ChatPanel />);
+
+    await screen.findByText(openerResponse.assistantMessage.content);
+    await user.type(
+      screen.getByLabelText("Your message"),
+      "I do not feel safe with myself tonight.",
+    );
+    await user.click(screen.getByRole("button", { name: "Send message" }));
+
+    expect(await screen.findByText("Safety support comes first.")).toBeTruthy();
+
+    cleanup();
+    render(<ChatPanel />);
+
+    expect(await screen.findByText("Safety support comes first.")).toBeTruthy();
+    expect(screen.getByText("Urgent support")).toBeTruthy();
+    expect(
+      (screen.getByRole("button", {
+        name: "Clarity map paused for safety",
+      }) as HTMLButtonElement).disabled,
+    ).toBe(true);
+    expect(apiMocks.fetchContextIntake).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not load a previous session chat for a new session id", async () => {
+    storeSessionContext({
+      ...sessionContext,
+      sessionId: "mock_session_chat_panel_new",
+    });
+    window.sessionStorage.setItem(
+      getChatStorageKey("mock_session_chat_panel_old"),
+      JSON.stringify([
+        {
+          id: "old_message",
+          role: "assistant",
+          content: "Old session message should not appear.",
+          createdAt: "2026-05-28T00:00:00.000Z",
+        },
+      ]),
+    );
+    apiMocks.fetchContextIntake.mockResolvedValue(openerResponse);
+
+    render(<ChatPanel />);
+
+    await screen.findByText(openerResponse.assistantMessage.content);
+    expect(
+      screen.queryByText("Old session message should not appear."),
+    ).toBeNull();
+    expect(apiMocks.fetchContextIntake).toHaveBeenCalledTimes(1);
   });
 });
 

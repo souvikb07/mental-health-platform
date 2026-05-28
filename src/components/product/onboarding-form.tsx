@@ -7,6 +7,7 @@ import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { createSession } from "@/lib/api/client";
+import { saveSessionContext } from "@/lib/session/journey-storage";
 import { mainConcernOptions } from "@/lib/session/session-context";
 import { cn } from "@/lib/utils";
 import type { MainConcernCategory } from "@/types/session-context";
@@ -55,6 +56,7 @@ export function OnboardingForm() {
             "mindbridge.sessionContext",
             JSON.stringify(response.sessionContext),
           );
+          saveSessionContext(response.sessionContext);
           router.push("/chat");
         } catch {
           setError("We could not create the session. Please try again.");
