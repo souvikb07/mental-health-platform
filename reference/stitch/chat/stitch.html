@@ -1,0 +1,186 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>MindBridge - Guided Chat</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "ink-charcoal": "#2D2C2B", "on-tertiary-fixed": "#001848", "on-primary": "#ffffff", "on-error-container": "#93000a", "surface-container-lowest": "#ffffff", "surface-container-high": "#ece7e5", "surface-bright": "#fdf8f6", "on-tertiary-fixed-variant": "#0040a2", "surface-variant": "#e6e1e0", "surface-container-highest": "#e6e1e0", "tertiary-container": "#0049b8", "error-container": "#ffdad6", "secondary-container": "#fdcc00", "inverse-on-surface": "#f5f0ee", "inverse-surface": "#32302f", "on-secondary": "#ffffff", "background": "#fdf8f6", "surface": "#fdf8f6", "on-secondary-fixed": "#231a00", "surface-container-low": "#f8f3f1", "outline": "#717973", "on-secondary-fixed-variant": "#574500", "secondary-fixed": "#ffe086", "on-tertiary": "#ffffff", "sage-green": "#2d5a43", "serene-blue": "#0061EF", "on-primary-container": "#9fcfb2", "on-background": "#1c1b1a", "surface-dim": "#ded9d7", "warm-clay": "#F9F4F2", "primary-fixed": "#bceecf", "on-surface-variant": "#414943", "on-surface": "#1c1b1a", "tertiary-fixed": "#dae2ff", "secondary": "#735c00", "surface-tint": "#3a674f", "outline-variant": "#c0c9c1", "primary": "#14422d", "inverse-primary": "#a1d1b4", "tertiary": "#003488", "on-secondary-container": "#6e5700", "soft-white": "#FFFFFF", "sunny-yellow": "#FFCE00", "tertiary-fixed-dim": "#b2c5ff", "on-primary-fixed": "#002112", "primary-fixed-dim": "#a1d1b4", "on-tertiary-container": "#afc3ff", "secondary-fixed-dim": "#efc100", "on-primary-fixed-variant": "#224f39", "primary-container": "#2d5a43", "on-error": "#ffffff", "error": "#ba1a1a", "surface-container": "#f2edeb"
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.25rem", lg: "0.5rem", xl: "0.75rem", full: "9999px"
+                    },
+                    spacing: {
+                        base: "8px", "element-gap-md": "24px", "container-padding-desktop": "40px", "container-padding-mobile": "20px", "section-gap": "64px", "element-gap-sm": "12px", gutter: "24px"
+                    },
+                    fontFamily: {
+                        "body-md": ["Manrope"], "headline-lg": ["Manrope"], "headline-md": ["Manrope"], "body-lg": ["Manrope"], "display-lg": ["Manrope"], "headline-lg-mobile": ["Manrope"], "label-sm": ["Manrope"], "label-md": ["Manrope"]
+                    },
+                    fontSize: {
+                        "body-md": ["16px", { lineHeight: "24px", fontWeight: "400" }],
+                        "headline-lg": ["32px", { lineHeight: "40px", letterSpacing: "-0.01em", fontWeight: "700" }],
+                        "headline-md": ["24px", { lineHeight: "32px", fontWeight: "600" }],
+                        "body-lg": ["18px", { lineHeight: "28px", fontWeight: "400" }],
+                        "display-lg": ["48px", { lineHeight: "56px", letterSpacing: "-0.02em", fontWeight: "800" }],
+                        "headline-lg-mobile": ["28px", { lineHeight: "36px", fontWeight: "700" }],
+                        "label-sm": ["12px", { lineHeight: "16px", fontWeight: "500" }],
+                        "label-md": ["14px", { lineHeight: "20px", letterSpacing: "0.01em", fontWeight: "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'Manrope', sans-serif; }
+        .ambient-shadow { box-shadow: 0px 10px 30px rgba(45, 90, 67, 0.08); }
+        .reverse-ambient-shadow { box-shadow: 0px -10px 30px rgba(45, 90, 67, 0.08); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes pulseDot {
+            0%, 100% { opacity: 0.4; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+        @keyframes fadeInCalm {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .animate-fade-in-up {
+            animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+        }
+        .delay-100 { animation-delay: 100ms; }
+        .delay-200 { animation-delay: 200ms; }
+        .delay-300 { animation-delay: 300ms; }
+        .delay-400 { animation-delay: 400ms; }
+        .delay-500 { animation-delay: 500ms; }
+
+        .typing-dot {
+            animation: pulseDot 1.4s infinite ease-in-out both;
+        }
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+        .typing-dot:nth-child(3) { animation-delay: 0s; }
+
+        .animate-calm {
+            animation: fadeInCalm 1.2s ease-in-out forwards;
+        }
+    </style>
+</head>
+<body class="bg-warm-clay text-on-surface min-h-screen flex flex-col font-body-md text-body-md antialiased">
+<!-- TopNavBar -->
+<header class="bg-background dark:bg-on-background docked full-width top-0 z-50 sticky transition-all duration-300" id="top-nav">
+<div class="flex justify-between items-center w-full px-container-padding-mobile md:px-container-padding-desktop py-4 max-w-7xl mx-auto">
+<!-- Brand -->
+<a class="text-headline-md font-headline-md font-extrabold text-sage-green dark:text-primary-fixed-dim flex items-center gap-2" href="#">
+<span class="material-symbols-outlined" data-weight="fill" style="font-variation-settings: &quot;FILL&quot; 1;">eco</span>
+            MindBridge
+        </a>
+<!-- Actions -->
+<div class="flex items-center gap-4">
+<button class="text-sage-green dark:text-primary-fixed-dim hover:bg-surface-container rounded-full p-2 scale-95 active:scale-90 transition-transform">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Main Chat Area -->
+<main class="flex flex-col max-w-3xl mx-auto w-full relative z-10 pb-24 md:pb-32 min-h-[calc(100vh-160px)]">
+<!-- Chat History -->
+<div class="flex-grow overflow-y-auto no-scrollbar p-container-padding-mobile md:p-container-padding-desktop flex flex-col gap-element-gap-md">
+<!-- System Intro Date/Time -->
+<div class="text-center w-full animate-calm">
+<span class="font-label-sm text-label-sm text-outline px-4 py-1 rounded-full bg-surface-container-low">Today, 10:00 AM</span>
+</div>
+<!-- AI Message -->
+<div class="flex gap-4 items-end max-w-[85%] animate-fade-in-up delay-100">
+<div class="w-8 h-8 rounded-full bg-sage-green flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-soft-white text-sm" style="font-variation-settings: 'FILL' 1;">psychology</span>
+</div>
+<div class="bg-soft-white p-element-gap-sm md:p-element-gap-md rounded-2xl rounded-bl-none ambient-shadow text-on-surface">
+<p class="font-body-md text-body-md">Good morning. Take a deep breath. How are you feeling right now?</p>
+</div>
+</div>
+<!-- User Message -->
+<div class="flex gap-4 items-end max-w-[85%] self-end flex-row-reverse animate-fade-in-up delay-200">
+<div class="bg-sage-green p-element-gap-sm md:p-element-gap-md rounded-2xl rounded-br-none text-soft-white">
+<p class="font-body-md text-body-md">I'm feeling a bit overwhelmed with work today. My mind is racing.</p>
+</div>
+</div>
+<!-- AI Message -->
+<div class="flex gap-4 items-end max-w-[85%] animate-fade-in-up delay-300">
+<div class="w-8 h-8 rounded-full bg-sage-green flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-soft-white text-sm" style="font-variation-settings: 'FILL' 1;">psychology</span>
+</div>
+<div class="bg-soft-white p-element-gap-sm md:p-element-gap-md rounded-2xl rounded-bl-none ambient-shadow text-on-surface">
+<p class="font-body-md text-body-md mb-3">It's completely natural to feel overwhelmed when tasks pile up. Acknowledging that racing feeling is a great first step.</p>
+<p class="font-body-md text-body-md">Would you like to try a short grounding exercise, or should we break down what's on your plate?</p>
+<!-- Chips / Quick Replies -->
+<div class="flex flex-wrap gap-2 mt-4">
+<button class="px-4 py-2 rounded-full bg-surface-container-low text-sage-green font-label-md text-label-md border border-transparent hover:border-sage-green hover:bg-sage-green hover:text-soft-white hover:-translate-y-0.5 active:translate-y-0 active:scale-95 shadow-sm hover:shadow-md transition-all duration-300">
+                            Grounding exercise
+                        </button>
+<button class="px-4 py-2 rounded-full bg-surface-container-low text-sage-green font-label-md text-label-md border border-transparent hover:border-sage-green hover:bg-sage-green hover:text-soft-white hover:-translate-y-0.5 active:translate-y-0 active:scale-95 shadow-sm hover:shadow-md transition-all duration-300">
+                            Break down tasks
+                        </button>
+</div>
+</div>
+</div>
+<!-- AI Thinking Indicator -->
+<div class="flex gap-4 items-end max-w-[85%] animate-fade-in-up delay-400">
+<div class="w-8 h-8 rounded-full bg-sage-green flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-soft-white text-sm" style="font-variation-settings: 'FILL' 1;">psychology</span>
+</div>
+<div class="bg-soft-white px-4 py-3 rounded-2xl rounded-bl-none ambient-shadow text-on-surface flex items-center gap-1.5 h-[44px]">
+<div class="w-1.5 h-1.5 bg-sage-green rounded-full typing-dot"></div>
+<div class="w-1.5 h-1.5 bg-sage-green rounded-full typing-dot"></div>
+<div class="w-1.5 h-1.5 bg-sage-green rounded-full typing-dot"></div>
+</div>
+</div>
+<!-- Action Prompt Area -->
+<div class="mt-8 flex justify-center w-full animate-fade-in-up delay-500">
+<button class="bg-sage-green text-soft-white font-label-md text-label-md px-8 py-4 rounded-full ambient-shadow flex items-center gap-2 hover:bg-primary transition-colors duration-300">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+                    Generate clarity map
+                </button>
+</div>
+</div>
+</main>
+<!-- Input Area (Fixed to bottom above nav) -->
+<div class="sticky bottom-0 left-0 w-full z-40 flex justify-center pb-safe bg-background md:bg-transparent animate-fade-in-up delay-300">
+<div class="w-full max-w-3xl bg-background md:bg-transparent px-container-padding-mobile md:px-container-padding-desktop pb-4 pt-2 md:py-6">
+<div class="relative bg-soft-white rounded-xl ambient-shadow flex items-center p-2 border border-surface-dim focus-within:border-sage-green transition-colors">
+<input class="flex-grow bg-transparent border-none focus:ring-0 font-body-md text-body-md px-4 py-2 text-on-surface placeholder:text-outline outline-none" placeholder="Type your thoughts gently..." type="text">
+<button class="w-10 h-10 rounded-full bg-sage-green text-soft-white flex items-center justify-center shrink-0 hover:bg-primary transition-colors">
+<span class="material-symbols-outlined text-sm">send</span>
+</button>
+</div>
+</div>
+</div><footer class="bg-warm-clay dark:bg-surface-container-highest full-width bottom-0 mt-auto">
+<div class="flex flex-col md:flex-row justify-between items-center w-full px-container-padding-mobile md:px-container-padding-desktop py-section-gap max-w-7xl mx-auto gap-element-gap-md">
+<div class="text-label-md font-headline-md font-bold text-sage-green dark:text-primary-fixed-dim flex items-center gap-2">
+<span class="material-symbols-outlined" data-icon="eco">eco</span>
+            MindBridge
+        </div>
+<div class="font-body-md text-body-md text-on-surface-variant text-center md:text-left">
+            © 2026 MindBridge. Your journey to clarity.
+        </div>
+<nav class="flex gap-4 items-center">
+<a class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant hover:text-sage-green dark:hover:text-primary-fixed-dim underline transition-all duration-200" href="#">Privacy Policy</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant hover:text-sage-green dark:hover:text-primary-fixed-dim underline transition-all duration-200" href="#">Terms of Service</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant hover:text-sage-green dark:hover:text-primary-fixed-dim underline transition-all duration-200" href="#">Emergency Resources</a>
+</nav>
+</div>
+</footer>
+<!-- BottomNavBar (Mobile Only) -->
+</body></html>

@@ -1,0 +1,422 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>MindBridge - User Profile</title>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Tailwind Config -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "error-container": "#ffdad6",
+                    "surface-container-lowest": "#ffffff",
+                    "on-primary": "#ffffff",
+                    "on-tertiary-fixed": "#001848",
+                    "surface": "#fdf8f6",
+                    "tertiary-fixed-dim": "#b2c5ff",
+                    "sunny-yellow": "#FFCE00",
+                    "secondary": "#735c00",
+                    "primary-fixed": "#bceecf",
+                    "surface-container": "#f2edeb",
+                    "secondary-fixed-dim": "#efc100",
+                    "tertiary": "#003488",
+                    "tertiary-fixed": "#dae2ff",
+                    "surface-tint": "#3a674f",
+                    "on-primary-fixed-variant": "#224f39",
+                    "inverse-primary": "#a1d1b4",
+                    "surface-variant": "#e6e1e0",
+                    "primary-fixed-dim": "#a1d1b4",
+                    "background": "#fdf8f6",
+                    "secondary-fixed": "#ffe086",
+                    "secondary-container": "#fdcc00",
+                    "primary-container": "#2d5a43",
+                    "tertiary-container": "#0049b8",
+                    "surface-container-high": "#ece7e5",
+                    "on-tertiary": "#ffffff",
+                    "inverse-on-surface": "#f5f0ee",
+                    "on-secondary": "#ffffff",
+                    "outline-variant": "#c0c9c1",
+                    "on-secondary-container": "#6e5700",
+                    "on-surface": "#1c1b1a",
+                    "on-primary-fixed": "#002112",
+                    "on-secondary-fixed-variant": "#574500",
+                    "on-tertiary-fixed-variant": "#0040a2",
+                    "surface-container-low": "#f8f3f1",
+                    "on-primary-container": "#9fcfb2",
+                    "primary": "#14422d",
+                    "outline": "#717973",
+                    "serene-blue": "#0061EF",
+                    "on-error-container": "#93000a",
+                    "on-error": "#ffffff",
+                    "warm-clay": "#F9F4F2",
+                    "on-surface-variant": "#414943",
+                    "on-secondary-fixed": "#231a00",
+                    "surface-dim": "#ded9d7",
+                    "error": "#ba1a1a",
+                    "surface-bright": "#fdf8f6",
+                    "on-background": "#1c1b1a",
+                    "inverse-surface": "#32302f",
+                    "soft-white": "#FFFFFF",
+                    "on-tertiary-container": "#afc3ff",
+                    "ink-charcoal": "#2D2C2B",
+                    "surface-container-highest": "#e6e1e0",
+                    "sage-green": "#2d5a43"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gutter": "24px",
+                    "container-padding-mobile": "20px",
+                    "base": "8px",
+                    "section-gap": "64px",
+                    "element-gap-md": "24px",
+                    "container-padding-desktop": "40px",
+                    "element-gap-sm": "12px"
+            },
+            "fontFamily": {
+                    "label-md": [
+                            "manrope"
+                    ],
+                    "headline-lg-mobile": [
+                            "manrope"
+                    ],
+                    "body-md": [
+                            "manrope"
+                    ],
+                    "headline-md": [
+                            "manrope"
+                    ],
+                    "body-lg": [
+                            "manrope"
+                    ],
+                    "label-sm": [
+                            "manrope"
+                    ],
+                    "headline-lg": [
+                            "manrope"
+                    ],
+                    "display-lg": [
+                            "manrope"
+                    ]
+            },
+            "fontSize": {
+                    "label-md": [
+                            "14px",
+                            {
+                                    "lineHeight": "20px",
+                                    "letterSpacing": "0.01em",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "headline-lg-mobile": [
+                            "28px",
+                            {
+                                    "lineHeight": "36px",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "body-md": [
+                            "16px",
+                            {
+                                    "lineHeight": "24px",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "headline-md": [
+                            "24px",
+                            {
+                                    "lineHeight": "32px",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "body-lg": [
+                            "18px",
+                            {
+                                    "lineHeight": "28px",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "label-sm": [
+                            "12px",
+                            {
+                                    "lineHeight": "16px",
+                                    "fontWeight": "500"
+                            }
+                    ],
+                    "headline-lg": [
+                            "32px",
+                            {
+                                    "lineHeight": "40px",
+                                    "letterSpacing": "-0.01em",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "display-lg": [
+                            "48px",
+                            {
+                                    "lineHeight": "56px",
+                                    "letterSpacing": "-0.02em",
+                                    "fontWeight": "800"
+                            }
+                    ]
+            },
+            "boxShadow": {
+                "ambient": "0px 10px 30px rgba(45, 90, 67, 0.08)"
+            }
+          }
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+          font-variation-settings:
+          'FILL' 0,
+          'wght' 400,
+          'GRAD' 0,
+          'opsz' 24
+        }
+        .material-symbols-outlined[data-weight="fill"] {
+            font-variation-settings: 'FILL' 1;
+        }
+        
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .animate-fade-up {
+            animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+    </style>
+</head>
+<body class="bg-warm-clay text-on-surface antialiased flex flex-col min-h-screen">
+<!-- TopNavBar -->
+<header class="bg-surface dark:bg-inverse-surface shadow-sm docked full-width top-0 w-full z-50 sticky">
+<div class="flex justify-between items-center w-full px-container-padding-mobile md:px-container-padding-desktop max-w-7xl mx-auto h-20">
+<!-- Brand -->
+<div class="text-headline-md font-headline-md font-bold text-sage-green dark:text-primary-fixed">
+                MindBridge
+            </div>
+<!-- Navigation (Desktop) -->
+<nav class="hidden md:flex gap-element-gap-md items-center">
+<a class="text-on-surface-variant dark:text-outline-variant font-label-md hover:text-primary dark:hover:text-primary-fixed transition-colors duration-200" href="#">Reflection</a>
+<a class="text-on-surface-variant dark:text-outline-variant font-label-md hover:text-primary dark:hover:text-primary-fixed transition-colors duration-200" href="#">Clarity Map</a>
+<a class="text-on-surface-variant dark:text-outline-variant font-label-md hover:text-primary dark:hover:text-primary-fixed transition-colors duration-200" href="#">Support</a>
+</nav>
+<!-- Actions -->
+<div class="flex items-center gap-element-gap-sm">
+<!-- Highlight Account Circle since this is a user profile page -->
+<button aria-label="Profile" class="text-primary dark:text-primary-fixed scale-95 transition-transform duration-150 p-2 rounded-full bg-surface-container-low flex items-center justify-center">
+<span class="material-symbols-outlined" data-icon="account_circle" data-weight="fill">account_circle</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-grow w-full max-w-7xl mx-auto px-container-padding-mobile md:px-container-padding-desktop py-section-gap">
+<div class="max-w-3xl mx-auto space-y-element-gap-md">
+<!-- 1. User Header -->
+<section class="bg-soft-white rounded-xl shadow-ambient p-gutter flex flex-col items-center text-center animate-fade-up opacity-0">
+<div class="relative w-32 h-32 mb-element-gap-sm rounded-full overflow-hidden border-4 border-warm-clay bg-surface-container">
+<img alt="Alex Miller" class="w-full h-full object-cover" data-alt="A softly lit, professional yet approachable portrait of a man in his late 20s. He is wearing a simple, comfortable earth-toned sweater. The background is a clean, slightly blurred warm neutral color, complementing the serene clarity aesthetic of the UI. The lighting is gentle, natural, and casts no harsh shadows, evoking a sense of calm and trust." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD1Py06TM0gwcVvLHS_-Q1R0EWISgLO4uMxjZ8aBvgvfHt63QYVLLa_Fim7FS97CNu1_8nytzpczv4p0kJsmN71O8_lL_MtkT5zs355Kh7gM2Pk3NNMqwPOh8bFmbwp6ADQspR-t8PDijmE-6ST1RAwitQakH8yr7FXdo_tQdfKdxAi2u42enj4Ee8qtLS6JONbXsrkeq_YG40eJd6F_wbzBwA6PbHgAznUqypzfavr7pggGpZLMLazOAimpgcAErRURcVVvjPV5zM">
+</div>
+<h1 class="text-headline-lg-mobile md:text-headline-lg font-headline-lg-mobile md:font-headline-lg text-ink-charcoal mb-1">Alex Miller</h1>
+<p class="text-label-md font-label-md text-on-surface-variant px-4 py-1 bg-surface-container-low rounded-full">Member since June 2024</p>
+</section>
+<!-- Grid Layout for Settings and Stats -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-element-gap-md">
+<!-- 3. Journey Stats (Bento style card) -->
+<section class="bg-soft-white rounded-xl shadow-ambient p-gutter flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-lg border border-transparent hover:border-sage-green/20" id="stats-section">
+<h2 class="text-headline-md font-headline-md text-sage-green mb-element-gap-md flex items-center gap-2">
+<span class="material-symbols-outlined text-sage-green">timeline</span> Journey Stats
+                    </h2>
+<div class="space-y-element-gap-sm">
+<div class="bg-warm-clay p-4 rounded-lg flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center text-primary-container">
+<span class="material-symbols-outlined">self_improvement</span>
+</div>
+<span class="text-body-md font-body-md text-ink-charcoal">Clarity Sessions</span>
+</div>
+<span class="text-headline-md font-headline-md text-sage-green" data-target="12" id="stat-sessions">12</span>
+</div>
+<div class="bg-warm-clay p-4 rounded-lg flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-secondary-fixed flex items-center justify-center text-on-secondary-container">
+<span class="material-symbols-outlined">balance</span>
+</div>
+<span class="text-body-md font-body-md text-ink-charcoal">Harmony Score</span>
+</div>
+<span class="text-headline-md font-headline-md text-secondary-container" data-target="7.2" id="stat-harmony">58/100</span>
+</div>
+</div>
+</section>
+<!-- 2. Account Settings -->
+<section class="bg-soft-white rounded-xl shadow-ambient p-gutter transition-all duration-300 hover:-translate-y-1 hover:shadow-lg border border-transparent hover:border-sage-green/20">
+<h2 class="text-headline-md font-headline-md text-sage-green mb-element-gap-md flex items-center gap-2">
+<span class="material-symbols-outlined text-sage-green">settings</span> Account Settings
+                    </h2>
+<div class="space-y-2">
+<button class="w-full flex items-center justify-between p-4 rounded-lg hover:bg-warm-clay transition-colors group text-left">
+<div class="flex items-center gap-3 text-ink-charcoal group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-outline">mail</span>
+<div>
+<p class="text-body-md font-body-md">Email</p>
+<p class="text-label-sm font-label-sm text-on-surface-variant">alex.miller@example.com</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-primary transition-all duration-300 group-hover:translate-x-1">chevron_right</span>
+</button>
+<button class="w-full flex items-center justify-between p-4 rounded-lg hover:bg-warm-clay transition-colors group text-left">
+<div class="flex items-center gap-3 text-ink-charcoal group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-outline">lock</span>
+<span class="text-body-md font-body-md">Password</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-primary transition-all duration-300 group-hover:translate-x-1">chevron_right</span>
+</button>
+<button class="w-full flex items-center justify-between p-4 rounded-lg hover:bg-warm-clay transition-colors group text-left">
+<div class="flex items-center gap-3 text-ink-charcoal group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-outline">notifications</span>
+<span class="text-body-md font-body-md">Notification Preferences</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-primary transition-all duration-300 group-hover:translate-x-1">chevron_right</span>
+</button>
+</div>
+</section>
+<!-- 5. Support Settings -->
+<section class="bg-soft-white rounded-xl shadow-ambient p-gutter transition-all duration-300 hover:-translate-y-1 hover:shadow-lg border border-transparent hover:border-sage-green/20">
+<h2 class="text-headline-md font-headline-md text-sage-green mb-element-gap-md flex items-center gap-2">
+<span class="material-symbols-outlined text-sage-green">favorite</span> Support Settings
+                    </h2>
+<div class="space-y-2">
+<button class="w-full flex items-center justify-between p-4 rounded-lg hover:bg-warm-clay transition-colors group text-left">
+<div class="flex items-center gap-3 text-ink-charcoal group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-outline">health_and_safety</span>
+<span class="text-body-md font-body-md">Crisis Support Preferences</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-primary transition-all duration-300 group-hover:translate-x-1">chevron_right</span>
+</button>
+<button class="w-full flex items-center justify-between p-4 rounded-lg hover:bg-warm-clay transition-colors group text-left">
+<div class="flex items-center gap-3 text-ink-charcoal group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-outline">group</span>
+<span class="text-body-md font-body-md">Trusted Contacts</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-primary transition-all duration-300 group-hover:translate-x-1">chevron_right</span>
+</button>
+</div>
+</section>
+<!-- 4. Security & Privacy -->
+<section class="bg-soft-white rounded-xl shadow-ambient p-gutter transition-all duration-300 hover:-translate-y-1 hover:shadow-lg border border-transparent hover:border-sage-green/20">
+<h2 class="text-headline-md font-headline-md text-sage-green mb-element-gap-md flex items-center gap-2">
+<span class="material-symbols-outlined text-sage-green">shield</span> Security &amp; Privacy
+                    </h2>
+<div class="space-y-2">
+<button class="w-full flex items-center justify-between p-4 rounded-lg hover:bg-warm-clay transition-colors group text-left">
+<div class="flex items-center gap-3 text-ink-charcoal group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-outline">visibility_off</span>
+<span class="text-body-md font-body-md">Privacy Settings</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-primary transition-all duration-300 group-hover:translate-x-1">chevron_right</span>
+</button>
+<button class="w-full flex items-center justify-between p-4 rounded-lg hover:bg-warm-clay transition-colors group text-left">
+<div class="flex items-center gap-3 text-ink-charcoal group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-outline">download</span>
+<span class="text-body-md font-body-md">Data Download</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-primary transition-all duration-300 group-hover:translate-x-1">chevron_right</span>
+</button>
+<button class="w-full flex items-center justify-between p-4 rounded-lg hover:bg-error-container/30 transition-colors group text-left mt-4 border border-error-container">
+<div class="flex items-center gap-3 text-error transition-colors">
+<span class="material-symbols-outlined text-error">person_remove</span>
+<span class="text-body-md font-body-md">Account Deactivation</span>
+</div>
+<span class="material-symbols-outlined text-error opacity-50 transition-all duration-300 group-hover:translate-x-1">chevron_right</span>
+</button>
+</div>
+</section>
+</div>
+<div class="flex justify-center mt-element-gap-md pt-element-gap-md">
+<button class="bg-warm-clay border-2 border-sage-green text-sage-green px-8 py-3 rounded-full text-label-md font-label-md hover:bg-sage-green hover:text-soft-white transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md flex items-center gap-2">
+<span class="material-symbols-outlined">logout</span>
+                    Sign Out
+                </button>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="bg-surface-container dark:bg-surface-container-highest mt-auto full-width">
+<div class="flex flex-col md:flex-row justify-between items-center px-container-padding-mobile md:px-container-padding-desktop py-section-gap max-w-7xl mx-auto gap-base">
+<div class="text-headline-sm font-headline-sm font-bold text-sage-green">
+                MindBridge
+            </div>
+<div class="flex flex-wrap justify-center gap-element-gap-sm md:gap-element-gap-md">
+<a class="text-on-surface-variant dark:text-outline underline-offset-4 hover:text-primary dark:hover:text-primary-fixed hover:underline transition-all duration-300 text-label-sm font-label-sm" href="#">Privacy Policy</a>
+<a class="text-on-surface-variant dark:text-outline underline-offset-4 hover:text-primary dark:hover:text-primary-fixed hover:underline transition-all duration-300 text-label-sm font-label-sm" href="#">Terms of Service</a>
+<a class="text-on-surface-variant dark:text-outline underline-offset-4 hover:text-primary dark:hover:text-primary-fixed hover:underline transition-all duration-300 text-label-sm font-label-sm" href="#">Emergency Resources</a>
+</div>
+<div class="text-body-md font-body-md text-on-surface-variant">
+                © 2024 MindBridge. All rights reserved.
+            </div>
+</div>
+</footer>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const animateValue = (id, start, end, duration) => {
+            const obj = document.getElementById(id);
+            if (!obj) return;
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                const easeProgress = progress * (2 - progress); // easeOutQuad
+                let currentVal = start + easeProgress * (end - start);
+                
+                if (id === 'stat-harmony') {
+                    obj.innerHTML = currentVal.toFixed(1);
+                } else {
+                    obj.innerHTML = Math.floor(currentVal);
+                }
+                
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                } else {
+                    if (id === 'stat-harmony') obj.innerHTML = end.toFixed(1);
+                    else obj.innerHTML = end;
+                }
+            };
+            window.requestAnimationFrame(step);
+        }
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    animateValue('stat-sessions', 0, 12, 1500);
+                    animateValue('stat-harmony', 0, 7.2, 1500);
+                    observer.disconnect();
+                }
+            });
+        }, { threshold: 0.5 });
+
+        const statsSection = document.getElementById('stats-section');
+        if (statsSection) observer.observe(statsSection);
+    });
+</script>
+
+
+
+
+</body></html>
