@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight, LifeBuoy } from "lucide-react";
+import { ArrowUpRight, Clock3, LifeBuoy, Phone } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,35 +18,59 @@ type ResourceCardProps = {
 
 export function ResourceCard({ resource }: ResourceCardProps) {
   return (
-    <Card className="rounded-lg border border-emerald-950/10 bg-white shadow-sm">
+    <Card className="flex h-full flex-col rounded-[1.5rem] border-border/60 bg-card shadow-sm">
       <CardHeader>
         <div className="flex items-start gap-3">
-          <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-md bg-slate-900 text-white">
+          <span className="mt-0.5 flex size-11 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
             <LifeBuoy className="size-4" aria-hidden="true" />
           </span>
           <div className="min-w-0">
-            <CardTitle className="text-base text-slate-950">{resource.title}</CardTitle>
+            <CardTitle className="text-base leading-6 text-foreground">
+              {resource.title}
+            </CardTitle>
             <div className="mt-2 flex flex-wrap gap-2">
-              <Badge variant="secondary" className="rounded-md">
+              <Badge
+                variant="secondary"
+                className="rounded-full bg-muted px-3 py-1 text-muted-foreground"
+              >
                 {resource.type}
               </Badge>
-              <Badge variant="outline" className="rounded-md">
+              <Badge
+                variant="outline"
+                className="rounded-full border-border/70 px-3 py-1 text-muted-foreground"
+              >
                 {resource.country}
               </Badge>
             </div>
           </div>
         </div>
       </CardHeader>
-      <CardContent>
-        <p className="text-sm leading-6 text-slate-600">{resource.description}</p>
+      <CardContent className="grid flex-1 gap-3">
+        <p className="text-sm leading-6 text-muted-foreground">
+          {resource.description}
+        </p>
+        {resource.phone ? (
+          <p className="flex items-center gap-2 rounded-2xl border border-border/50 bg-muted/60 px-3 py-2 text-sm font-semibold text-foreground">
+            <Phone className="size-4 text-primary" aria-hidden="true" />
+            {resource.phone}
+          </p>
+        ) : null}
         {resource.availabilityNote ? (
-          <p className="mt-3 text-xs leading-5 text-slate-500">
+          <p className="flex items-start gap-2 text-xs leading-5 text-muted-foreground">
+            <Clock3
+              className="mt-0.5 size-3.5 shrink-0 text-primary"
+              aria-hidden="true"
+            />
             {resource.availabilityNote}
           </p>
         ) : null}
       </CardContent>
       <CardFooter>
-        <Button asChild variant="outline" className="h-9 px-3">
+        <Button
+          asChild
+          variant="outline"
+          className="h-10 rounded-full border-border/80 bg-card px-4 text-foreground hover:bg-muted"
+        >
           <Link href={resource.href}>
             {resource.actionLabel}
             <ArrowUpRight className="size-4" aria-hidden="true" />

@@ -618,3 +618,211 @@ Tests passed: 24 files, 253 tests. Lint passed. Build passed. Real AI smoke eval
 
 Manual review notes:
 The Harmony score is now recomputed with emotional load lowering the score and clarity/support/readiness/safety raising it. Manual fallback examples: work overload scored 57/mixed, relationship conflict 54/strained, low energy/disconnection 38/strained, worry loop 57/mixed, and unclear/not sure 35/strained. Labels varied by scenario. The self-safety scenario returned `safety_blocked` with imminent risk and no normal Harmony Signal. No API response shape or UI layout was changed.
+
+## 2026-05-28 21:13 CEST
+
+Task:
+FE-2 minimal design tokens and shared layout baseline.
+
+Prompt used:
+Create a narrow MindBridge visual foundation from `reference/stitch/DESIGN.md` while preserving all product behavior, API contracts, storage keys, safety rendering, and route behavior.
+
+Files changed:
+Updated `src/app/globals.css`, `src/components/layout/app-shell.tsx`, `src/components/layout/site-header.tsx`, `src/components/layout/site-footer.tsx`, `src/components/layout/page-container.tsx`, and `CODEX_BUILD_LOG.md`.
+
+Commands run:
+`git status --short`
+`git diff -- src/app/globals.css`
+Read-only inspection of project handoff docs, Stitch design docs, and shared layout files
+`npm test`
+`npm run lint`
+`npm run build`
+`npm run dev`
+Browser manual QA for `/`, `/onboarding`, `/chat`, `/clarity-map`, `/resources`, and `/feedback` at desktop and mobile viewport widths.
+
+Result:
+Tests passed: 24 files, 253 tests. Lint passed. Build passed. No real AI smoke eval was run because no chat, Clarity Map, API client, safety, backend, or generated-flow logic was changed.
+
+Manual review notes:
+Added warm clay, soft surface, sage primary, ink foreground, muted border, calm error, radius, font-stack, and ambient shadow variables while preserving shadcn/Tailwind semantic tokens. Updated only shared shell/header/footer/container styling to consume the token baseline. Manual browser QA found the main routes rendered at desktop and mobile widths with no obvious horizontal overflow, `/clarity-map` without a generated map showed the empty CTA state, and safety/non-diagnostic footer or notice language remained readable. The active browser had existing local chat state on `localhost`, so the no-session `/chat` CTA was not manually re-created in-browser; a clean-origin `127.0.0.1` attempt was blocked from hydrating by Next.js dev-origin protections, and existing unit coverage for that behavior still passed.
+
+Next step:
+FE-3a landing page polish, using the Stitch landing reference as a visual blueprint while preserving the current route flow and safety positioning.
+
+## 2026-05-28 21:22 CEST
+
+Task:
+FE-3a landing page polish only.
+
+Prompt used:
+Polish the MindBridge landing page into a clear, trustworthy, demo-ready product entry point using the FE-2 visual baseline and Stitch landing reference, while preserving route flow, safety positioning, backend contracts, and existing product behavior.
+
+Files changed:
+Updated `src/app/page.tsx` and `CODEX_BUILD_LOG.md`.
+
+Commands run:
+`git status --short`
+Read-only inspection of project handoff docs, Stitch design docs, `reference/stitch/landing/stitch.html`, `CODEX_BUILD_LOG.md`, and the current landing page
+`npm test`
+`npm run lint`
+`npm run build`
+`git diff --check`
+Browser manual QA for `/` at desktop and mobile viewport widths, including primary and secondary CTA navigation.
+
+Result:
+Tests passed: 24 files, 253 tests. Lint passed. Build passed. `git diff --check` passed. No real AI smoke eval was run because no chat, Clarity Map, API client, safety, backend, or generated-flow logic was changed.
+
+Manual review notes:
+Reworked the landing page from implementation-led MVP language into a product-led page with a clear hero, Clarity Map value explanation, four-step flow, safety/trust strip, visible non-diagnostic positioning, and final onboarding CTA. Primary CTA navigated to `/onboarding`; secondary CTA navigated to `/resources`. Desktop and 390px mobile checks showed no obvious horizontal overflow. No fake Clarity Map output, fake chat transcript, new route, backend feature, imported Stitch HTML, iframe, or `dangerouslySetInnerHTML` was added.
+
+Next step:
+FE-3b onboarding polish, keeping the existing session creation, local storage keys, consent/adult checks, and `/chat` routing unchanged.
+
+## 2026-05-28 21:32 CEST
+
+Task:
+FE-3b onboarding polish only.
+
+Prompt used:
+Polish the onboarding page and onboarding form so the first trust-building step feels calm, intentional, and demo-ready while preserving the existing session creation contract, required consent/adult checks, storage keys, and `/chat` routing.
+
+Files changed:
+Updated `src/app/onboarding/page.tsx`, `src/components/product/onboarding-form.tsx`, and `CODEX_BUILD_LOG.md`.
+
+Commands run:
+`git status --short`
+Read-only inspection of project handoff docs, Stitch design docs, `reference/stitch/onboarding/stitch.html`, `CODEX_BUILD_LOG.md`, and the current onboarding page/form
+`npm test`
+`npm run lint`
+`npm run build`
+`git diff --check`
+Browser manual QA for `/onboarding` at desktop and mobile viewport widths, required-control gating, form completion, submit navigation, and `/chat` handoff.
+
+Result:
+Tests passed: 24 files, 253 tests. Lint passed. Build passed. `git diff --check` passed. No real AI smoke eval was run because no chat, Clarity Map, API client, safety, backend, or generated-flow logic was changed.
+
+Manual review notes:
+Reworked onboarding into a calmer two-column setup page with visible safety/trust copy, clearer explanation of why context is collected, rounded warm surfaces, clearer selected concern state, softer consent/adult acknowledgement cards, and a full-width sage CTA. The form still uses the existing `createSession` call with `country`, `ageConfirmed`, `consentAccepted`, `mainConcernCategory`, and optional `mainConcernText`; it still stores `mindbridge.sessionId` and `mindbridge.sessionContext`, then routes to `/chat`. Browser QA confirmed desktop/mobile rendering without obvious horizontal overflow, USA/India support-location selection, main concern selection, optional note input, disabled submit until required fields/checks are complete, successful navigation to `/chat`, and no submitted note appearing as a fake user message. The loading label exists in code but was too brief to capture manually because session creation completed quickly.
+
+Next step:
+FE-4 chat UI polish, keeping context-intake, `/api/chat`, safety/resource rendering, and enhanced Clarity Map response handling unchanged.
+
+## 2026-05-28 21:49 CEST
+
+Task:
+FE-4 chat UI polish only.
+
+Prompt used:
+Polish the chat route and chat panel into a calmer, demo-ready guided reflection experience using the FE-2 baseline and Stitch chat reference while preserving context-intake, `/api/chat`, safety/resource rendering, storage keys, and enhanced Clarity Map response handling.
+
+Files changed:
+Updated `src/app/chat/page.tsx`, `src/components/product/chat-panel.tsx`, and `CODEX_BUILD_LOG.md`.
+
+Commands run:
+`git status --short`
+Read-only inspection of project handoff docs, Stitch design docs, `reference/stitch/chat/stitch.html`, `CODEX_BUILD_LOG.md`, and the current chat page/panel
+`npm test`
+`npm run lint`
+`npm run build`
+`git diff --check`
+`RUN_REAL_AI_EVALS=true EVAL_BASE_URL=http://localhost:3000 npm run eval:ai:smoke`
+Browser manual QA for `/chat`, onboarding handoff, normal chat, insufficient-context Clarity Map handling, normal Clarity Map navigation, self-safety, boundary, third-party support, and 390px mobile layout.
+
+Result:
+Tests passed: 24 files, 253 tests. Lint passed. Build passed. `git diff --check` passed. Real AI smoke eval passed 13/13 with 0 failures and 6 warnings; OpenAI-backed sources appeared, safety routes passed, and boundary routes passed.
+
+Manual review notes:
+Reworked the chat surface into a wider guided reflection shell with warm card styling, clearer chat header, rounded assistant/user bubbles, visible typing/loading state, clearer composer actions, inline insufficient-context notice styling, prominent backend safety/boundary/resource presentation, and an aside with reflection guardrails plus existing safety notices. Browser QA confirmed onboarding creates a fresh chat with one context-aware opener and no fake user message, normal messages render as plain visible text, insufficient-context Clarity Map responses stay inline without navigation, normal generation stores and navigates to `/clarity-map`, self-safety and third-party self-harm support show backend safety cards/resources with the Clarity Map CTA paused, and boundary requests stay inline without generating a diagnostic map. At 390px width, chat input, support resources, safety cards, and the paused CTA remained visible with no horizontal overflow. The browser security policy blocked a direct localStorage/sessionStorage clear attempt, so the no-session `/chat` CTA was confirmed by passing unit coverage rather than re-created manually in-browser during this block.
+
+Next step:
+FE-5 Clarity Map UI polish, keeping generated sessionStorage map rendering, `safety_blocked`, `boundary_blocked`, and non-diagnostic Harmony Signal behavior unchanged.
+
+## 2026-05-28 22:05 CEST
+
+Task:
+FE-5 Clarity Map UI polish only.
+
+Prompt used:
+Polish the Clarity Map screen into a premium, calm, non-clinical reflection artifact while preserving generated-only sessionStorage rendering, storage keys, safety/boundary-blocked behavior, and all backend/API contracts.
+
+Files changed:
+Updated `src/app/clarity-map/page.tsx`, `src/components/product/clarity-map-loader.tsx`, `src/components/product/clarity-map-card.tsx`, and `CODEX_BUILD_LOG.md`.
+
+Commands run:
+`git status --short`
+Read-only inspection of project handoff docs, Stitch design docs, `reference/stitch/clarity-map/stitch.html`, `CODEX_BUILD_LOG.md`, and the current Clarity Map page/loader/card
+`npm test`
+`npm run lint`
+`npm run build`
+`git diff --check`
+`RUN_REAL_AI_EVALS=true EVAL_BASE_URL=http://localhost:3000 npm run eval:ai:smoke`
+Browser manual QA for missing-map empty state, onboarding/chat/generated Clarity Map flow, safety-blocked chat flow, boundary-blocked chat flow, and 390px mobile layout.
+
+Result:
+Tests passed: 24 files, 253 tests. Lint passed. Build passed. `git diff --check` passed. Real AI smoke eval passed 13/13 with 0 failures and 6 warnings; OpenAI-backed sources appeared, safety routes passed, and boundary routes passed.
+
+Manual review notes:
+Reworked the Clarity Map page header, missing-map state, structured Harmony Signal presentation, Key Insight, Evidence Points, Boundary Focus, Action Plan, and Support Path into warm rounded artifact cards using the FE-2 visual baseline. The loader still reads `mindbridge:clarity-map:<sessionId>` and `mindbridge:last-clarity-map-session`, still resolves the query `sessionId` first, and still renders only stored `type: "clarity_map"` responses. Browser QA confirmed a missing random session shows the empty CTA without old mock content or `/100` score, a real onboarding-to-chat generation renders Harmony Signal, Key Insight, Boundary Focus, Next 24 hours, Next 7 days, and Support Path, self-safety stays inline in chat with resources and no Harmony Signal, and boundary requests stay inline in chat without a normal map. At 390px width, both empty and generated states had no horizontal overflow and the generated sections remained readable. No Stitch HTML, iframe, `dangerouslySetInnerHTML`, new route, backend feature, static map output, or generated/model HTML rendering was added.
+
+Next step:
+FE-6 resources, safety cards, and feedback polish, keeping app-owned resource rendering, backend safety copy, and feedback submission behavior unchanged.
+
+## 2026-05-28 22:13 CEST
+
+Task:
+FE-6 resources, safety notice, and feedback polish only.
+
+Prompt used:
+Polish Resources, Feedback, resource cards, feedback form, and reusable safety notice presentation while preserving app-owned resource fetching/fallback behavior, feedback submission shape, backend safety positioning, and API contracts.
+
+Files changed:
+Updated `src/app/resources/page.tsx`, `src/app/feedback/page.tsx`, `src/components/product/resources-loader.tsx`, `src/components/product/resource-card.tsx`, `src/components/product/feedback-form.tsx`, `src/components/product/safety-notice.tsx`, and `CODEX_BUILD_LOG.md`.
+
+Commands run:
+`git status --short`
+Read-only inspection of project handoff docs, Stitch design docs, `reference/stitch/resources-feedback/stitch.html`, `CODEX_BUILD_LOG.md`, and the current resources/feedback/safety components
+`npm test`
+`npm run lint`
+`npm run build`
+`git diff --check`
+Browser manual QA for `/resources`, `/feedback`, feedback submission, safety notices, and 390px mobile layout.
+
+Result:
+Tests passed: 24 files, 253 tests. Lint passed. Build passed. `git diff --check` passed. Real AI smoke eval was not run because no chat, Clarity Map generation, API client, safety core, backend, or AI files were changed.
+
+Manual review notes:
+Reworked `/resources` into a practical support-options page with warmer hierarchy, an immediate-support reminder, clearer app-owned/non-model-generated framing, and polished resource cards showing type, country, description, action, phone where present, and availability notes. `ResourcesLoader` still calls `fetchResources` with the existing country/topic query and still falls back to `mockResources` if the API fails; the fallback copy now describes local app-owned fallback resources. Reworked `/feedback` into a quieter end-of-journey MVP feedback page with no persistence, analytics, clinical-review, or emergency-support implications. `FeedbackForm` still submits the same payload through `submitFeedback`, preserves loading/success/error states, and now has a properly associated optional-note label. Safety notices retain the same not-therapy/not-diagnosis/not-crisis and immediate-support copy with calmer, more readable styling. Browser QA confirmed resources and feedback render on desktop and 390px mobile with no horizontal overflow, resource actions remain visible, feedback can be completed and submitted successfully, and safety notices remain visible/readable. The resources fallback state was not forced in browser QA, but the existing catch/fallback path and fallback data source were preserved.
+
+Next step:
+FE-7 responsive/mobile QA and demo readiness, checking the full Landing -> Onboarding -> Chat -> Clarity Map -> Resources -> Feedback journey across desktop/mobile without changing backend behavior.
+
+## 2026-05-28 22:50 CEST
+
+Task:
+FE-7a targeted demo-readiness fixes.
+
+Prompt used:
+Address only the highest-priority FE-7 findings: remove trust-undermining demo exposure, reframe `/demo`, fix third-party resource wording, remove duplicate feedback rating accessible names, add a visible Clarity Map Action Plan label, improve header/journey tap targets, and recheck no-session chat without changing backend/API/safety behavior.
+
+Files changed:
+Updated `src/components/layout/site-header.tsx`, `src/app/demo/page.tsx`, `src/lib/mock/mock-resources.ts`, `src/components/product/feedback-form.tsx`, `src/components/product/clarity-map-card.tsx`, `src/components/product/journey-stepper.tsx`, and `CODEX_BUILD_LOG.md`.
+
+Commands run:
+`git status --short`
+Read-only inspection of project handoff docs, Stitch design docs, `CODEX_BUILD_LOG.md`, and approved frontend/resource files
+`rg "not be safe alone|safe alone|If you might" src`
+`npm test`
+`npm run lint`
+`npm run build`
+`git diff --check`
+`RUN_REAL_AI_EVALS=true EVAL_BASE_URL=http://localhost:3000 npm run eval:ai:smoke`
+Browser manual QA for header/demo exposure, `/demo` mobile overflow, third-party self-harm resource copy, generated Clarity Map Action Plan label, feedback rating accessibility/submission, self-safety, boundary, and 390px mobile checks.
+
+Result:
+Tests passed: 24 files, 253 tests. Lint passed. Build passed. `git diff --check` passed. Real AI smoke eval passed 13/13 with 0 failures and 6 warnings; OpenAI-backed sources appeared, safety routes passed, and boundary routes passed.
+
+Manual review notes:
+Removed the main-header Demo link and reframed `/demo` as a safety and routing preview without “walking skeleton,” “mock data,” or local-build language. Contained the `/demo` safety matrix so it no longer creates document-level horizontal overflow at 390px. Updated app-owned trusted-person resource descriptions to avoid self-directed “you might not be safe alone” wording in third-party support flows; backend safety messages and routing were not changed. Feedback rating buttons now expose unique accessible names while preserving the same values and feedback payload. Generated Clarity Maps now include a visible “Action Plan” section label above Next 24 hours and Next 7 days without changing generated content or storage behavior. Header and journey links have larger tap targets. Browser QA confirmed the third-party flow shows support-for-someone-else copy, resources, and paused Clarity Map behavior without the old resource wording; self-safety still shows resources and pauses the map; boundary requests stay inline without a diagnostic map; feedback still submits successfully; and mobile checks showed no horizontal overflow on the checked routes. The browser security policy still blocked direct local/session storage clearing for a true clean `/chat` test; alternate localhost origins did not hydrate normally in the dev browser, so no chat code was changed. Existing unit coverage for the no-session CTA still passed.
+
+Next step:
+Proceed to final demo/pitch prep after a quick human clean-browser spot check for direct `/chat` no-session behavior if available.

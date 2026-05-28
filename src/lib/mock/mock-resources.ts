@@ -37,7 +37,7 @@ export const mockResources: SupportResource[] = [
     id: "us-trusted-person",
     title: "Reach a trusted person nearby",
     description:
-      "If you might not be safe alone, contact someone you trust and ask them to stay with you or help you reach local support.",
+      "If someone may be in immediate danger, contact local emergency services or a trusted person near them.",
     type: "trusted-person",
     country: "US",
     topics: ["support", "minor_safety", "self_harm", "abuse", "safety"],
@@ -82,7 +82,7 @@ export const mockResources: SupportResource[] = [
     id: "in-trusted-adult-or-person",
     title: "Reach a trusted person in India",
     description:
-      "If you might not be safe alone, contact a trusted person nearby and ask them to stay with you or help you reach local support.",
+      "If someone may be in immediate danger, contact local emergency services or a trusted person near them.",
     type: "trusted-person",
     country: "IN",
     topics: ["support", "minor_safety", "self_harm", "abuse", "safety"],

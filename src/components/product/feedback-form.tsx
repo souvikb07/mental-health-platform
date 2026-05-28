@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, MessageSquareText } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -20,14 +20,15 @@ export function FeedbackForm() {
 
   if (submitted) {
     return (
-      <div className="rounded-lg border border-emerald-900/15 bg-emerald-50 p-5 text-emerald-950">
-        <div className="flex items-center gap-2 font-medium">
-          <CheckCircle2 className="size-4" aria-hidden="true" />
-          Feedback noted locally for this demo.
+      <div className="rounded-3xl border border-primary/15 bg-primary/10 p-5 text-foreground">
+        <div className="flex items-center gap-2 font-semibold">
+          <CheckCircle2 className="size-5 text-primary" aria-hidden="true" />
+          Feedback received for this MVP run.
         </div>
-        <p className="mt-2 text-sm leading-6">
-          The internal mock API accepted it. No account, database, analytics
-          provider, or external service was used.
+        <p className="mt-2 text-sm leading-6 text-muted-foreground">
+          The feedback endpoint accepted it. No account, database record,
+          analytics provider, clinical review, or emergency follow-up is
+          implied.
         </p>
       </div>
     );
@@ -54,12 +55,26 @@ export function FeedbackForm() {
           });
           setSubmitted(true);
         } catch {
-          setError("The mock feedback service did not respond. Please try again.");
+          setError("The feedback service did not respond. Please try again.");
         } finally {
           setIsSubmitting(false);
         }
       }}
     >
+      <div className="flex items-start gap-3 rounded-3xl border border-border/60 bg-muted/60 p-4 text-sm leading-6 text-muted-foreground">
+        <span className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+          <MessageSquareText className="size-4" aria-hidden="true" />
+        </span>
+        <div>
+          <p className="font-semibold text-foreground">
+            Share product feedback, not urgent needs.
+          </p>
+          <p className="mt-1">
+            This form helps improve the MVP experience. It is not monitored as
+            emergency support.
+          </p>
+        </div>
+      </div>
       <RatingRow
         label="How helpful did this feel?"
         value={helpfulness}
@@ -70,20 +85,27 @@ export function FeedbackForm() {
         value={clarity}
         onChange={setClarity}
       />
-      <label className="block">
-        <span className="text-sm font-medium text-slate-950">Optional note</span>
+      <label className="block" htmlFor="feedback-comment">
+        <span className="text-sm font-semibold text-foreground">
+          Optional note
+        </span>
         <Textarea
-          className="mt-2 min-h-28 bg-white"
+          id="feedback-comment"
+          className="mt-2 min-h-28 rounded-3xl border-border/70 bg-background/70 px-4 py-3 text-foreground placeholder:text-muted-foreground focus-visible:ring-primary/30"
           value={comment}
           onChange={(event) => setComment(event.target.value)}
           placeholder="What would make this clearer or more supportive?"
         />
       </label>
-      {error ? <p className="text-sm text-red-700">{error}</p> : null}
+      {error ? (
+        <p className="rounded-2xl border border-destructive/30 bg-destructive/10 p-3 text-sm leading-6 text-destructive">
+          {error}
+        </p>
+      ) : null}
       <Button
         type="submit"
         disabled={isSubmitting}
-        className="h-10 bg-emerald-900 px-4 text-white hover:bg-emerald-800"
+        className="h-11 rounded-full bg-primary px-5 text-primary-foreground hover:bg-primary/90"
       >
         {isSubmitting ? "Submitting..." : "Submit feedback"}
       </Button>
@@ -102,8 +124,8 @@ function RatingRow({
 }) {
   return (
     <fieldset>
-      <legend className="text-sm font-medium text-slate-950">{label}</legend>
-      <div className="mt-2 flex gap-2">
+      <legend className="text-sm font-semibold text-foreground">{label}</legend>
+      <div className="mt-3 flex flex-wrap gap-2">
         {ratings.map((rating) => (
           <button
             key={rating}
@@ -111,10 +133,11 @@ function RatingRow({
             onClick={() => onChange(rating)}
             className={
               rating === value
-                ? "flex size-9 items-center justify-center rounded-md bg-emerald-900 text-sm font-medium text-white"
-                : "flex size-9 items-center justify-center rounded-md border border-slate-200 bg-white text-sm font-medium text-slate-700 hover:bg-emerald-50"
+                ? "flex size-10 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground shadow-sm"
+                : "flex size-10 items-center justify-center rounded-full border border-border/70 bg-card text-sm font-semibold text-muted-foreground hover:bg-muted"
             }
             aria-pressed={rating === value}
+            aria-label={`${label} ${rating} out of 5`}
           >
             {rating}
           </button>

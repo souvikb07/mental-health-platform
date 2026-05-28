@@ -21,23 +21,35 @@ export function ResourcesLoader() {
     })
       .then((response) => setResources(response.resources))
       .catch(() => {
-        setError("Showing local fallback because the mock API did not respond.");
+        setError(
+          "Showing local app-owned fallback resources because the resources API did not respond.",
+        );
         setResources(mockResources);
       });
   }, []);
 
   if (resources.length === 0) {
     return (
-      <div className="rounded-lg border border-emerald-950/10 bg-white p-5 text-sm text-slate-600">
-        Loading mock resources...
+      <div className="mindbridge-ambient-shadow rounded-[2rem] border border-border/60 bg-card p-5 text-sm leading-6 text-muted-foreground">
+        <p className="font-semibold text-foreground">
+          Loading support options...
+        </p>
+        <p className="mt-1">
+          Checking the app-owned resource list for options that fit this MVP
+          session.
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="grid gap-3">
-      {error ? <p className="text-sm text-amber-700">{error}</p> : null}
-      <div className="grid gap-4 md:grid-cols-2">
+    <div className="grid gap-4">
+      {error ? (
+        <p className="rounded-2xl border border-amber-900/20 bg-amber-50 p-3 text-sm leading-6 text-amber-900">
+          {error}
+        </p>
+      ) : null}
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {resources.map((resource) => (
           <ResourceCard key={resource.id} resource={resource} />
         ))}

@@ -4,7 +4,14 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
-import { AlertTriangle, ArrowRight, LifeBuoy, ShieldCheck } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowRight,
+  LifeBuoy,
+  Send,
+  ShieldCheck,
+  Sparkles,
+} from "lucide-react";
 
 import { ResourceCard } from "@/components/product/resource-card";
 import { SafetyNotice } from "@/components/product/safety-notice";
@@ -32,6 +39,7 @@ type UiMessage = {
   role: "assistant" | "user";
   content: string;
   createdAt: string;
+  source?: "openai" | "fallback" | "safety" | "boundary";
   risk?: Pick<ApiRiskClassification, "level">;
   safety?: SafetyUi | null;
   resources?: SupportResource[];
@@ -115,17 +123,27 @@ export function ChatPanel() {
   }, []);
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
-      <section className="rounded-lg border border-emerald-950/10 bg-white shadow-sm">
-        <div className="border-b border-slate-200 p-5">
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_19rem]">
+      <section className="mindbridge-ambient-shadow overflow-hidden rounded-[2rem] border border-border/60 bg-card">
+        <div className="border-b border-border/60 bg-muted/70 p-5 sm:p-6">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-sm font-medium text-emerald-800">Guided chat</p>
-              <h1 className="mt-1 text-2xl font-semibold tracking-tight text-emerald-950">
+              <p className="text-sm font-semibold text-primary">
+                Guided reflection
+              </p>
+              <h1 className="mt-1 text-3xl font-bold tracking-tight text-foreground">
                 Talk through what feels off.
               </h1>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+                Responses are based only on this conversation. Safety and
+                product-boundary messages stay visible when they appear.
+              </p>
             </div>
-            <Button asChild variant="outline" className="h-9 px-3">
+            <Button
+              asChild
+              variant="outline"
+              className="h-10 rounded-full border-border/80 bg-card px-4 text-foreground hover:bg-background"
+            >
               <Link href="/resources">
                 <LifeBuoy className="size-4" aria-hidden="true" />
                 Support
@@ -133,35 +151,45 @@ export function ChatPanel() {
             </Button>
           </div>
           <div className="mt-5">
-            <div className="mb-2 flex justify-between text-xs text-slate-600">
+            <div className="mb-2 flex justify-between text-xs text-muted-foreground">
               <span>Reflection progress</span>
               <span>Step 4 of 7</span>
             </div>
             <Progress
               value={58}
-              className="bg-emerald-100 [&_[data-slot=progress-indicator]]:bg-emerald-800"
+              className="bg-background [&_[data-slot=progress-indicator]]:bg-primary"
             />
           </div>
         </div>
-        <div className="space-y-4 p-5">
+        <div
+          className="space-y-5 bg-background/35 p-5 sm:p-6"
+          aria-live="polite"
+        >
           {!isContextLoading && !sessionContext ? (
-            <div className="rounded-lg border border-emerald-950/10 bg-emerald-50 p-5 text-sm leading-6 text-emerald-950">
-              <p className="font-medium">Start with onboarding first.</p>
-              <p className="mt-1 text-emerald-900/80">
+            <div className="rounded-3xl border border-border/60 bg-card p-5 text-sm leading-6 text-muted-foreground shadow-sm">
+              <p className="font-semibold text-foreground">
+                Start with onboarding first.
+              </p>
+              <p className="mt-1">
                 MindBridge uses your support location and main reason to start
                 the guided chat safely.
               </p>
               <Button
                 asChild
-                className="mt-4 h-10 bg-emerald-900 px-4 text-white hover:bg-emerald-800"
+                className="mt-4 h-10 rounded-full bg-primary px-4 text-primary-foreground hover:bg-primary/90"
               >
                 <Link href="/onboarding">Go to onboarding</Link>
               </Button>
             </div>
           ) : null}
           {isContextLoading ? (
-            <div className="max-w-[85%] rounded-lg bg-slate-100 px-4 py-3 text-sm leading-6 text-slate-700">
-              Preparing your guided chat...
+            <div className="flex max-w-[90%] items-end gap-3 sm:max-w-[82%]">
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                <Sparkles className="size-4" aria-hidden="true" />
+              </span>
+              <div className="mindbridge-ambient-shadow rounded-3xl rounded-bl-md bg-card px-4 py-3 text-sm leading-6 text-muted-foreground">
+                Preparing your guided chat...
+              </div>
             </div>
           ) : null}
           {messages.map((item) => (
@@ -170,7 +198,7 @@ export function ChatPanel() {
         </div>
         {sessionContext ? (
           <form
-            className="border-t border-slate-200 p-5"
+            className="border-t border-border/60 bg-card p-5 sm:p-6"
             onSubmit={async (event) => {
               event.preventDefault();
 
@@ -213,6 +241,7 @@ export function ChatPanel() {
                     role: response.assistantMessage.role,
                     content: response.assistantMessage.content,
                     createdAt: response.assistantMessage.createdAt,
+                    source: response.source,
                     risk: { level: response.risk.level },
                     safety: response.safety,
                     resources: response.resources,
@@ -226,26 +255,29 @@ export function ChatPanel() {
             }}
           >
             <label className="grid gap-2">
-              <span className="text-sm font-medium text-slate-950">
+              <span className="text-sm font-semibold text-foreground">
                 Your message
               </span>
               <Textarea
-                className="min-h-24 bg-white"
+                className="min-h-24 rounded-3xl border-border/70 bg-background/70 px-4 py-3 text-foreground placeholder:text-muted-foreground focus-visible:ring-primary/30"
                 value={message}
                 onChange={(event) => setMessage(event.target.value)}
-                placeholder="Try: I feel exhausted and I do not know why."
+                placeholder="Share a little more when you're ready."
               />
             </label>
             {error ? (
-              <p className="mt-3 text-sm text-red-700">{error}</p>
-            ) : null}
-            {clarityNotice ? (
-              <p className="mt-3 rounded-md bg-amber-50 px-3 py-2 text-sm leading-6 text-amber-800">
-                {clarityNotice}
+              <p className="mt-3 rounded-2xl border border-destructive/30 bg-destructive/10 p-3 text-sm leading-6 text-destructive">
+                {error}
               </p>
             ) : null}
+            {clarityNotice ? (
+              <div className="mt-3 rounded-2xl border border-amber-900/20 bg-amber-50 p-3 text-sm leading-6 text-amber-900">
+                <p className="font-semibold">A little more context will help.</p>
+                <p className="mt-1">{clarityNotice}</p>
+              </div>
+            ) : null}
             <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-xs leading-6 text-slate-500">
+              <p className="text-xs leading-6 text-muted-foreground">
                 Every submitted message crosses the internal safety boundary.
               </p>
               <div className="flex flex-col gap-2 sm:flex-row">
@@ -253,9 +285,10 @@ export function ChatPanel() {
                   type="submit"
                   disabled={isSubmitting || isContextLoading}
                   variant="outline"
-                  className="h-10 px-4"
+                  className="h-11 rounded-full border-border/80 bg-card px-4 text-foreground hover:bg-muted"
                 >
                   {isSubmitting ? "Sending..." : "Send message"}
+                  <Send className="size-4" aria-hidden="true" />
                 </Button>
                 <Button
                   type="button"
@@ -275,7 +308,7 @@ export function ChatPanel() {
                       routerPush: router.push,
                     });
                   }}
-                  className="h-10 bg-emerald-900 px-4 text-white hover:bg-emerald-800 disabled:bg-slate-200 disabled:text-slate-500"
+                  className="h-11 rounded-full bg-primary px-4 text-primary-foreground shadow-sm hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground"
                 >
                   {normalNextStepDisabled ? (
                     <span>Clarity map paused for safety</span>
@@ -291,7 +324,7 @@ export function ChatPanel() {
               </div>
             </div>
             {normalNextStepDisabled ? (
-              <p className="mt-3 text-xs leading-6 text-amber-800">
+              <p className="mt-3 rounded-2xl border border-amber-900/20 bg-amber-50 p-3 text-xs leading-6 text-amber-900">
                 Safety support is the priority right now, so the normal next
                 step is paused.
               </p>
@@ -300,6 +333,15 @@ export function ChatPanel() {
         ) : null}
       </section>
       <aside className="grid content-start gap-4">
+        <div className="rounded-3xl border border-border/60 bg-card p-4 shadow-sm">
+          <p className="text-sm font-semibold text-foreground">
+            Reflection guardrails
+          </p>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+            MindBridge can support reflection and support options. It is
+            non-diagnostic and not a crisis service.
+          </p>
+        </div>
         <SafetyNotice />
         <SafetyNotice tone="urgent" />
       </aside>
@@ -363,6 +405,7 @@ async function handleGenerateClarityMap(input: {
           role: response.assistantMessage.role,
           content: response.assistantMessage.content,
           createdAt: response.assistantMessage.createdAt,
+          source: response.source,
           risk: { level: response.risk.level },
           safety: response.safety,
           resources: response.resources,
@@ -378,6 +421,7 @@ async function handleGenerateClarityMap(input: {
         role: response.assistantMessage.role,
         content: response.assistantMessage.content,
         createdAt: response.assistantMessage.createdAt,
+        source: response.source,
       },
     ]);
   } catch {
@@ -388,43 +432,89 @@ async function handleGenerateClarityMap(input: {
 }
 
 function ChatMessageBubble({ item }: { item: UiMessage }) {
+  const isUser = item.role === "user";
+  const isBoundary = item.source === "boundary";
+  const isSafety = item.source === "safety" || item.safety?.showInlineSafetyCard;
+
   return (
     <div
       className={cn(
-        "max-w-[85%] rounded-lg px-4 py-3 text-sm leading-6",
-        item.role === "assistant"
-          ? "bg-slate-100 text-slate-800"
-          : "ml-auto bg-emerald-900 text-white",
+        "flex w-full gap-3",
+        isUser ? "justify-end" : "justify-start",
       )}
     >
-      <p>{item.content}</p>
-      {item.risk ? (
-        <p className="mt-2 flex items-center gap-2 text-xs opacity-80">
-          <ShieldCheck className="size-3" aria-hidden="true" />
-          Safety check: {item.risk.level}
-        </p>
-      ) : null}
-      {item.safety?.showInlineSafetyCard ? (
-        <div
+      {!isUser ? (
+        <span
           className={cn(
-            "mt-3 rounded-lg border p-3 text-xs leading-6",
-            item.safety.tone === "urgent"
-              ? "border-red-900/20 bg-red-50 text-red-950"
-              : "border-amber-900/20 bg-amber-50 text-amber-950",
+            "mt-auto flex size-8 shrink-0 items-center justify-center rounded-full",
+            isSafety
+              ? "bg-destructive/10 text-destructive"
+              : isBoundary
+                ? "bg-amber-100 text-amber-900"
+                : "bg-primary text-primary-foreground",
           )}
         >
-          <div className="flex items-center gap-2 font-semibold">
-            <AlertTriangle className="size-3.5" aria-hidden="true" />
-            {item.safety.title}
-          </div>
-          <p className="mt-1">{item.safety.message}</p>
-        </div>
+          {isSafety ? (
+            <ShieldCheck className="size-4" aria-hidden="true" />
+          ) : (
+            <Sparkles className="size-4" aria-hidden="true" />
+          )}
+        </span>
       ) : null}
-      {item.resources && item.resources.length > 0 ? (
-        <div className="mt-3 grid gap-3">
-          {item.resources.map((resource) => (
-            <ResourceCard key={resource.id} resource={resource} />
-          ))}
+      <div
+        className={cn(
+          "max-w-[calc(100%_-_2.75rem)] break-words rounded-3xl px-4 py-3 text-sm leading-6 shadow-sm sm:max-w-[78%]",
+          isUser
+            ? "rounded-br-md bg-primary text-primary-foreground"
+            : isBoundary
+              ? "rounded-bl-md border border-amber-900/20 bg-amber-50 text-amber-950"
+              : isSafety
+                ? "rounded-bl-md border border-destructive/25 bg-destructive/10 text-foreground"
+                : "mindbridge-ambient-shadow rounded-bl-md bg-card text-foreground",
+        )}
+      >
+        {isBoundary ? (
+          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-amber-900">
+            Product boundary
+          </p>
+        ) : null}
+        <p>{item.content}</p>
+        {item.risk ? (
+          <p className="mt-2 flex items-center gap-2 text-xs opacity-80">
+            <ShieldCheck className="size-3" aria-hidden="true" />
+            Safety check: {item.risk.level}
+          </p>
+        ) : null}
+        {item.safety?.showInlineSafetyCard ? (
+          <div
+            className={cn(
+              "mt-3 rounded-2xl border p-3 text-xs leading-6",
+              item.safety.tone === "urgent"
+                ? "border-destructive/30 bg-background text-destructive"
+                : "border-amber-900/20 bg-background text-amber-950",
+            )}
+          >
+            <div className="flex items-center gap-2 font-semibold">
+              <AlertTriangle className="size-3.5" aria-hidden="true" />
+              {item.safety.title}
+            </div>
+            <p className="mt-1">{item.safety.message}</p>
+          </div>
+        ) : null}
+        {item.resources && item.resources.length > 0 ? (
+          <div className="mt-3 grid gap-3">
+            {item.resources.map((resource) => (
+              <ResourceCard key={resource.id} resource={resource} />
+            ))}
+          </div>
+        ) : null}
+      </div>
+      {isUser ? (
+        <div
+          className="mt-auto flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary"
+          aria-hidden="true"
+        >
+          <span className="text-xs font-semibold">You</span>
         </div>
       ) : null}
     </div>
@@ -438,6 +528,7 @@ function toUiMessage(response: ContextIntakeResponse): UiMessage {
       role: response.assistantMessage.role,
       content: response.assistantMessage.content,
       createdAt: response.assistantMessage.createdAt,
+      source: response.source,
       risk: { level: response.risk.level },
       safety: response.safety,
       resources: response.resources,
@@ -449,6 +540,7 @@ function toUiMessage(response: ContextIntakeResponse): UiMessage {
     role: response.assistantMessage.role,
     content: response.assistantMessage.content,
     createdAt: response.assistantMessage.createdAt,
+    source: response.source,
   };
 }
 
@@ -547,6 +639,7 @@ function normalizeStoredUiMessage(payload: unknown): UiMessage | null {
     role: message.role,
     content: message.content,
     createdAt: normalizeCreatedAt(message.createdAt),
+    source: message.source,
     risk: message.risk,
     safety: message.safety,
     resources: message.resources,

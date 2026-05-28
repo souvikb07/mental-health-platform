@@ -30,14 +30,14 @@ export function OnboardingForm() {
 
   return (
     <form
-      className="grid gap-5 rounded-lg border border-emerald-950/10 bg-white p-5 shadow-sm"
+      className="mindbridge-ambient-shadow grid gap-6 rounded-[2rem] border border-border/60 bg-card p-5 sm:p-6"
       onSubmit={async (event) => {
         event.preventDefault();
         setError(null);
         setIsSubmitting(true);
 
         if (!supportLocation || !mainConcernCategory || !consented || !isAdult) {
-          setError("Please complete the required onboarding fields.");
+          setError("Please complete the required onboarding fields before continuing.");
           setIsSubmitting(false);
           return;
         }
@@ -57,17 +57,28 @@ export function OnboardingForm() {
           );
           router.push("/chat");
         } catch {
-          setError("We could not create the mock session. Please try again.");
+          setError("We could not create the session. Please try again.");
           setIsSubmitting(false);
         }
       }}
     >
-      <label className="grid gap-2">
-        <span className="text-sm font-medium text-slate-950">
+      <div className="space-y-2 text-center">
+        <p className="text-sm font-semibold text-primary">Quick context check</p>
+        <h2 className="text-2xl font-bold tracking-tight text-foreground">
+          A few details before guided chat.
+        </h2>
+        <p className="text-sm leading-6 text-muted-foreground">
+          Based only on what you share here, MindBridge can tailor the first
+          reflection prompt and support options.
+        </p>
+      </div>
+
+      <label className="grid gap-2 rounded-3xl border border-border/60 bg-muted p-4">
+        <span className="text-sm font-semibold text-foreground">
           Support location
         </span>
         <select
-          className="h-10 rounded-md border border-input bg-white px-3 text-sm text-slate-700 outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
+          className="h-12 rounded-2xl border border-border/70 bg-card px-4 text-sm text-foreground outline-none transition focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
           value={supportLocation}
           onChange={(event) => setSupportLocation(event.target.value)}
           required
@@ -76,24 +87,29 @@ export function OnboardingForm() {
           <option value="USA">USA</option>
           <option value="India">India</option>
         </select>
-        <span className="text-xs leading-5 text-slate-500">
-          Used only to show the most relevant support resources.
+        <span className="text-xs leading-5 text-muted-foreground">
+          This helps MindBridge show support options for the right location.
         </span>
       </label>
-      <fieldset className="grid gap-3">
-        <legend className="text-sm font-medium text-slate-950">
+
+      <fieldset className="grid gap-3 rounded-3xl border border-border/60 bg-muted p-4">
+        <legend className="text-sm font-semibold text-foreground">
           Main reason for visit
         </legend>
+        <p className="-mt-2 text-xs leading-5 text-muted-foreground">
+          Choose the closest fit. This is not a diagnosis.
+        </p>
         <div className="grid gap-2 sm:grid-cols-2">
           {mainConcernOptions.map((option) => (
             <Button
               key={option.id}
               type="button"
               variant="outline"
+              aria-pressed={mainConcernCategory === option.id}
               className={cn(
-                "h-auto justify-start whitespace-normal px-3 py-2 text-left text-slate-700",
+                "h-auto min-h-12 justify-start whitespace-normal rounded-2xl border-border/70 bg-card px-4 py-3 text-left text-sm leading-5 text-foreground shadow-sm hover:bg-background",
                 mainConcernCategory === option.id &&
-                  "border-emerald-900 bg-emerald-50 text-emerald-950",
+                  "border-primary bg-primary text-primary-foreground hover:bg-primary/90",
               )}
               onClick={() => setMainConcernCategory(option.id)}
             >
@@ -102,49 +118,66 @@ export function OnboardingForm() {
           ))}
         </div>
       </fieldset>
-      <label className="grid gap-2">
-        <span className="text-sm font-medium text-slate-950">
+
+      <label className="grid gap-2 rounded-3xl border border-border/60 bg-muted p-4">
+        <span className="text-sm font-semibold text-foreground">
           Add anything else you want to share, optional
         </span>
         <Textarea
-          className="min-h-24 bg-white"
+          className="min-h-28 rounded-2xl border-border/70 bg-card text-foreground placeholder:text-muted-foreground"
           value={mainConcernText}
           onChange={(event) => setMainConcernText(event.target.value)}
           placeholder="A short note is okay, or leave this blank."
         />
-      </label>
-      <label className="flex items-start gap-3 rounded-lg bg-slate-50 p-3 text-sm leading-6 text-slate-700">
-        <input
-          type="checkbox"
-          className="mt-1 size-4 rounded border-slate-300"
-          checked={consented}
-          onChange={(event) => setConsented(event.target.checked)}
-        />
-        <span>
-          I understand this tool is for reflection and support routing. It is
-          not a crisis service, therapy, diagnosis, treatment, or a replacement
-          for professional care.
+        <span className="text-xs leading-5 text-muted-foreground">
+          Keep it brief. You can share more during guided chat.
         </span>
       </label>
-      <label className="flex items-start gap-3 rounded-lg bg-slate-50 p-3 text-sm leading-6 text-slate-700">
-        <input
-          type="checkbox"
-          className="mt-1 size-4 rounded border-slate-300"
-          checked={isAdult}
-          onChange={(event) => setIsAdult(event.target.checked)}
-        />
-        <span>I confirm I am 18 or older.</span>
-      </label>
-      {error ? <p className="text-sm text-red-700">{error}</p> : null}
-      <div>
+
+      <div className="grid gap-3">
+        <label className="flex items-start gap-3 rounded-2xl border border-border/60 bg-muted p-4 text-sm leading-6 text-muted-foreground">
+          <input
+            type="checkbox"
+            className="mt-1 size-4 rounded border-border text-primary accent-primary"
+            checked={consented}
+            onChange={(event) => setConsented(event.target.checked)}
+          />
+          <span>
+            I understand this tool is for reflection and support routing. It is
+            not a crisis service, therapy, diagnosis, treatment, or a
+            replacement for professional care.
+          </span>
+        </label>
+        <label className="flex items-start gap-3 rounded-2xl border border-border/60 bg-muted p-4 text-sm leading-6 text-muted-foreground">
+          <input
+            type="checkbox"
+            className="mt-1 size-4 rounded border-border text-primary accent-primary"
+            checked={isAdult}
+            onChange={(event) => setIsAdult(event.target.checked)}
+          />
+          <span>I confirm I am 18 or older.</span>
+        </label>
+      </div>
+
+      {error ? (
+        <p className="rounded-2xl border border-destructive/30 bg-destructive/10 p-3 text-sm leading-6 text-destructive">
+          {error}
+        </p>
+      ) : null}
+
+      <div className="pt-1">
         <Button
           type="submit"
           disabled={!canContinue}
-          className="h-10 bg-emerald-900 px-4 text-white hover:bg-emerald-800"
+          className="h-12 w-full rounded-full bg-primary px-5 text-primary-foreground shadow-sm hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-55"
         >
           {isSubmitting ? "Creating session..." : "Continue to guided chat"}
           <ArrowRight className="size-4" aria-hidden="true" />
         </Button>
+        <p className="mt-3 text-center text-xs leading-5 text-muted-foreground">
+          A qualified professional may be able to help you explore ongoing
+          concerns further.
+        </p>
       </div>
     </form>
   );
