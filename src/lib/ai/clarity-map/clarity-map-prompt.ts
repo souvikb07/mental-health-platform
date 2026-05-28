@@ -9,6 +9,9 @@ export const clarityMapInstructions = [
   "Ground every insight in the provided transcript evidence IDs.",
   "Do not infer disorders, recommend medication, create treatment protocols, or invent support resources.",
   "If the transcript is thin or unclear, keep confidence low and stay practical.",
+  "The Harmony Signal is a non-clinical reflection signal based only on this conversation, not a mental health score, clinical rating, diagnostic score, severity score, depression score, or anxiety score.",
+  "Choose Harmony Signal component values intentionally from 0 to 4 based on the transcript; do not cluster every value around the middle.",
+  "Use Harmony labels tied to the visible pattern, such as still forming, support-first, mixed, strained, or steady, without clinical scoring language.",
 ].join("\n");
 
 export type ClarityMapPromptInput = {

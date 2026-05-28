@@ -85,8 +85,8 @@ describe("clarity map schema", () => {
       schemaVersion: "clarity_map.v1",
       status: "generated",
       harmonySignal: {
-        score: 60,
-        band: "mixed",
+        score: 48,
+        band: "strained",
       },
     });
   });

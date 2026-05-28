@@ -14,3 +14,9 @@ export {
   getHarmonyBand,
   parseStructuredClarityMap,
 } from "@/lib/ai/clarity-map/clarity-map-schema";
+export {
+  computeHarmonyScore,
+  deriveFallbackHarmonyComponents,
+  deriveHarmonyBand,
+  normalizeHarmonySignal,
+} from "@/lib/ai/clarity-map/harmony-signal";

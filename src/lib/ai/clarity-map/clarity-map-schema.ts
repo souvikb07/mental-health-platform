@@ -2,10 +2,13 @@ import type {
   BoundaryType,
   ClarityAction,
   ClarityEvidencePoint,
-  HarmonyBand,
   HarmonySignalComponents,
   StructuredClarityMap,
 } from "@/types/clarity-map";
+import {
+  deriveHarmonyBand,
+  normalizeHarmonySignal,
+} from "@/lib/ai/clarity-map/harmony-signal";
 
 export const clarityMapSchemaVersion = "clarity_map.v1" as const;
 
@@ -228,36 +231,10 @@ export function computeHarmonySignal(input: {
   explanation: string;
   components: HarmonySignalComponents;
 }): StructuredClarityMap["harmonySignal"] {
-  const values = Object.values(input.components);
-  const score = Math.round(
-    (values.reduce((total, value) => total + value, 0) / (values.length * 4)) *
-      100,
-  );
-
-  return {
-    label: input.label.trim(),
-    score,
-    band: getHarmonyBand(score),
-    explanation: input.explanation.trim(),
-    components: input.components,
-  };
+  return normalizeHarmonySignal(input);
 }
 
-export function getHarmonyBand(score: number): HarmonyBand {
-  if (score >= 80) {
-    return "steady";
-  }
-
-  if (score >= 60) {
-    return "mixed";
-  }
-
-  if (score >= 40) {
-    return "strained";
-  }
-
-  return "support_first";
-}
+export const getHarmonyBand = deriveHarmonyBand;
 
 export function isUnsafeClarityText(text: string) {
   return unsafePatterns.some((pattern) => pattern.test(text));

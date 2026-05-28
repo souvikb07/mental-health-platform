@@ -128,6 +128,7 @@ describe("createClarityMapResponse", () => {
       type: "safety_blocked",
       source: "safety",
     });
+    expect(response).not.toHaveProperty("clarityMap");
     expect(clarityMapAgent).not.toHaveBeenCalled();
   });
 
@@ -213,6 +214,31 @@ describe("createClarityMapResponse", () => {
             id: "u3",
             role: "user",
             content: "I have pills and I'm going to take them tonight.",
+            createdAt: "2026-05-28T00:03:00.000Z",
+          },
+        ],
+      },
+      { clarityMapAgent },
+    );
+
+    expect(response).toMatchObject({
+      type: "safety_blocked",
+      source: "safety",
+    });
+    expect(clarityMapAgent).not.toHaveBeenCalled();
+  });
+
+  it("blocks self-safety language before clarity map generation", async () => {
+    const clarityMapAgent = vi.fn();
+    const response = await createClarityMapResponse(
+      {
+        sessionId: sessionContext.sessionId,
+        sessionContext,
+        messages: [
+          {
+            id: "u1",
+            role: "user",
+            content: "I do not feel safe with myself tonight.",
             createdAt: "2026-05-28T00:03:00.000Z",
           },
         ],

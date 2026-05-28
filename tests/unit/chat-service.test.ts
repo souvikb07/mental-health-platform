@@ -198,6 +198,33 @@ describe("createChatResponse", () => {
     expect(conversationAgent).not.toHaveBeenCalled();
   });
 
+  it("routes self-safety language to urgent support without calling the conversation model", async () => {
+    const conversationAgent = vi.fn().mockResolvedValue({
+      content: "This should not be used.",
+      source: "openai",
+    });
+    const response = await createChatResponse(
+      {
+        sessionId: "mock_session_test",
+        message: "I do not feel safe with myself tonight.",
+        sessionContext: usSessionContext,
+      },
+      { conversationAgent },
+    );
+
+    expect(response.source).toBe("safety");
+    expect(response.risk.level).toBe("imminent");
+    expect(response.risk.categories).toContain("self_harm");
+    expect(response.risk.requiresCrisisResponse).toBe(true);
+    expect(response.nextRecommendedAction).toBe("urgent_support");
+    expect(response.safetyState).toBe("imminent_risk");
+    expect(response.mode).toBe("crisis");
+    expect(response.safety?.showInlineSafetyCard).toBe(true);
+    expect(response.safety?.disableNormalNextStep).toBe(true);
+    expect(response.resources.length).toBeGreaterThan(0);
+    expect(conversationAgent).not.toHaveBeenCalled();
+  });
+
   it("classifies direct self-harm as high or imminent without calling the model", async () => {
     const conversationAgent = vi.fn();
     const response = await createChatResponse(
