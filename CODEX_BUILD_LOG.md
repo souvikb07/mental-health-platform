@@ -736,3 +736,33 @@ Reworked the chat surface into a wider guided reflection shell with warm card st
 
 Next step:
 FE-5 Clarity Map UI polish, keeping generated sessionStorage map rendering, `safety_blocked`, `boundary_blocked`, and non-diagnostic Harmony Signal behavior unchanged.
+
+## 2026-05-28 22:05 CEST
+
+Task:
+FE-5 Clarity Map UI polish only.
+
+Prompt used:
+Polish the Clarity Map screen into a premium, calm, non-clinical reflection artifact while preserving generated-only sessionStorage rendering, storage keys, safety/boundary-blocked behavior, and all backend/API contracts.
+
+Files changed:
+Updated `src/app/clarity-map/page.tsx`, `src/components/product/clarity-map-loader.tsx`, `src/components/product/clarity-map-card.tsx`, and `CODEX_BUILD_LOG.md`.
+
+Commands run:
+`git status --short`
+Read-only inspection of project handoff docs, Stitch design docs, `reference/stitch/clarity-map/stitch.html`, `CODEX_BUILD_LOG.md`, and the current Clarity Map page/loader/card
+`npm test`
+`npm run lint`
+`npm run build`
+`git diff --check`
+`RUN_REAL_AI_EVALS=true EVAL_BASE_URL=http://localhost:3000 npm run eval:ai:smoke`
+Browser manual QA for missing-map empty state, onboarding/chat/generated Clarity Map flow, safety-blocked chat flow, boundary-blocked chat flow, and 390px mobile layout.
+
+Result:
+Tests passed: 24 files, 253 tests. Lint passed. Build passed. `git diff --check` passed. Real AI smoke eval passed 13/13 with 0 failures and 6 warnings; OpenAI-backed sources appeared, safety routes passed, and boundary routes passed.
+
+Manual review notes:
+Reworked the Clarity Map page header, missing-map state, structured Harmony Signal presentation, Key Insight, Evidence Points, Boundary Focus, Action Plan, and Support Path into warm rounded artifact cards using the FE-2 visual baseline. The loader still reads `mindbridge:clarity-map:<sessionId>` and `mindbridge:last-clarity-map-session`, still resolves the query `sessionId` first, and still renders only stored `type: "clarity_map"` responses. Browser QA confirmed a missing random session shows the empty CTA without old mock content or `/100` score, a real onboarding-to-chat generation renders Harmony Signal, Key Insight, Boundary Focus, Next 24 hours, Next 7 days, and Support Path, self-safety stays inline in chat with resources and no Harmony Signal, and boundary requests stay inline in chat without a normal map. At 390px width, both empty and generated states had no horizontal overflow and the generated sections remained readable. No Stitch HTML, iframe, `dangerouslySetInnerHTML`, new route, backend feature, static map output, or generated/model HTML rendering was added.
+
+Next step:
+FE-6 resources, safety cards, and feedback polish, keeping app-owned resource rendering, backend safety copy, and feedback submission behavior unchanged.
