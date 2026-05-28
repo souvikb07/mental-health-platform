@@ -242,6 +242,80 @@ describe("createChatResponse", () => {
     expect(response.resources[0]?.country).toBe("IN");
   });
 
+  it.each([
+    "My friend says he wants to kill himself.",
+    "My partner said they want to die.",
+    "Someone I know says they want to end their life.",
+  ])("routes third-party self-harm to safety without normal conversation: %s", async (message) => {
+    const conversationAgent = vi.fn().mockResolvedValue({
+      content: "This should not be used.",
+      source: "openai",
+    });
+    const response = await createChatResponse(
+      {
+        sessionId: "mock_session_test",
+        message,
+        sessionContext: usSessionContext,
+      },
+      { conversationAgent },
+    );
+
+    expect(response.source).toBe("safety");
+    expect(response.risk.level).toBe("high");
+    expect(response.risk.signalTags).toContain("third_party_self_harm");
+    expect(response.safetyState).toBe("third_party_self_harm");
+    expect(response.resources.length).toBeGreaterThanOrEqual(1);
+    expect(response.resources[0]?.country).toBe("US");
+    expect(response.assistantMessage.content).not.toContain("not safe alone");
+    expect(conversationAgent).not.toHaveBeenCalled();
+  });
+
+  it("routes imminent third-party self-harm to urgent support without normal conversation", async () => {
+    const conversationAgent = vi.fn().mockResolvedValue({
+      content: "This should not be used.",
+      source: "openai",
+    });
+    const response = await createChatResponse(
+      {
+        sessionId: "mock_session_test",
+        message: "My friend has pills and says he will take them tonight.",
+        sessionContext: usSessionContext,
+      },
+      { conversationAgent },
+    );
+
+    expect(response.source).toBe("safety");
+    expect(response.risk.level).toBe("imminent");
+    expect(response.risk.signalTags).toContain("third_party_self_harm_imminent");
+    expect(response.safetyState).toBe("third_party_self_harm");
+    expect(response.nextRecommendedAction).toBe("urgent_support");
+    expect(response.mode).toBe("crisis");
+    expect(response.resources.length).toBeGreaterThanOrEqual(1);
+    expect(conversationAgent).not.toHaveBeenCalled();
+  });
+
+  it("does not route third-party idioms to safety", async () => {
+    const conversationAgent = vi.fn().mockResolvedValue({
+      content: "Normal response.",
+      source: "openai",
+    });
+    const response = await createChatResponse(
+      {
+        sessionId: "mock_session_test",
+        message: "My friend killed it at the presentation.",
+        sessionContext: usSessionContext,
+      },
+      { conversationAgent },
+    );
+
+    expect(response.source).toBe("openai");
+    expect(response.safetyState).toBe("normal_support");
+    expect(response.risk.signalTags ?? []).not.toContain(
+      "third_party_self_harm",
+    );
+    expect(conversationAgent).toHaveBeenCalledTimes(1);
+  });
+
   it("uses global resources when session country is missing or global", async () => {
     const response = await createChatResponse({
       sessionId: "mock_session_test",

@@ -312,6 +312,47 @@ describe("safety playbook engine", () => {
     expect(decision.responseContent).not.toContain("you may act");
   });
 
+  it("routes deterministic third-party self-harm to safety without AI triage", async () => {
+    const aiTriageClassifier = vi.fn();
+    const decision = await evaluateSafety(
+      {
+        message: "My friend says he wants to kill himself.",
+        sessionContext: usSessionContext,
+      },
+      { aiTriageClassifier },
+    );
+
+    expect(decision.risk.level).toBe("high");
+    expect(decision.risk.signalTags).toContain("third_party_self_harm");
+    expect(decision.safetyState).toBe("third_party_self_harm");
+    expect(decision.responseSource).toBe("safety");
+    expect(decision.allowNormalChat).toBe(false);
+    expect(decision.resources[0]?.country).toBe("US");
+    expect(decision.responseContent).toContain("this person");
+    expect(decision.responseContent).not.toContain("you may act");
+    expect(aiTriageClassifier).not.toHaveBeenCalled();
+  });
+
+  it("routes imminent deterministic third-party self-harm to urgent support", async () => {
+    const decision = await evaluateSafety({
+      message: "My friend has pills and says he will take them tonight.",
+      sessionContext: inSessionContext,
+    });
+
+    expect(decision.risk.level).toBe("imminent");
+    expect(decision.risk.signalTags).toEqual(
+      expect.arrayContaining([
+        "third_party_self_harm",
+        "third_party_self_harm_imminent",
+      ]),
+    );
+    expect(decision.safetyState).toBe("third_party_self_harm");
+    expect(decision.nextRecommendedAction).toBe("urgent_support");
+    expect(decision.mode).toBe("crisis");
+    expect(decision.responseSource).toBe("safety");
+    expect(decision.resources[0]?.country).toBe("IN");
+  });
+
   it("can avoid false crisis for negated self-harm", async () => {
     const decision = await evaluateSafety(
       {

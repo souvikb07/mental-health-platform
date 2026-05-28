@@ -60,6 +60,7 @@ export async function evaluateSafety({
     safetyRouteSafety: safetyRoute.safety,
     showSafetyCard: playbook.showSafetyCard,
     playbookState: playbook.state,
+    risk,
     boundaryResponse,
   });
   const countryCode = sessionContext?.countryCode ?? "GLOBAL";
@@ -78,12 +79,13 @@ export async function evaluateSafety({
     playbook,
     allowNormalChat: playbook.allowNormalChat,
     allowClarityMap: playbook.allowClarityMap,
-    nextRecommendedAction: playbook.nextRecommendedAction,
-    mode: playbook.mode,
+    nextRecommendedAction: getNextRecommendedAction({ safetyState, risk }),
+    mode: getMode({ safetyState, risk }),
     safety,
     resources,
     responseContent: getResponseContent({
       safetyState,
+      risk,
       safetyMessage: safety?.message ?? null,
       boundaryResponse,
     }),
@@ -259,11 +261,13 @@ function getSafetyUi({
   safetyRouteSafety,
   showSafetyCard,
   playbookState,
+  risk,
   boundaryResponse,
 }: {
   safetyRouteSafety: SafetyUi | null;
   showSafetyCard: boolean;
   playbookState: SafetyState;
+  risk: ApiRiskClassification;
   boundaryResponse: string | null;
 }) {
   if (!showSafetyCard) {
@@ -275,7 +279,14 @@ function getSafetyUi({
   }
 
   if (playbookState === "third_party_self_harm") {
-    return thirdPartySelfHarmSafety;
+    const tone: SafetyUi["tone"] =
+      risk.level === "imminent" ? "urgent" : "support";
+
+    return {
+      ...thirdPartySelfHarmSafety,
+      message: getThirdPartySelfHarmMessage(risk),
+      tone,
+    };
   }
 
   if (playbookState === "self_harm_method_request" && boundaryResponse) {
@@ -314,10 +325,12 @@ function getBoundaryResponse({
 
 function getResponseContent({
   safetyState,
+  risk,
   safetyMessage,
   boundaryResponse,
 }: {
   safetyState: SafetyState;
+  risk: ApiRiskClassification;
   safetyMessage: string | null;
   boundaryResponse: string | null;
 }) {
@@ -330,7 +343,7 @@ function getResponseContent({
   }
 
   if (safetyState === "third_party_self_harm") {
-    return thirdPartySelfHarmSafety.message;
+    return getThirdPartySelfHarmMessage(risk);
   }
 
   return safetyMessage;
@@ -349,6 +362,34 @@ function getResponseSource(
   }
 
   return null;
+}
+
+function getNextRecommendedAction({
+  safetyState,
+  risk,
+}: {
+  safetyState: SafetyState;
+  risk: ApiRiskClassification;
+}) {
+  if (safetyState === "third_party_self_harm" && risk.level === "imminent") {
+    return "urgent_support" as const;
+  }
+
+  return getSafetyPlaybook(safetyState).nextRecommendedAction;
+}
+
+function getMode({
+  safetyState,
+  risk,
+}: {
+  safetyState: SafetyState;
+  risk: ApiRiskClassification;
+}) {
+  if (safetyState === "third_party_self_harm" && risk.level === "imminent") {
+    return "crisis" as const;
+  }
+
+  return getSafetyPlaybook(safetyState).mode;
 }
 
 function blocksNormalChat(state: SafetyState) {
@@ -401,3 +442,11 @@ const thirdPartySelfHarmSafety = {
     "That sounds serious. If this person may be in immediate danger, contact local emergency services or a trusted person near them. If you can, stay connected with them and encourage immediate support.",
   tone: "support" as const,
 };
+
+function getThirdPartySelfHarmMessage(risk: ApiRiskClassification) {
+  if (risk.level === "imminent") {
+    return "That sounds urgent. If this person may be in immediate danger, contact local emergency services or a local crisis line now. If you can do so safely, stay connected with them and involve a trusted person nearby.";
+  }
+
+  return thirdPartySelfHarmSafety.message;
+}
