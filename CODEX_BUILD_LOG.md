@@ -430,3 +430,26 @@ Tests passed: 17 files, 164 tests. Lint passed. Build passed. `/api/context-inta
 
 Manual review notes:
 Valid US and IN onboarding contexts still return openers, missing OpenAI context-intake config still falls back safely, and optional high-risk onboarding text still routes to Safety Core before opener generation.
+
+## 2026-05-28 11:35 CEST
+
+Task:
+Block 4.7 real OpenAI smoke test and local eval harness.
+
+Prompt used:
+Create a synthetic-data-only local eval harness that calls MindBridge API routes over HTTP and verifies context intake, normal chat, safety routing, policy boundaries, and AI-triage-sensitive cases when local OpenAI env is configured.
+
+Files changed:
+Added `scripts/evals/run-real-ai-smoke.mjs`, `tests/evals/real-ai-smoke-cases.json`, and `docs/evals/real-ai-smoke.md`. Updated `package.json`, `.gitignore`, `README.md`, and `CODEX_BUILD_LOG.md`.
+
+Commands run:
+`npm run eval:ai:smoke`
+`npm test`
+`npm run lint`
+`npm run build`
+
+Result:
+The eval script exits with clear instructions and no API calls unless `RUN_REAL_AI_EVALS=true` is set. Tests passed: 17 files, 164 tests. Lint passed. Build passed. The harness writes JSON and Markdown reports to ignored `eval-results/` when explicitly enabled.
+
+Manual review notes:
+The harness does not import server modules or read OpenAI keys directly; it calls local HTTP routes (`/api/context-intake` and `/api/chat`) and relies on the local Next.js server to read `.env.local`. Eval cases are synthetic and cover context intake, normal chat, safety routes, policy boundaries, AI-triage-sensitive semantic cases, negation, idiom false positives, and a multilingual risk signal. No app behavior, Safety Core behavior, context-intake behavior, integrations, packages, persistence, streaming, moderation, or UI were changed.

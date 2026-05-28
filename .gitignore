@@ -39,5 +39,6 @@ yarn-error.log*
 
 # generated reports
 coverage/
+eval-results/
 playwright-report/
 .vitest/
