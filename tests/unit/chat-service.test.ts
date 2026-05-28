@@ -133,6 +133,44 @@ describe("createChatResponse", () => {
     expect(conversationAgent).not.toHaveBeenCalled();
   });
 
+  it("does not call the conversation agent for AI-escalated high risk", async () => {
+    const conversationAgent = vi.fn().mockResolvedValue({
+      content: "This should not be used.",
+      source: "openai",
+    });
+    const response = await createChatResponse(
+      {
+        sessionId: "mock_session_test",
+        message: "I feel like a burden.",
+      },
+      {
+        conversationAgent,
+        aiTriageClassifier: vi.fn().mockResolvedValue({
+          available: true,
+          signal: {
+            schemaVersion: "triage.v1",
+            riskLevel: "high",
+            safetyStateCandidate: "passive_suicidal_ideation",
+            riskCategories: ["self_harm"],
+            policyCategories: [],
+            subject: "self",
+            temporalUrgency: "ongoing",
+            intentSignal: "passive_ideation",
+            recommendedAction: "show_resources",
+            confidence: "medium",
+            needsClarifyingSafetyQuestion: true,
+            rationaleCode: "passive_life_worth_signal",
+          },
+        }),
+      },
+    );
+
+    expect(response.risk.level).toBe("high");
+    expect(response.safetyState).toBe("passive_suicidal_ideation");
+    expect(response.source).toBe("safety");
+    expect(conversationAgent).not.toHaveBeenCalled();
+  });
+
   it("routes imminent risk to urgent support without calling the conversation model", async () => {
     const conversationAgent = vi.fn().mockResolvedValue({
       content: "This should not be used.",

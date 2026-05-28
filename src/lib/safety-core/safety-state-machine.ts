@@ -11,6 +11,7 @@ export type SafetyStateInput = {
 const preservingStates = new Set<SafetyState>([
   "passive_suicidal_ideation",
   "active_suicidal_ideation",
+  "third_party_self_harm",
   "imminent_risk",
   "self_harm_method_request",
   "medical_emergency",
@@ -107,6 +108,7 @@ const stateSeverity: Record<SafetyState, number> = {
   policy_boundary: 2,
   passive_suicidal_ideation: 3,
   active_suicidal_ideation: 4,
+  third_party_self_harm: 4,
   abuse_or_coercion: 4,
   medical_emergency: 5,
   harm_to_others: 5,

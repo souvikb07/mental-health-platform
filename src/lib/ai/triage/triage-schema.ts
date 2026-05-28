@@ -102,6 +102,8 @@ export const triageRationaleCodes = [
 ] as const;
 
 export type TriageSubject = (typeof triageSubjects)[number];
+export type TriageSafetyStateCandidate =
+  (typeof triageSafetyStateCandidates)[number];
 export type TriageTemporalUrgency = (typeof triageTemporalUrgencies)[number];
 export type TriageIntentSignal = (typeof triageIntentSignals)[number];
 export type TriageRecommendedAction =
@@ -112,7 +114,7 @@ export type TriageRationaleCode = (typeof triageRationaleCodes)[number];
 export type TriageSignal = {
   schemaVersion: typeof triageSchemaVersion;
   riskLevel: RiskLevel;
-  safetyStateCandidate: SafetyState;
+  safetyStateCandidate: TriageSafetyStateCandidate;
   riskCategories: RiskCategory[];
   policyCategories: PolicyBoundaryCategory[];
   subject: TriageSubject;
@@ -165,6 +167,10 @@ export const triageJsonSchema = {
 
 export function parseTriageSignal(payload: unknown): TriageSignal | null {
   if (!isRecord(payload)) {
+    return null;
+  }
+
+  if (!hasExactKeys(payload, triageRequiredKeys)) {
     return null;
   }
 
@@ -227,3 +233,30 @@ function includesValue<T extends readonly string[]>(
 ): value is T[number] {
   return typeof value === "string" && options.includes(value);
 }
+
+function hasExactKeys(
+  payload: Record<string, unknown>,
+  expectedKeys: readonly string[],
+) {
+  const keys = Object.keys(payload);
+
+  return (
+    keys.length === expectedKeys.length &&
+    keys.every((key) => expectedKeys.includes(key))
+  );
+}
+
+const triageRequiredKeys = [
+  "schemaVersion",
+  "riskLevel",
+  "safetyStateCandidate",
+  "riskCategories",
+  "policyCategories",
+  "subject",
+  "temporalUrgency",
+  "intentSignal",
+  "recommendedAction",
+  "confidence",
+  "needsClarifyingSafetyQuestion",
+  "rationaleCode",
+] as const;
