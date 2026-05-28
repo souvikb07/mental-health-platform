@@ -766,3 +766,32 @@ Reworked the Clarity Map page header, missing-map state, structured Harmony Sign
 
 Next step:
 FE-6 resources, safety cards, and feedback polish, keeping app-owned resource rendering, backend safety copy, and feedback submission behavior unchanged.
+
+## 2026-05-28 22:13 CEST
+
+Task:
+FE-6 resources, safety notice, and feedback polish only.
+
+Prompt used:
+Polish Resources, Feedback, resource cards, feedback form, and reusable safety notice presentation while preserving app-owned resource fetching/fallback behavior, feedback submission shape, backend safety positioning, and API contracts.
+
+Files changed:
+Updated `src/app/resources/page.tsx`, `src/app/feedback/page.tsx`, `src/components/product/resources-loader.tsx`, `src/components/product/resource-card.tsx`, `src/components/product/feedback-form.tsx`, `src/components/product/safety-notice.tsx`, and `CODEX_BUILD_LOG.md`.
+
+Commands run:
+`git status --short`
+Read-only inspection of project handoff docs, Stitch design docs, `reference/stitch/resources-feedback/stitch.html`, `CODEX_BUILD_LOG.md`, and the current resources/feedback/safety components
+`npm test`
+`npm run lint`
+`npm run build`
+`git diff --check`
+Browser manual QA for `/resources`, `/feedback`, feedback submission, safety notices, and 390px mobile layout.
+
+Result:
+Tests passed: 24 files, 253 tests. Lint passed. Build passed. `git diff --check` passed. Real AI smoke eval was not run because no chat, Clarity Map generation, API client, safety core, backend, or AI files were changed.
+
+Manual review notes:
+Reworked `/resources` into a practical support-options page with warmer hierarchy, an immediate-support reminder, clearer app-owned/non-model-generated framing, and polished resource cards showing type, country, description, action, phone where present, and availability notes. `ResourcesLoader` still calls `fetchResources` with the existing country/topic query and still falls back to `mockResources` if the API fails; the fallback copy now describes local app-owned fallback resources. Reworked `/feedback` into a quieter end-of-journey MVP feedback page with no persistence, analytics, clinical-review, or emergency-support implications. `FeedbackForm` still submits the same payload through `submitFeedback`, preserves loading/success/error states, and now has a properly associated optional-note label. Safety notices retain the same not-therapy/not-diagnosis/not-crisis and immediate-support copy with calmer, more readable styling. Browser QA confirmed resources and feedback render on desktop and 390px mobile with no horizontal overflow, resource actions remain visible, feedback can be completed and submitted successfully, and safety notices remain visible/readable. The resources fallback state was not forced in browser QA, but the existing catch/fallback path and fallback data source were preserved.
+
+Next step:
+FE-7 responsive/mobile QA and demo readiness, checking the full Landing -> Onboarding -> Chat -> Clarity Map -> Resources -> Feedback journey across desktop/mobile without changing backend behavior.

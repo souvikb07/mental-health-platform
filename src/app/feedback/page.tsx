@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 
 import { PageContainer } from "@/components/layout/page-container";
 import { FeedbackForm } from "@/components/product/feedback-form";
@@ -8,25 +9,33 @@ import { Button } from "@/components/ui/button";
 
 export default function FeedbackPage() {
   return (
-    <PageContainer size="narrow" className="grid gap-8">
+    <PageContainer size="narrow" className="grid gap-8 py-10 sm:py-14">
       <JourneyStepper current="/feedback" />
       <div>
-        <p className="text-sm font-medium text-emerald-800">Feedback</p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-emerald-950">
-          Help judge whether the mock journey is clear.
+        <p className="text-sm font-semibold text-primary">Feedback</p>
+        <h1 className="mt-2 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+          Help improve the MindBridge MVP.
         </h1>
-        <p className="mt-3 text-sm leading-7 text-slate-600">
-          This form posts to an internal mock API for Block 2. It does not save
-          to a database or send analytics.
+        <p className="mt-3 text-sm leading-6 text-muted-foreground sm:text-base">
+          This quiet end-of-journey loop checks whether the reflection flow felt
+          clear and useful. No database persistence, analytics tracking, or
+          clinical review is implied.
         </p>
       </div>
       <SafetyNotice />
-      <div className="rounded-lg border border-emerald-950/10 bg-white p-5 shadow-sm">
+      <div className="mindbridge-ambient-shadow rounded-[2rem] border border-border/60 bg-card p-5 sm:p-6">
         <FeedbackForm />
       </div>
       <div>
-        <Button asChild variant="outline" className="h-10 px-4">
-          <Link href="/">Back to landing</Link>
+        <Button
+          asChild
+          variant="outline"
+          className="h-11 rounded-full border-border/80 bg-card px-5 text-foreground hover:bg-muted"
+        >
+          <Link href="/">
+            <ArrowLeft className="size-4" aria-hidden="true" />
+            Back to landing
+          </Link>
         </Button>
       </div>
     </PageContainer>

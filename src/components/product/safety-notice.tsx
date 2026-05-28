@@ -14,18 +14,26 @@ export function SafetyNotice({ tone = "standard", className }: SafetyNoticeProps
   return (
     <Alert
       className={cn(
-        "border-emerald-900/15 bg-white text-slate-800",
-        isUrgent && "border-red-900/20 bg-red-50 text-red-950",
+        "rounded-3xl border-border/60 bg-card p-4 text-foreground shadow-sm",
+        isUrgent &&
+          "border-destructive/30 bg-destructive/10 text-destructive",
         className,
       )}
     >
       {isUrgent ? (
-        <AlertTriangle className="size-4" aria-hidden="true" />
+        <AlertTriangle className="size-4 text-destructive" aria-hidden="true" />
       ) : (
-        <ShieldCheck className="size-4" aria-hidden="true" />
+        <ShieldCheck className="size-4 text-primary" aria-hidden="true" />
       )}
-      <AlertTitle>{isUrgent ? "Immediate support" : "Safety boundary"}</AlertTitle>
-      <AlertDescription>
+      <AlertTitle className="font-semibold">
+        {isUrgent ? "Immediate support" : "Safety boundary"}
+      </AlertTitle>
+      <AlertDescription
+        className={cn(
+          "leading-6 text-muted-foreground",
+          isUrgent && "text-destructive",
+        )}
+      >
         {isUrgent
           ? "If you might be in immediate danger, contact emergency services now or reach a local crisis helpline. If you can, move closer to another person and tell them you may not be safe alone."
           : "MindBridge is for reflection and support routing. It is not therapy, diagnosis, treatment, medical advice, emergency support, or a replacement for professional care."}
