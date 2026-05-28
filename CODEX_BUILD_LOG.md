@@ -648,3 +648,32 @@ Added warm clay, soft surface, sage primary, ink foreground, muted border, calm 
 
 Next step:
 FE-3a landing page polish, using the Stitch landing reference as a visual blueprint while preserving the current route flow and safety positioning.
+
+## 2026-05-28 21:22 CEST
+
+Task:
+FE-3a landing page polish only.
+
+Prompt used:
+Polish the MindBridge landing page into a clear, trustworthy, demo-ready product entry point using the FE-2 visual baseline and Stitch landing reference, while preserving route flow, safety positioning, backend contracts, and existing product behavior.
+
+Files changed:
+Updated `src/app/page.tsx` and `CODEX_BUILD_LOG.md`.
+
+Commands run:
+`git status --short`
+Read-only inspection of project handoff docs, Stitch design docs, `reference/stitch/landing/stitch.html`, `CODEX_BUILD_LOG.md`, and the current landing page
+`npm test`
+`npm run lint`
+`npm run build`
+`git diff --check`
+Browser manual QA for `/` at desktop and mobile viewport widths, including primary and secondary CTA navigation.
+
+Result:
+Tests passed: 24 files, 253 tests. Lint passed. Build passed. `git diff --check` passed. No real AI smoke eval was run because no chat, Clarity Map, API client, safety, backend, or generated-flow logic was changed.
+
+Manual review notes:
+Reworked the landing page from implementation-led MVP language into a product-led page with a clear hero, Clarity Map value explanation, four-step flow, safety/trust strip, visible non-diagnostic positioning, and final onboarding CTA. Primary CTA navigated to `/onboarding`; secondary CTA navigated to `/resources`. Desktop and 390px mobile checks showed no obvious horizontal overflow. No fake Clarity Map output, fake chat transcript, new route, backend feature, imported Stitch HTML, iframe, or `dangerouslySetInnerHTML` was added.
+
+Next step:
+FE-3b onboarding polish, keeping the existing session creation, local storage keys, consent/adult checks, and `/chat` routing unchanged.
