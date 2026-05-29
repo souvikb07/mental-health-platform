@@ -39,9 +39,9 @@ export function ClarityMapLoader() {
 
   if (state.status === "loading") {
     return (
-      <div className="mindbridge-ambient-shadow rounded-[2rem] border border-border/60 bg-card p-6 text-sm leading-6 text-muted-foreground">
-        <div className="flex items-center gap-3">
-          <span className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
+      <div className="mindbridge-ambient-shadow mx-auto max-w-3xl rounded-[2rem] border border-border/60 bg-card p-5 text-sm leading-6 text-muted-foreground sm:p-6">
+        <div className="flex items-start gap-3">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
             <Sparkles className="size-4" aria-hidden="true" />
           </span>
           <div>
@@ -59,9 +59,9 @@ export function ClarityMapLoader() {
 
   if (state.status === "missing") {
     return (
-      <div className="mindbridge-ambient-shadow rounded-[2rem] border border-border/60 bg-card p-6 text-sm leading-6 text-muted-foreground sm:p-8">
-        <div className="grid gap-5 md:grid-cols-[auto,minmax(0,1fr)] md:items-start">
-          <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+      <div className="mindbridge-ambient-shadow mx-auto max-w-3xl rounded-[2rem] border border-border/60 bg-card p-6 text-sm leading-6 text-muted-foreground sm:p-8">
+        <div className="grid gap-5 sm:grid-cols-[auto,minmax(0,1fr)] sm:items-start">
+          <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
             <FileSearch className="size-5" aria-hidden="true" />
           </span>
           <div>

@@ -1066,3 +1066,33 @@ Reworked `/chat` from a dashboard-style route with a visible stepper and right-s
 
 Next step:
 Review `/chat` visually at desktop and mobile widths, especially safety/resource states with the sticky composer; if accepted, continue to the next Stitch polish block.
+
+## 2026-05-29 15:22 CEST
+
+Task:
+FE-Clarity-Stitch-1 — Stitch-style Clarity Map polish.
+
+Prompt used:
+Make `/clarity-map` visually closer to `reference/stitch/clarity-map/stitch.html`, reduce visual clutter, add a subtle `Back to chat` link, and preserve generated-only rendering, sessionStorage behavior, backend/API behavior, and safety/boundary-blocked behavior.
+
+Files changed:
+Updated `src/app/clarity-map/page.tsx`, `src/components/product/clarity-map-loader.tsx`, `src/components/product/clarity-map-card.tsx`, and `CODEX_BUILD_LOG.md`.
+
+Commands run:
+`git status --short`
+Read-only inspection of the current Clarity Map page/loader/card, Stitch clarity-map reference, project handoff docs, and tests
+`npm test`
+`npm run lint`
+`npm run build`
+`git diff --check`
+HTTP sanity check for `/clarity-map`
+`RUN_REAL_AI_EVALS=true EVAL_BASE_URL=http://localhost:3000 npm run eval:ai:smoke`
+
+Result:
+Tests passed: 25 files, 264 tests. Lint passed with one pre-existing non-blocking Next warning from the landing page plain `<img>` asset. Build passed. `git diff --check` passed. Real AI smoke eval passed 13/13 with 0 failures and 6 warnings; OpenAI-backed sources appeared, safety routes passed, and boundary routes passed.
+
+Manual review notes:
+Removed the visible `/clarity-map` journey stepper and replaced the previous hero plus right-side explanatory note with a centered compact page header and a subtle accessible `Back to chat` link to `/chat`. Restyled loading and missing states into calmer centered cards while preserving the missing-map CTA and all storage lookup logic. Simplified the generated Clarity Map artifact by reducing duplicate header weight, keeping the generated disclaimer and confidence chip, calming the Harmony Signal into one integrated non-clinical score treatment, combining Key Insight and Evidence Points into a cleaner section, softening Boundary Focus, keeping a visible Action Plan section, and preserving Support Path/resource CTA presentation. Generated map values, Harmony Signal score/band/label, generated text, storage keys, query `sessionId` resolution, last-session fallback, malformed-data fallback, and `type === "clarity_map"` rendering gate were not changed. Rendered HTML sanity check confirmed `/clarity-map` includes `Back to chat`, `href="/chat"`, `Clarity Map`, and `A non-diagnostic reflection artifact`. Full clicked browser QA was not available in this session; generated-only, missing-map, malformed-data, and last-session behavior are covered by existing passing unit tests plus route sanity checks and the real AI smoke eval.
+
+Next step:
+Review `/clarity-map` visually at desktop and mobile widths, especially generated long-text/action sections; if accepted, continue to resources/feedback Stitch polish or final demo QA.
