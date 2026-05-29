@@ -977,3 +977,61 @@ Reworked `/onboarding` from a two-column explanatory layout into a compact cente
 
 Next step:
 Review the onboarding card visually against the Stitch reference on desktop and mobile; if accepted, continue with the next Stitch screen polish block.
+
+## 2026-05-29 12:49 CEST
+
+Task:
+FE-Onboarding-Stitch-1a — Widen onboarding card.
+
+Prompt used:
+Make the Stitch-style onboarding card moderately wider on desktop and give the main concern pills more breathing room, while preserving the existing onboarding behavior, session creation contract, storage writes, and `/chat` routing.
+
+Files changed:
+Updated `src/components/product/onboarding-form.tsx` and `CODEX_BUILD_LOG.md`.
+
+Commands run:
+`git status --short`
+Read-only inspection of the current onboarding page/form and page container
+`npm test`
+`npm run lint`
+`npm run build`
+`git diff --check`
+Route HTTP sanity check for `/onboarding`
+
+Result:
+Tests passed: 25 files, 264 tests. Lint passed with one pre-existing non-blocking Next warning from the landing page plain `<img>` asset. Build passed. `git diff --check` passed. Real AI smoke eval was not run because this was an onboarding-only visual layout change.
+
+Manual review notes:
+Changed the onboarding form shell from `max-w-md` to `max-w-2xl`, keeping the same centered Stitch-style card, safety boundary card, field structure, rounded surface, and mobile `w-full` behavior. Increased the main concern pill wrap gap to `gap-2.5 sm:gap-3` and added `sm:px-5` desktop pill padding so labels have more room on wider screens. The existing `createSession` call, USA/India choices, `mainConcernOptions`, optional note, consent and 18+ requirements, legacy session localStorage writes, `saveSessionContext(response.sessionContext)`, and successful `/chat` navigation were not changed. Browser automation was not exposed in this session; `/onboarding` returned HTTP 200 from the running local server, and responsive behavior was reviewed by code-level layout constraints rather than a clicked browser viewport.
+
+Next step:
+Review `/onboarding` visually at desktop and mobile widths; if the wider card feels right, continue to the next Stitch polish block.
+
+## 2026-05-29 12:54 CEST
+
+Task:
+FE-Onboarding-Stitch-1b — Add back link to onboarding.
+
+Prompt used:
+Add a subtle accessible `Back to overview` link above the Stitch-style onboarding card, routing to `/`, while editing only the onboarding page shell and build log and preserving all onboarding form behavior.
+
+Files changed:
+Updated `src/app/onboarding/page.tsx` and `CODEX_BUILD_LOG.md`.
+
+Commands run:
+`git status --short`
+Read-only inspection of the current onboarding page and build log
+`npm test`
+`npm run lint`
+`npm run build`
+`git diff --check`
+Rendered HTML sanity check for `/onboarding`
+
+Result:
+Tests passed: 25 files, 264 tests. Lint passed with one pre-existing non-blocking Next warning from the landing page plain `<img>` asset. Build passed. `git diff --check` passed. Real AI smoke eval was not run because this was an onboarding page-shell-only navigation affordance.
+
+Manual review notes:
+Added a small real Next `Link` labeled `Back to overview` above the onboarding card, pointing to `/`. The link uses a calm primary-toned pill treatment with hover and focus-visible states and sits inside the same `max-w-2xl` column as the card so mobile remains full-width within page padding. The onboarding form component was not edited, and the existing `createSession` behavior, country and concern choices, optional note, consent and 18+ checks, storage writes, validation, and successful `/chat` navigation were preserved. The running local server rendered the link text and `/` href on `/onboarding`; full clicked browser QA was not available in this session.
+
+Next step:
+Review `/onboarding` visually and click the back link in a browser; if accepted, continue to the next Stitch polish block.

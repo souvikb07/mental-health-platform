@@ -31,7 +31,7 @@ export function OnboardingForm() {
 
   return (
     <form
-      className="grid w-full max-w-md gap-6 rounded-[2rem] border border-border/60 bg-card p-5 shadow-[0_10px_30px_rgba(45,90,67,0.08)] sm:p-8"
+      className="grid w-full max-w-2xl gap-6 rounded-[2rem] border border-border/60 bg-card p-5 shadow-[0_10px_30px_rgba(45,90,67,0.08)] sm:p-8"
       onSubmit={async (event) => {
         event.preventDefault();
         setError(null);
@@ -119,7 +119,7 @@ export function OnboardingForm() {
         <p className="text-xs leading-5 text-muted-foreground">
           Choose the closest fit. This is not a diagnosis.
         </p>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2.5 sm:gap-3">
           {mainConcernOptions.map((option) => (
             <ConcernPill
               key={option.id}
@@ -222,7 +222,7 @@ function ConcernPill({
       variant="outline"
       aria-pressed={selected}
       className={cn(
-        "h-auto min-h-11 whitespace-normal rounded-full border-border/70 bg-card px-4 py-2 text-sm font-medium leading-5 text-foreground shadow-none transition-all duration-300 hover:bg-muted focus-visible:ring-4 focus-visible:ring-primary/20",
+        "h-auto min-h-11 whitespace-normal rounded-full border-border/70 bg-card px-4 py-2 text-sm font-medium leading-5 text-foreground shadow-none transition-all duration-300 hover:bg-muted focus-visible:ring-4 focus-visible:ring-primary/20 sm:px-5",
         selected &&
           "scale-[1.02] border-primary bg-primary text-primary-foreground hover:bg-primary/90",
       )}
