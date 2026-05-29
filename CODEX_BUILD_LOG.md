@@ -948,3 +948,32 @@ Downloaded the exact Stitch hero PNG from the `landing/stitch.html` image source
 
 Next step:
 Review the landing visually on desktop and a real 390px/mobile viewport; if the Stitch image crop is acceptable, proceed to merge.
+
+## 2026-05-29 12:17 CEST
+
+Task:
+FE-Onboarding-Stitch — Implement Stitch-style onboarding page.
+
+Prompt used:
+Translate `reference/stitch/onboarding/stitch.html` into the real MindBridge onboarding route while preserving the existing `createSession` call, required support location/main concern/consent/18+ checks, optional note, legacy session localStorage compatibility, sessionStorage journey persistence, and `/chat` navigation.
+
+Files changed:
+Updated `src/app/onboarding/page.tsx`, `src/components/product/onboarding-form.tsx`, and `CODEX_BUILD_LOG.md`.
+
+Commands run:
+`git status --short`
+Read-only inspection of the Stitch onboarding reference, current onboarding page/form, session storage helper, session context options, handoff docs, and build log
+`npm test`
+`npm run lint`
+`npm run build`
+`git diff --check`
+Browser manual QA for `/onboarding` desktop, 390px mobile viewport, required-submit gating, country selection, main concern selection, optional note input, consent/age checks, submit navigation, and `/chat` handoff.
+
+Result:
+Tests passed: 25 files, 264 tests. Lint passed with one pre-existing non-blocking Next warning from the landing page plain `<img>` asset. Build passed. `git diff --check` passed. Real AI smoke eval was not run because only the onboarding page/form and build log were changed.
+
+Manual review notes:
+Reworked `/onboarding` from a two-column explanatory layout into a compact centered Stitch-style card. The form now carries the visible safety boundary card, centered welcome/title treatment, warm support-location select, wrapping main-reason pill buttons, optional note textarea, compact consent/18+ acknowledgement rows, and full-width rounded Continue CTA. Browser QA confirmed the page renders at 1280px and 390px with no horizontal overflow or console errors, the submit button starts disabled, USA/India selection works, concern pill selection works, optional note accepts input, consent and 18+ checks remain required, the completed form submits and navigates to `/chat`, and `/chat` shows the guided chat surface rather than the no-session onboarding CTA. The browser read-only evaluation environment did not expose storage APIs directly, but the unchanged form submission code still writes legacy session localStorage and calls `saveSessionContext(response.sessionContext)` for `mindbridge:session-context` and `mindbridge:last-session-id`.
+
+Next step:
+Review the onboarding card visually against the Stitch reference on desktop and mobile; if accepted, continue with the next Stitch screen polish block.
