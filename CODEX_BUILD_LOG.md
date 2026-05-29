@@ -1125,3 +1125,32 @@ Removed the visible `/resources` journey stepper and replaced the previous utili
 
 Next step:
 Review `/resources` visually at desktop and mobile widths, then continue with feedback Stitch polish or final demo QA.
+
+## 2026-05-29 15:42 CEST
+
+Task:
+FE-Feedback-Stitch-1 — Stitch-style Feedback page polish.
+
+Prompt used:
+Make `/feedback` visually closer to the feedback direction in `reference/stitch/resources-feedback/stitch.html` while preserving the existing feedback submission flow, payload shape, rating values, loading/success/error behavior, accessibility, and backend/API behavior.
+
+Files changed:
+Updated `src/app/feedback/page.tsx`, `src/components/product/feedback-form.tsx`, and `CODEX_BUILD_LOG.md`.
+
+Commands run:
+`git status --short`
+Read-only inspection of the current feedback page/form, Stitch resources-feedback reference, design reference, and feedback API/request shape
+`npm test`
+`npm run lint`
+`npm run build`
+`git diff --check`
+HTTP rendered-route sanity check for `/feedback`
+
+Result:
+Tests passed: 25 files, 264 tests. Lint passed with one pre-existing non-blocking Next warning from the landing page plain `<img>` asset. Build passed. `git diff --check` passed. Real AI smoke eval was not run because this was a feedback-page-only UI polish block that did not touch chat, Clarity Map generation, API client behavior, backend, safety, or AI logic.
+
+Manual review notes:
+Removed the visible `/feedback` journey stepper and replaced the prior utility-style route with a centered `max-w-4xl` page rhythm, a subtle accessible `Back to resources` link to `/resources`, a compact centered header, and a page-local trust strip that preserves not-therapy, not-diagnosis, not-treatment, not-medical-advice, not-crisis-service, and not-professional-care-replacement positioning. Restyled `FeedbackForm` into a warmer rounded card with calmer guidance copy, larger accessible 1-5 rating controls, a roomier textarea, a full-width sage submit button, and a softer completion state. The existing `submitFeedback`, `loadLastSessionId`, request payload keys, rating values, loading/success/error behavior, generic error copy, and backend/API/Safety Core/OpenAI/validation/session storage behavior were not changed. Rendered HTML sanity check confirmed `/feedback` includes `Back to resources`, `href="/resources"`, `Help improve the MindBridge MVP`, `not therapy`, `Share product feedback`, and `Submit feedback`. Full clicked browser/mobile QA was not available in this session, so mobile/no-overflow and interactive rating/submission states should receive a human spot check.
+
+Next step:
+Review `/feedback` visually at desktop and mobile widths, then move into final end-to-end demo QA.
