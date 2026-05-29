@@ -1035,3 +1035,34 @@ Added a small real Next `Link` labeled `Back to overview` above the onboarding c
 
 Next step:
 Review `/onboarding` visually and click the back link in a browser; if accepted, continue to the next Stitch polish block.
+
+## 2026-05-29 15:06 CEST
+
+Task:
+FE-Chat-Stitch-1 — Stitch-style chat UI polish.
+
+Prompt used:
+Make `/chat` visually closer to `reference/stitch/chat/stitch.html` while preserving all backend/API/safety/sessionStorage behavior, adding a subtle `Back to setup` link, and touching only the chat page, chat panel, and build log.
+
+Files changed:
+Updated `src/app/chat/page.tsx`, `src/components/product/chat-panel.tsx`, and `CODEX_BUILD_LOG.md`.
+
+Commands run:
+`git status --short`
+Read-only inspection of the current chat page/panel and Stitch chat reference
+`npm test`
+`npm run lint`
+`npm run build`
+`git diff --check`
+HTTP sanity check for `/chat`
+`RUN_REAL_AI_EVALS=true EVAL_BASE_URL=http://localhost:3000 npm run eval:ai:smoke`
+Follow-up typing-state validation: `npm test`, `npm run lint`, `npm run build`, `git diff --check`
+
+Result:
+Tests passed: 25 files, 264 tests. Lint passed with one pre-existing non-blocking Next warning from the landing page plain `<img>` asset. Build passed. `git diff --check` passed. Real AI smoke eval passed 13/13 with 0 failures and 6 warnings; OpenAI-backed sources appeared, safety routes passed, and boundary routes passed. Follow-up typing-state validation also passed `npm test`, `npm run lint`, `npm run build`, and `git diff --check`.
+
+Manual review notes:
+Reworked `/chat` from a dashboard-style route with a visible stepper and right-side safety aside into a centered `max-w-3xl` Stitch-style conversation column. Added a subtle accessible `Back to setup` link to `/onboarding` above the chat surface without clearing storage. The chat panel now has a compact header, current-session chip, softer assistant bubbles with sage avatar markers, right-aligned sage user bubbles, a rounded sticky composer surface, a compact circular mobile send action with preserved accessible name, and a centered pill-style Generate Clarity Map action near the composer. Added a temporary assistant-side `MindBridge is reflecting...` status bubble while `/api/chat` is pending; it is rendered from `isSubmitting`, not stored in the `messages` array, and is not included in chat or Clarity Map payloads. Backend safety/boundary/resource messages still render inline, with safety and boundary bubbles kept visually distinct and wider for resource readability. The existing context/session hydration, `/api/context-intake`, `/api/chat`, `/api/clarity-map`, persistence helpers, storage keys, response branching, and generated Clarity Map storage behavior were not changed. Rendered HTML sanity check confirmed `/chat` includes `Back to setup`, `href="/onboarding"`, `Talk through what feels off`, and `Current clarity session`. Full clicked browser QA was not available in this session, so no-session, refresh, and safety flows were covered by existing passing unit tests plus the real AI smoke eval rather than a manual browser walkthrough.
+
+Next step:
+Review `/chat` visually at desktop and mobile widths, especially safety/resource states with the sticky composer; if accepted, continue to the next Stitch polish block.

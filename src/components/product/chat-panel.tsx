@@ -14,9 +14,7 @@ import {
 } from "lucide-react";
 
 import { ResourceCard } from "@/components/product/resource-card";
-import { SafetyNotice } from "@/components/product/safety-notice";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { Textarea } from "@/components/ui/textarea";
 import {
   fetchEnhancedClarityMap,
@@ -117,26 +115,26 @@ export function ChatPanel() {
   }, []);
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_19rem]">
-      <section className="mindbridge-ambient-shadow overflow-hidden rounded-[2rem] border border-border/60 bg-card">
-        <div className="border-b border-border/60 bg-muted/70 p-5 sm:p-6">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div className="mx-auto w-full max-w-3xl">
+      <section className="mindbridge-ambient-shadow overflow-hidden rounded-[2rem] border border-border/60 bg-background/55">
+        <header className="border-b border-border/60 bg-background/80 p-5 backdrop-blur sm:p-7">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <p className="text-sm font-semibold text-primary">
+              <p className="inline-flex rounded-full bg-muted px-3 py-1 text-xs font-semibold text-primary">
                 Guided reflection
               </p>
-              <h1 className="mt-1 text-3xl font-bold tracking-tight text-foreground">
+              <h1 className="mt-3 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
                 Talk through what feels off.
               </h1>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-                Responses are based only on this conversation. Safety and
-                product-boundary messages stay visible when they appear.
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
+                Based only on this conversation. MindBridge is non-diagnostic,
+                not therapy, and not a crisis service.
               </p>
             </div>
             <Button
               asChild
               variant="outline"
-              className="h-10 rounded-full border-border/80 bg-card px-4 text-foreground hover:bg-background"
+              className="h-10 rounded-full border-border/80 bg-card px-4 text-foreground hover:bg-muted"
             >
               <Link href="/resources">
                 <LifeBuoy className="size-4" aria-hidden="true" />
@@ -144,21 +142,18 @@ export function ChatPanel() {
               </Link>
             </Button>
           </div>
-          <div className="mt-5">
-            <div className="mb-2 flex justify-between text-xs text-muted-foreground">
-              <span>Reflection progress</span>
-              <span>Step 4 of 7</span>
-            </div>
-            <Progress
-              value={58}
-              className="bg-background [&_[data-slot=progress-indicator]]:bg-primary"
-            />
-          </div>
-        </div>
+        </header>
+
         <div
-          className="space-y-5 bg-background/35 p-5 sm:p-6"
+          className="space-y-6 bg-background/35 p-5 sm:p-7"
           aria-live="polite"
         >
+          <div className="text-center">
+            <span className="inline-flex rounded-full bg-muted px-4 py-1 text-xs font-medium text-muted-foreground">
+              Current clarity session
+            </span>
+          </div>
+
           {!isContextLoading && !sessionContext ? (
             <div className="rounded-3xl border border-border/60 bg-card p-5 text-sm leading-6 text-muted-foreground shadow-sm">
               <p className="font-semibold text-foreground">
@@ -176,23 +171,23 @@ export function ChatPanel() {
               </Button>
             </div>
           ) : null}
+
           {isContextLoading ? (
-            <div className="flex max-w-[90%] items-end gap-3 sm:max-w-[82%]">
-              <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                <Sparkles className="size-4" aria-hidden="true" />
-              </span>
-              <div className="mindbridge-ambient-shadow rounded-3xl rounded-bl-md bg-card px-4 py-3 text-sm leading-6 text-muted-foreground">
-                Preparing your guided chat...
-              </div>
-            </div>
+            <AssistantTypingBubble label="Preparing your guided chat..." />
           ) : null}
+
           {messages.map((item) => (
             <ChatMessageBubble key={item.id} item={item} />
           ))}
+
+          {isSubmitting ? (
+            <AssistantTypingBubble label="MindBridge is reflecting..." />
+          ) : null}
         </div>
+
         {sessionContext ? (
           <form
-            className="border-t border-border/60 bg-card p-5 sm:p-6"
+            className="sticky bottom-0 z-10 border-t border-border/60 bg-background/90 p-4 backdrop-blur sm:p-5"
             onSubmit={async (event) => {
               event.preventDefault();
 
@@ -255,97 +250,90 @@ export function ChatPanel() {
               }
             }}
           >
-            <label className="grid gap-2">
-              <span className="text-sm font-semibold text-foreground">
-                Your message
-              </span>
-              <Textarea
-                className="min-h-24 rounded-3xl border-border/70 bg-background/70 px-4 py-3 text-foreground placeholder:text-muted-foreground focus-visible:ring-primary/30"
-                value={message}
-                onChange={(event) => setMessage(event.target.value)}
-                placeholder="Share a little more when you're ready."
-              />
-            </label>
             {error ? (
-              <p className="mt-3 rounded-2xl border border-destructive/30 bg-destructive/10 p-3 text-sm leading-6 text-destructive">
+              <p className="mb-3 rounded-2xl border border-destructive/30 bg-destructive/10 p-3 text-sm leading-6 text-destructive">
                 {error}
               </p>
             ) : null}
             {clarityNotice ? (
-              <div className="mt-3 rounded-2xl border border-amber-900/20 bg-amber-50 p-3 text-sm leading-6 text-amber-900">
+              <div className="mb-3 rounded-2xl border border-amber-900/20 bg-amber-50 p-3 text-sm leading-6 text-amber-900">
                 <p className="font-semibold">A little more context will help.</p>
                 <p className="mt-1">{clarityNotice}</p>
               </div>
             ) : null}
-            <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-xs leading-6 text-muted-foreground">
-                Every submitted message crosses the internal safety boundary.
-              </p>
-              <div className="flex flex-col gap-2 sm:flex-row">
-                <Button
-                  type="submit"
-                  disabled={isSubmitting || isContextLoading}
-                  variant="outline"
-                  className="h-11 rounded-full border-border/80 bg-card px-4 text-foreground hover:bg-muted"
-                >
-                  {isSubmitting ? "Sending..." : "Send message"}
-                  <Send className="size-4" aria-hidden="true" />
-                </Button>
-                <Button
-                  type="button"
-                  disabled={
-                    normalNextStepDisabled ||
-                    isGeneratingClarity ||
-                    isContextLoading
-                  }
-                  onClick={() => {
-                    void handleGenerateClarityMap({
-                      messages,
-                      sessionContext,
-                      setClarityNotice,
-                      setError,
-                      setIsGeneratingClarity,
-                      setMessages,
-                      routerPush: router.push,
-                    });
-                  }}
-                  className="h-11 rounded-full bg-primary px-4 text-primary-foreground shadow-sm hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground"
-                >
-                  {normalNextStepDisabled ? (
-                    <span>Clarity map paused for safety</span>
-                  ) : isGeneratingClarity ? (
-                    <span>Generating...</span>
-                  ) : (
-                    <>
-                      Generate clarity map
-                      <ArrowRight className="size-4" aria-hidden="true" />
-                    </>
-                  )}
-                </Button>
-              </div>
+
+            <div className="mb-3 flex justify-center">
+              <Button
+                type="button"
+                disabled={
+                  normalNextStepDisabled ||
+                  isGeneratingClarity ||
+                  isContextLoading
+                }
+                onClick={() => {
+                  void handleGenerateClarityMap({
+                    messages,
+                    sessionContext,
+                    setClarityNotice,
+                    setError,
+                    setIsGeneratingClarity,
+                    setMessages,
+                    routerPush: router.push,
+                  });
+                }}
+                className="min-h-11 rounded-full bg-primary px-5 text-primary-foreground shadow-[0_10px_30px_rgba(45,90,67,0.14)] hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground"
+              >
+                {normalNextStepDisabled ? (
+                  <span>Clarity map paused for safety</span>
+                ) : isGeneratingClarity ? (
+                  <span>Generating...</span>
+                ) : (
+                  <>
+                    Generate clarity map
+                    <ArrowRight className="size-4" aria-hidden="true" />
+                  </>
+                )}
+              </Button>
             </div>
+
             {normalNextStepDisabled ? (
-              <p className="mt-3 rounded-2xl border border-amber-900/20 bg-amber-50 p-3 text-xs leading-6 text-amber-900">
+              <p className="mb-3 rounded-2xl border border-amber-900/20 bg-amber-50 p-3 text-xs leading-6 text-amber-900">
                 Safety support is the priority right now, so the normal next
                 step is paused.
               </p>
             ) : null}
+
+            <label className="grid gap-2">
+              <span className="text-sm font-semibold text-foreground">
+                Your message
+              </span>
+              <div className="mindbridge-ambient-shadow flex items-end gap-2 rounded-3xl border border-border/60 bg-card p-2 transition-colors focus-within:border-primary">
+                <Textarea
+                  className="min-h-14 min-w-0 flex-1 resize-none border-0 bg-transparent px-3 py-2 text-foreground shadow-none placeholder:text-muted-foreground focus-visible:ring-0"
+                  value={message}
+                  onChange={(event) => setMessage(event.target.value)}
+                  placeholder="Type your thoughts gently..."
+                />
+                <Button
+                  type="submit"
+                  disabled={isSubmitting || isContextLoading}
+                  aria-label={isSubmitting ? "Sending..." : "Send message"}
+                  className="mb-0.5 size-11 shrink-0 rounded-full bg-primary px-0 text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground sm:w-auto sm:px-4"
+                >
+                  <span className="hidden sm:inline">
+                    {isSubmitting ? "Sending..." : "Send message"}
+                  </span>
+                  <Send className="size-4" aria-hidden="true" />
+                </Button>
+              </div>
+            </label>
+
+            <p className="mt-3 text-center text-xs leading-5 text-muted-foreground">
+              Every submitted message crosses the internal safety boundary.
+            </p>
           </form>
         ) : null}
       </section>
-      <aside className="grid content-start gap-4">
-        <div className="rounded-3xl border border-border/60 bg-card p-4 shadow-sm">
-          <p className="text-sm font-semibold text-foreground">
-            Reflection guardrails
-          </p>
-          <p className="mt-2 text-sm leading-6 text-muted-foreground">
-            MindBridge can support reflection and support options. It is
-            non-diagnostic and not a crisis service.
-          </p>
-        </div>
-        <SafetyNotice />
-        <SafetyNotice tone="urgent" />
-      </aside>
     </div>
   );
 }
@@ -441,6 +429,28 @@ async function handleGenerateClarityMap(input: {
   }
 }
 
+function AssistantTypingBubble({ label }: { label: string }) {
+  return (
+    <div
+      className="flex max-w-[92%] items-end gap-3 sm:max-w-[85%]"
+      role="status"
+      aria-live="polite"
+    >
+      <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+        <Sparkles className="size-4" aria-hidden="true" />
+      </span>
+      <div className="mindbridge-ambient-shadow flex min-h-11 items-center gap-2 rounded-2xl rounded-bl-none bg-card px-4 py-3 text-sm leading-6 text-muted-foreground">
+        <span>{label}</span>
+        <span className="flex items-center gap-1.5" aria-hidden="true">
+          <span className="size-1.5 rounded-full bg-primary/60" />
+          <span className="size-1.5 rounded-full bg-primary/80" />
+          <span className="size-1.5 rounded-full bg-primary" />
+        </span>
+      </div>
+    </div>
+  );
+}
+
 function ChatMessageBubble({ item }: { item: UiMessage }) {
   const isUser = item.role === "user";
   const isBoundary = item.source === "boundary";
@@ -449,14 +459,14 @@ function ChatMessageBubble({ item }: { item: UiMessage }) {
   return (
     <div
       className={cn(
-        "flex w-full gap-3",
+        "flex w-full items-end gap-3",
         isUser ? "justify-end" : "justify-start",
       )}
     >
       {!isUser ? (
         <span
           className={cn(
-            "mt-auto flex size-8 shrink-0 items-center justify-center rounded-full",
+            "flex size-8 shrink-0 items-center justify-center rounded-full",
             isSafety
               ? "bg-destructive/10 text-destructive"
               : isBoundary
@@ -473,14 +483,14 @@ function ChatMessageBubble({ item }: { item: UiMessage }) {
       ) : null}
       <div
         className={cn(
-          "max-w-[calc(100%_-_2.75rem)] break-words rounded-3xl px-4 py-3 text-sm leading-6 shadow-sm sm:max-w-[78%]",
+          "max-w-[calc(100%_-_2.75rem)] break-words rounded-2xl px-4 py-3 text-sm leading-6 shadow-sm sm:max-w-[85%]",
           isUser
-            ? "rounded-br-md bg-primary text-primary-foreground"
+            ? "rounded-br-none bg-primary text-primary-foreground"
             : isBoundary
-              ? "rounded-bl-md border border-amber-900/20 bg-amber-50 text-amber-950"
+              ? "rounded-bl-none border border-amber-900/20 bg-amber-50 text-amber-950 sm:max-w-[92%]"
               : isSafety
-                ? "rounded-bl-md border border-destructive/25 bg-destructive/10 text-foreground"
-                : "mindbridge-ambient-shadow rounded-bl-md bg-card text-foreground",
+                ? "rounded-bl-none border border-destructive/25 bg-destructive/10 text-foreground sm:max-w-[92%]"
+                : "mindbridge-ambient-shadow rounded-bl-none bg-card text-foreground",
         )}
       >
         {isBoundary ? (
@@ -519,14 +529,6 @@ function ChatMessageBubble({ item }: { item: UiMessage }) {
           </div>
         ) : null}
       </div>
-      {isUser ? (
-        <div
-          className="mt-auto flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary"
-          aria-hidden="true"
-        >
-          <span className="text-xs font-semibold">You</span>
-        </div>
-      ) : null}
     </div>
   );
 }
