@@ -888,3 +888,32 @@ Added a small frontend-safe journey storage helper using `sessionStorage` keys `
 
 Next step:
 Review FE-Storage-1 and then do a human clean-browser spot check for the refresh/back-navigation flows before merge/deploy.
+
+## 2026-05-29 11:33 CEST
+
+Task:
+FE-Landing-Stitch-1 — Implement Stitch-style landing page.
+
+Prompt used:
+Translate `reference/stitch/landing/stitch.html` into the real MindBridge landing page while editing only `src/app/page.tsx` and `CODEX_BUILD_LOG.md`, preserving the existing global header, real route flow, safety positioning, and frontend architecture.
+
+Files changed:
+Updated `src/app/page.tsx` and `CODEX_BUILD_LOG.md`.
+
+Commands run:
+`git status --short`
+Read-only inspection of the Stitch landing reference, design reference, current landing page, and build log
+`npm test`
+`npm run lint`
+`npm run build`
+`git diff --check`
+Browser manual QA for `/` at desktop width, CTA routing, header presence, no fake chat/map/score content, no console errors, and no desktop horizontal overflow.
+
+Result:
+Tests passed: 25 files, 264 tests. Lint passed. Build passed. `git diff --check` passed. Real AI smoke eval was not run because only the landing page and build log were changed.
+
+Manual review notes:
+Reworked the landing page into a Stitch-style centered editorial composition with a large display headline, approved MindBridge copy, primary `/onboarding` CTA, secondary `/resources` CTA, a large rounded abstract hero visual panel, minimal three-step “How it works,” two-column clarity/support content, visible safety/trust strip, and final `/onboarding` CTA. The global header was not modified. The hero visual uses local JSX/Tailwind surfaces and a sage path motif rather than the Stitch remote image. Browser QA confirmed the landing renders at 1280px with no horizontal overflow or console errors, CTAs navigate to the expected routes, safety/non-diagnostic/not-crisis copy is visible, and no fake chat transcript, fake Clarity Map output, fake Harmony Signal score, external assets, or new routes were introduced. Mobile layout was checked by responsive class review rather than a resized browser viewport because the available in-app browser viewport control did not expose a 390px resize capability.
+
+Next step:
+Review FE-Landing-Stitch-1 visually on a real 390px/mobile viewport, then merge if the Stitch fidelity is acceptable.
