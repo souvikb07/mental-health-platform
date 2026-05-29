@@ -1096,3 +1096,32 @@ Removed the visible `/clarity-map` journey stepper and replaced the previous her
 
 Next step:
 Review `/clarity-map` visually at desktop and mobile widths, especially generated long-text/action sections; if accepted, continue to resources/feedback Stitch polish or final demo QA.
+
+## 2026-05-29 15:33 CEST
+
+Task:
+FE-Resources-Stitch-1 — Stitch-style Resources page polish.
+
+Prompt used:
+Make `/resources` visually closer to `reference/stitch/resources-feedback/stitch.html`, keeping the page consistent with the polished MindBridge journey while preserving the existing `fetchResources` flow, app-owned fallback resources, safety/resource truthfulness, and backend/API behavior.
+
+Files changed:
+Updated `src/app/resources/page.tsx`, `src/components/product/resources-loader.tsx`, `src/components/product/resource-card.tsx`, and `CODEX_BUILD_LOG.md`.
+
+Commands run:
+`git status --short`
+Read-only inspection of the current resources page, loader, card, safety notice, app-owned mock resources, Stitch resources-feedback reference, and relevant resource tests
+`npm test`
+`npm run lint`
+`npm run build`
+`git diff --check`
+HTTP rendered-route sanity check for `/resources`
+
+Result:
+Tests passed: 25 files, 264 tests. Lint passed with one pre-existing non-blocking Next warning from the landing page plain `<img>` asset. Build passed. `git diff --check` passed. Real AI smoke eval was not run because this was a resources-page-only UI polish block that did not touch chat, Clarity Map generation, API client, backend, safety, or AI logic.
+
+Manual review notes:
+Removed the visible `/resources` journey stepper and replaced the previous utility-style page layout with a centered `max-w-5xl` page rhythm, a subtle accessible `Back to Clarity Map` link to `/clarity-map`, a compact centered header, and a secondary `Continue to feedback` pill link to `/feedback`. Replaced the separate resource info strip and urgent `SafetyNotice` usage with compact page-local support/trust and immediate-support strips that keep resources framed as app-owned, variable by situation, not exhaustive, not clinician-reviewed, not guaranteed, and not a replacement for professional care or emergency services. Restyled loading, fallback, and resource cards with warmer rounded surfaces, roomier spacing, clearer badges, safer phone wrapping, availability-note blocks, and full-width tappable action buttons. The existing `loadSessionContext`, `fetchResources({ countryCode, topic: "stress" })`, fallback to `mockResources`, resource ordering/data, action hrefs, backend/API/Safety Core/OpenAI/validation/API client behavior, and resource-routing logic were not changed. Rendered HTML sanity check confirmed `/resources` includes `Back to Clarity Map`, `href="/clarity-map"`, `Support options for the next step`, `Continue to feedback`, `href="/feedback"`, and `Need immediate support`. Full clicked browser/mobile QA was not available in this session, so mobile/no-overflow and fallback forcing should receive a human spot check.
+
+Next step:
+Review `/resources` visually at desktop and mobile widths, then continue with feedback Stitch polish or final demo QA.

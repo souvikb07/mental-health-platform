@@ -22,7 +22,7 @@ export function ResourcesLoader() {
       .then((response) => setResources(response.resources))
       .catch(() => {
         setError(
-          "Showing local app-owned fallback resources because the resources API did not respond.",
+          "Showing app-owned fallback resources because the resources service did not respond.",
         );
         setResources(mockResources);
       });
@@ -30,7 +30,7 @@ export function ResourcesLoader() {
 
   if (resources.length === 0) {
     return (
-      <div className="mindbridge-ambient-shadow rounded-[2rem] border border-border/60 bg-card p-5 text-sm leading-6 text-muted-foreground">
+      <div className="mindbridge-ambient-shadow mx-auto max-w-3xl rounded-[2rem] border border-border/60 bg-card p-5 text-sm leading-6 text-muted-foreground sm:p-6">
         <p className="font-semibold text-foreground">
           Loading support options...
         </p>
@@ -43,13 +43,13 @@ export function ResourcesLoader() {
   }
 
   return (
-    <div className="grid gap-4">
+    <div className="grid gap-5">
       {error ? (
-        <p className="rounded-2xl border border-amber-900/20 bg-amber-50 p-3 text-sm leading-6 text-amber-900">
+        <p className="rounded-2xl border border-amber-900/20 bg-amber-50 p-4 text-sm leading-6 text-amber-900">
           {error}
         </p>
       ) : null}
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
         {resources.map((resource) => (
           <ResourceCard key={resource.id} resource={resource} />
         ))}
