@@ -7,7 +7,6 @@ import {
   Map,
   MessageCircle,
   ShieldCheck,
-  Sparkles,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -55,8 +54,6 @@ const trustItems = [
   "Clarity Maps are based only on what you share in the current conversation.",
   "Safety-aware routing stays visible when support comes first; the frontend does not infer risk.",
 ];
-
-const visualLabels = ["Reflect", "Organize", "Support"];
 
 export default function Home() {
   return (
@@ -176,35 +173,11 @@ export default function Home() {
 function HeroVisual() {
   return (
     <div className="mt-14 h-64 w-full max-w-5xl overflow-hidden rounded-[40px] border border-border/50 bg-card shadow-sm md:h-80">
-      <div
-        className="relative h-full w-full bg-[radial-gradient(circle_at_18%_22%,rgba(189,238,208,0.48),transparent_30%),radial-gradient(circle_at_82%_18%,rgba(255,206,0,0.18),transparent_26%),linear-gradient(135deg,hsl(var(--muted)),hsl(var(--card))_46%,hsl(var(--background)))]"
-        aria-hidden="true"
-      >
-        <div className="absolute left-1/2 top-1/2 h-44 w-[150%] -translate-x-1/2 -translate-y-1/2 rotate-[-8deg] rounded-full border-[28px] border-primary/15" />
-        <div className="absolute left-1/2 top-1/2 h-24 w-[118%] -translate-x-1/2 -translate-y-1/2 rotate-[-8deg] rounded-full border-[2px] border-primary/35" />
-        <div className="absolute left-[16%] top-[62%] size-5 rounded-full bg-primary shadow-[0_0_0_12px_rgba(20,66,45,0.10)]" />
-        <div className="absolute left-[48%] top-[45%] size-5 rounded-full bg-primary shadow-[0_0_0_12px_rgba(20,66,45,0.10)]" />
-        <div className="absolute left-[80%] top-[30%] size-5 rounded-full bg-primary shadow-[0_0_0_12px_rgba(20,66,45,0.10)]" />
-        <div className="absolute inset-x-5 bottom-5 flex items-end justify-between gap-3 sm:inset-x-10 sm:bottom-8">
-          {visualLabels.map((label) => (
-            <span
-              key={label}
-              className="rounded-full border border-border/60 bg-card/85 px-4 py-2 text-xs font-semibold text-primary shadow-sm backdrop-blur-sm sm:text-sm"
-            >
-              {label}
-            </span>
-          ))}
-        </div>
-        <div className="absolute right-6 top-6 rounded-3xl border border-border/50 bg-card/80 p-4 text-left shadow-sm backdrop-blur-sm sm:right-10 sm:top-10">
-          <div className="flex items-center gap-2 text-sm font-semibold text-primary">
-            <Sparkles className="size-4" aria-hidden="true" />
-            Clarity session
-          </div>
-          <p className="mt-1 max-w-44 text-xs leading-5 text-muted-foreground">
-            A calm path from reflection to support options.
-          </p>
-        </div>
-      </div>
+      <img
+        src="/landing/stitch-hero.png"
+        alt="Abstract path illustration"
+        className="h-full w-full object-cover"
+      />
     </div>
   );
 }

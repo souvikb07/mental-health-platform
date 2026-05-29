@@ -917,3 +917,34 @@ Reworked the landing page into a Stitch-style centered editorial composition wit
 
 Next step:
 Review FE-Landing-Stitch-1 visually on a real 390px/mobile viewport, then merge if the Stitch fidelity is acceptable.
+
+## 2026-05-29 11:56 CEST
+
+Task:
+FE-Landing-Stitch-1a — Replace landing abstract hero visual with exact Stitch hero image.
+
+Prompt used:
+Localize the exact hero image referenced by `reference/stitch/landing/stitch.html` into `public/landing/`, replace only the landing hero visual, preserve the global header and CTA routes, and avoid external runtime image dependencies or fake product output.
+
+Files changed:
+Updated `src/app/page.tsx` and `CODEX_BUILD_LOG.md`. Added `public/landing/stitch-hero.png`.
+
+Commands run:
+`git status --short`
+Read-only inspection of the Stitch landing image reference and current landing page
+Node fetch/download of the Stitch PNG into `public/landing/stitch-hero.png`
+`npm test`
+`npm run lint`
+`npm run build`
+`git diff --check`
+Route/asset HTTP sanity checks for `/` and `/landing/stitch-hero.png`
+Browser manual QA for the landing image load, desktop overflow, header presence, CTA routing, safety copy visibility, and absence of fake product output.
+
+Result:
+Tests passed: 25 files, 264 tests. Lint passed with one non-blocking Next warning about using a plain `<img>`; this was intentional for a local public asset and to avoid Next image config changes. Build passed. `git diff --check` passed. Real AI smoke eval was not run because only the landing page, build log, and a public image asset were changed.
+
+Manual review notes:
+Downloaded the exact Stitch hero PNG from the `landing/stitch.html` image source and rendered it locally from `/landing/stitch-hero.png` inside the existing large rounded hero panel. The global header was not modified. Browser QA confirmed the local image returns `200 image/png`, loads with natural dimensions, uses the Stitch alt text “Abstract path illustration,” and the landing has no desktop horizontal overflow or console errors at 1280px. The primary CTA still routes to `/onboarding`, the final CTA still routes to `/onboarding`, and the secondary CTA still routes to `/resources`. Safety/non-diagnostic/not-crisis copy remains visible, and no fake chat transcript, fake Clarity Map output, fake Harmony Signal score, external runtime image dependency, or new route was introduced. A true 390px viewport check was not available in the in-app browser tooling, so mobile behavior was reviewed through responsive layout constraints and should still receive a human device-width spot check.
+
+Next step:
+Review the landing visually on desktop and a real 390px/mobile viewport; if the Stitch image crop is acceptable, proceed to merge.
