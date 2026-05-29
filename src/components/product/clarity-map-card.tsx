@@ -111,62 +111,49 @@ export function StructuredClarityMapCard({
 
   return (
     <Card className="mindbridge-ambient-shadow overflow-hidden rounded-[2rem] border-border/60 bg-card">
-      <CardHeader className="border-b border-border/60 bg-muted/60 p-6 sm:p-8">
-        <div className="grid gap-4 sm:grid-cols-[auto,minmax(0,1fr)_auto] sm:items-start">
-          <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
-            <ClipboardList className="size-4" aria-hidden="true" />
-          </span>
-          <div>
-            <p className="text-sm font-semibold text-primary">
-              Generated reflection artifact
-            </p>
-            <CardTitle className="mt-1 text-2xl font-bold tracking-tight text-foreground">
-              Clarity Map
-            </CardTitle>
-            <CardDescription className="mt-2 max-w-2xl text-sm leading-6">
-              {clarityMap.disclaimer}
-            </CardDescription>
+      <CardHeader className="border-b border-border/60 bg-card p-5 sm:p-7">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex items-start gap-3">
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+              <ClipboardList className="size-4" aria-hidden="true" />
+            </span>
+            <div>
+              <p className="text-sm font-semibold text-primary">
+                Generated reflection artifact
+              </p>
+              <CardDescription className="mt-2 max-w-2xl text-sm leading-6">
+                {clarityMap.disclaimer}
+              </CardDescription>
+            </div>
           </div>
           <div className="rounded-full border border-border/70 bg-card px-3 py-1 text-xs font-semibold capitalize text-muted-foreground">
             {clarityMap.confidence} confidence
           </div>
         </div>
       </CardHeader>
-      <CardContent className="grid gap-8 p-6 sm:p-8">
+
+      <CardContent className="grid gap-6 p-5 sm:p-7">
         <section className="rounded-3xl border border-primary/15 bg-primary/10 p-5 sm:p-6">
-          <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
-            <div className="max-w-3xl">
-              <div className="flex items-center gap-2 text-sm font-semibold text-primary">
-                <Gauge className="size-4" aria-hidden="true" />
-                <h2>Harmony Signal</h2>
-              </div>
-              <p className="mt-3 text-xl font-bold leading-8 text-foreground">
+          <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-start">
+            <div>
+              <SectionEyebrow icon={Gauge}>Harmony Signal</SectionEyebrow>
+              <CardTitle className="mt-3 text-xl font-bold leading-8 text-foreground">
                 {clarityMap.harmonySignal.label}:{" "}
                 {clarityMap.harmonySignal.score}/100
-              </p>
-              <p className="mt-1 text-sm font-semibold capitalize text-primary">
+              </CardTitle>
+              <p className="mt-2 text-sm font-semibold capitalize text-primary">
                 Reflection signal:{" "}
                 {clarityMap.harmonySignal.band.replace("_", " ")}
               </p>
-              <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                {clarityMap.harmonySignal.explanation}
-              </p>
             </div>
-            <div
-              className="grid size-28 shrink-0 place-items-center rounded-full border border-primary/20 bg-card text-center shadow-sm"
-              aria-label={`Non-clinical reflection signal ${clarityMap.harmonySignal.score} out of 100`}
-            >
-              <div>
-                <p className="text-3xl font-bold text-primary">
-                  {clarityMap.harmonySignal.score}
-                </p>
-                <p className="text-xs font-semibold text-muted-foreground">
-                  /100
-                </p>
-              </div>
+            <div className="rounded-full border border-primary/15 bg-card px-4 py-2 text-sm font-semibold text-primary">
+              Conversation signal
             </div>
           </div>
-          <div className="mt-5 h-2 overflow-hidden rounded-full bg-card">
+          <p className="mt-4 text-sm leading-6 text-muted-foreground">
+            {clarityMap.harmonySignal.explanation}
+          </p>
+          <div className="mt-4 h-2 overflow-hidden rounded-full bg-card">
             <div
               className="h-full rounded-full bg-primary"
               style={{ width: `${signalWidth}%` }}
@@ -178,32 +165,28 @@ export function StructuredClarityMapCard({
           </p>
         </section>
 
-        <section className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_22rem]">
-          <div className="rounded-3xl border border-border/60 bg-card p-5 shadow-sm">
-            <SectionEyebrow icon={Sparkles}>Key Insight</SectionEyebrow>
-            <h3 className="mt-3 text-xl font-bold leading-8 text-foreground">
-              {clarityMap.keyInsight.title}
-            </h3>
-            <p className="mt-3 text-sm leading-6 text-muted-foreground">
-              {clarityMap.keyInsight.summary}
-            </p>
-          </div>
-          <div className="rounded-3xl border border-border/60 bg-muted/60 p-5">
+        <section className="rounded-3xl border border-border/60 bg-card p-5 shadow-sm sm:p-6">
+          <SectionEyebrow icon={Sparkles}>Key Insight</SectionEyebrow>
+          <h3 className="mt-3 text-xl font-bold leading-8 text-foreground">
+            {clarityMap.keyInsight.title}
+          </h3>
+          <p className="mt-3 text-sm leading-6 text-muted-foreground">
+            {clarityMap.keyInsight.summary}
+          </p>
+          <div className="mt-5 border-t border-border/60 pt-5">
             <SectionEyebrow icon={ShieldCheck}>Evidence Points</SectionEyebrow>
-            <ul className="mt-4 grid gap-3 text-sm leading-6 text-muted-foreground">
+            <ul className="mt-3 grid gap-2 text-sm leading-6 text-muted-foreground">
               {clarityMap.keyInsight.evidence.map((item) => (
-                <li
-                  key={item.point}
-                  className="rounded-2xl border border-border/50 bg-card px-4 py-3"
-                >
-                  {item.point}
+                <li key={item.point} className="flex gap-3">
+                  <span className="mt-2 size-1.5 shrink-0 rounded-full bg-primary" />
+                  <span>{item.point}</span>
                 </li>
               ))}
             </ul>
           </div>
         </section>
 
-        <section className="rounded-3xl border border-border/60 bg-muted/50 p-5 sm:p-6">
+        <section className="rounded-3xl border border-border/60 bg-muted/45 p-5 sm:p-6">
           <SectionEyebrow icon={Compass}>Boundary Focus</SectionEyebrow>
           <h3 className="mt-3 text-xl font-bold leading-8 text-foreground">
             {clarityMap.boundaryFocus.title}
@@ -221,7 +204,7 @@ export function StructuredClarityMapCard({
           </p>
         </section>
 
-        <section className="rounded-3xl border border-border/60 bg-muted/50 p-5 sm:p-6">
+        <section className="rounded-3xl border border-border/60 bg-card p-5 shadow-sm sm:p-6">
           <SectionEyebrow icon={CheckCircle2}>Action Plan</SectionEyebrow>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
             Practical next steps based only on this conversation.
