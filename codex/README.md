@@ -1,36 +1,37 @@
-# Codex Workflow
+# Codex Handoff
 
-Use Codex as a senior pair engineer, not as an autopilot.
+This folder is the canonical handoff source for Codex chats working in this repo.
 
-## Rules
+`docs/project-handoff/` was created for ChatGPT-web project work. It can be useful historical context, but it is not the Codex source of truth.
 
-1. Give Codex one focused task at a time.
-2. Ask for a plan before major edits.
-3. Keep safety logic manually reviewed.
-4. Run tests after changes.
-5. Update `CODEX_BUILD_LOG.md` after each meaningful task.
+## Read First
 
-## Suggested sequence
+Future Codex chats should read these before making changes:
 
-```txt
-001 Bootstrap repo skeleton
-002 Database schema and types
-003 Chat API
-004 Safety router
-005 Clarity Map generator
-006 Resource routing
-007 UI polish
-008 Tests and demo page
-```
+1. `AGENTS.md`
+2. `codex/CURRENT_STATUS.md`
+3. The relevant state file for the task:
+   - Backend/API work: `codex/BACKEND_STATE.md`
+   - Frontend work: `codex/FRONTEND_STATE.md`
+   - API-facing frontend work: `codex/API_CONTRACT.md`
+   - Safety-sensitive backend or UI work: `codex/SAFETY_RULES.md`
+   - Architecture/product precedent: `codex/DECISIONS.md`
 
-## Good Codex prompt pattern
+## File Map
 
-```txt
-Read AGENTS.md and the relevant docs first.
-Implement [small task].
-Constraints: [safety/architecture rules].
-Add tests where relevant.
-Run [commands].
-Update CODEX_BUILD_LOG.md.
-Summarize what changed and what needs manual review.
-```
+- `CURRENT_STATUS.md`: current completed work, incomplete areas, next tasks, risks, and what to avoid.
+- `BACKEND_STATE.md`: backend stack, API routes, server modules, safety/AI/resource flow, environment assumptions, and backend modification rules.
+- `FRONTEND_STATE.md`: frontend stack, route/component structure, styling conventions, state management, and frontend modification rules.
+- `API_CONTRACT.md`: canonical frontend/backend API contract for current MVP endpoints.
+- `SAFETY_RULES.md`: backend-owned safety flow, frontend rendering constraints, and known safety limitations.
+- `DECISIONS.md`: durable decisions and consequences for future work.
+- `SESSION_HANDOFF_TEMPLATE.md`: reusable template for ending a Codex work session.
+- `prompts/`: older task prompts and scaffolding history.
+- `CODEX_TASKS.md`: older task queue history.
+
+## Maintenance Rules
+
+- Update `codex/CURRENT_STATUS.md` before finishing any task.
+- Update the specific state file when task work changes the facts it documents.
+- Do not modify `docs/project-handoff/` unless explicitly requested.
+- Keep this folder grounded in the actual current codebase, not stale plans.
