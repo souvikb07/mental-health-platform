@@ -1,42 +1,56 @@
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ShieldCheck } from "lucide-react";
 
 import { PageContainer } from "@/components/layout/page-container";
 import { FeedbackForm } from "@/components/product/feedback-form";
-import { JourneyStepper } from "@/components/product/journey-stepper";
-import { SafetyNotice } from "@/components/product/safety-notice";
-import { Button } from "@/components/ui/button";
 
 export default function FeedbackPage() {
   return (
-    <PageContainer size="narrow" className="grid gap-8 py-10 sm:py-14">
-      <JourneyStepper current="/feedback" />
-      <div>
-        <p className="text-sm font-semibold text-primary">Feedback</p>
-        <h1 className="mt-2 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-          Help improve the MindBridge MVP.
-        </h1>
-        <p className="mt-3 text-sm leading-6 text-muted-foreground sm:text-base">
-          This quiet end-of-journey loop checks whether the reflection flow felt
-          clear and useful. No database persistence, analytics tracking, or
-          clinical review is implied.
-        </p>
-      </div>
-      <SafetyNotice />
-      <div className="mindbridge-ambient-shadow rounded-[2rem] border border-border/60 bg-card p-5 sm:p-6">
-        <FeedbackForm />
-      </div>
-      <div>
-        <Button
-          asChild
-          variant="outline"
-          className="h-11 rounded-full border-border/80 bg-card px-5 text-foreground hover:bg-muted"
-        >
-          <Link href="/">
+    <PageContainer size="wide" className="py-8 sm:py-12">
+      <div className="mx-auto grid w-full max-w-4xl gap-8">
+        <div>
+          <Link
+            href="/resources"
+            className="inline-flex min-h-10 items-center gap-2 rounded-full px-3 text-sm font-semibold text-primary transition-colors hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+          >
             <ArrowLeft className="size-4" aria-hidden="true" />
-            Back to landing
+            Back to resources
           </Link>
-        </Button>
+        </div>
+
+        <section className="mx-auto grid max-w-3xl gap-4 text-center">
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
+            Feedback
+          </p>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+            Help improve the MindBridge MVP.
+          </h1>
+          <p className="text-sm leading-6 text-muted-foreground sm:text-base">
+            Share whether this reflection journey felt clear and useful. This
+            feedback helps improve the MVP; no database persistence, analytics
+            tracking, clinical review, emergency support, or human follow-up is
+            implied.
+          </p>
+        </section>
+
+        <div className="mindbridge-ambient-shadow rounded-[2rem] border border-border/60 bg-card/90 p-4 sm:p-5">
+          <div className="flex items-start gap-3 text-sm leading-6 text-muted-foreground">
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <ShieldCheck className="size-5" aria-hidden="true" />
+            </span>
+            <div>
+              <p className="font-semibold text-foreground">
+                A quiet product feedback step.
+              </p>
+              <p className="mt-1">
+                MindBridge is not therapy, diagnosis, treatment, medical advice,
+                a crisis service, or a replacement for professional care.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <FeedbackForm />
       </div>
     </PageContainer>
   );

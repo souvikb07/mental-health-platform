@@ -21,23 +21,29 @@ export function FeedbackForm() {
 
   if (submitted) {
     return (
-      <div className="rounded-3xl border border-primary/15 bg-primary/10 p-5 text-foreground">
-        <div className="flex items-center gap-2 font-semibold">
-          <CheckCircle2 className="size-5 text-primary" aria-hidden="true" />
-          Feedback received for this MVP run.
+      <div className="mindbridge-ambient-shadow rounded-[2rem] border border-primary/15 bg-card p-6 text-foreground sm:p-8">
+        <div className="flex items-start gap-3">
+          <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <CheckCircle2 className="size-5" aria-hidden="true" />
+          </span>
+          <div>
+            <p className="font-semibold text-foreground">
+              Feedback received for this MVP run.
+            </p>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">
+              The feedback endpoint accepted it. No account, database record,
+              analytics provider, clinical review, emergency follow-up, or human
+              response is implied.
+            </p>
+          </div>
         </div>
-        <p className="mt-2 text-sm leading-6 text-muted-foreground">
-          The feedback endpoint accepted it. No account, database record,
-          analytics provider, clinical review, or emergency follow-up is
-          implied.
-        </p>
       </div>
     );
   }
 
   return (
     <form
-      className="space-y-6"
+      className="mindbridge-ambient-shadow space-y-7 rounded-[2rem] border border-border/60 bg-card p-5 sm:p-7"
       onSubmit={async (event) => {
         event.preventDefault();
         setError(null);
@@ -60,9 +66,9 @@ export function FeedbackForm() {
         }
       }}
     >
-      <div className="flex items-start gap-3 rounded-3xl border border-border/60 bg-muted/60 p-4 text-sm leading-6 text-muted-foreground">
-        <span className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-          <MessageSquareText className="size-4" aria-hidden="true" />
+      <div className="flex items-start gap-3 rounded-[1.5rem] border border-border/60 bg-muted/50 p-4 text-sm leading-6 text-muted-foreground">
+        <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+          <MessageSquareText className="size-5" aria-hidden="true" />
         </span>
         <div>
           <p className="font-semibold text-foreground">
@@ -90,21 +96,21 @@ export function FeedbackForm() {
         </span>
         <Textarea
           id="feedback-comment"
-          className="mt-2 min-h-28 rounded-3xl border-border/70 bg-background/70 px-4 py-3 text-foreground placeholder:text-muted-foreground focus-visible:ring-primary/30"
+          className="mt-2 min-h-32 rounded-[1.5rem] border-border/70 bg-background/70 px-4 py-3 text-foreground placeholder:text-muted-foreground focus-visible:ring-primary/30"
           value={comment}
           onChange={(event) => setComment(event.target.value)}
           placeholder="What would make this clearer or more supportive?"
         />
       </label>
       {error ? (
-        <p className="rounded-2xl border border-destructive/30 bg-destructive/10 p-3 text-sm leading-6 text-destructive">
+        <p className="rounded-[1.25rem] border border-destructive/30 bg-destructive/10 p-3 text-sm leading-6 text-destructive">
           {error}
         </p>
       ) : null}
       <Button
         type="submit"
         disabled={isSubmitting}
-        className="h-11 rounded-full bg-primary px-5 text-primary-foreground hover:bg-primary/90"
+        className="h-12 w-full rounded-full bg-primary px-5 text-primary-foreground shadow-[0_15px_30px_-12px_rgba(45,90,67,0.5)] hover:bg-primary/90"
       >
         {isSubmitting ? "Submitting..." : "Submit feedback"}
       </Button>
@@ -122,9 +128,9 @@ function RatingRow({
   onChange: (rating: FeedbackRating) => void;
 }) {
   return (
-    <fieldset>
+    <fieldset className="rounded-[1.5rem] border border-border/60 bg-background/60 p-4">
       <legend className="text-sm font-semibold text-foreground">{label}</legend>
-      <div className="mt-3 flex flex-wrap gap-2">
+      <div className="mt-3 flex flex-wrap gap-2.5">
         {ratings.map((rating) => (
           <button
             key={rating}
@@ -132,8 +138,8 @@ function RatingRow({
             onClick={() => onChange(rating)}
             className={
               rating === value
-                ? "flex size-10 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground shadow-sm"
-                : "flex size-10 items-center justify-center rounded-full border border-border/70 bg-card text-sm font-semibold text-muted-foreground hover:bg-muted"
+                ? "flex size-11 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                : "flex size-11 items-center justify-center rounded-full border border-border/70 bg-card text-sm font-semibold text-muted-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
             }
             aria-pressed={rating === value}
             aria-label={`${label} ${rating} out of 5`}
