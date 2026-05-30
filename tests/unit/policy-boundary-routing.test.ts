@@ -90,6 +90,7 @@ describe("policy boundary chat routing", () => {
 
     expect(response.source).toBe("safety");
     expect(response.policyBoundary).toBeUndefined();
+    expect(response).not.toHaveProperty("policyMetadata");
     expect(response.safetyState).toBe("self_harm_method_request");
     expect(response.nextRecommendedAction).toBe("urgent_support");
     expect(response.mode).toBe("crisis");

@@ -6,10 +6,12 @@ const {
   claimChatTurn,
   completeChatTurn,
   findPersistedChatResponse,
+  recordAuthorizedAuditEvent,
 } = vi.hoisted(() => ({
   claimChatTurn: vi.fn(),
   completeChatTurn: vi.fn(),
   findPersistedChatResponse: vi.fn(),
+  recordAuthorizedAuditEvent: vi.fn(),
 }));
 
 vi.mock("@/lib/db/repositories/chat-turns", () => ({
@@ -18,6 +20,9 @@ vi.mock("@/lib/db/repositories/chat-turns", () => ({
 }));
 vi.mock("@/lib/db/repositories/messages", () => ({
   findPersistedChatResponse,
+}));
+vi.mock("@/lib/db/repositories/event-metadata", () => ({
+  recordAuthorizedAuditEvent,
 }));
 
 import {
@@ -39,6 +44,7 @@ describe("persisted chat turns", () => {
       currentSafetyState: null,
     });
     completeChatTurn.mockResolvedValue(undefined);
+    recordAuthorizedAuditEvent.mockResolvedValue(undefined);
   });
 
   it("encrypts an opted-in user and assistant pair before atomic completion", async () => {
@@ -64,6 +70,26 @@ describe("persisted chat turns", () => {
         completion.assistantContentEncrypted,
       ).response.assistantMessage.content,
     ).toBe("What part feels hardest?");
+    expect(completion.eventBundle).toMatchObject({
+      audit_event: {
+        route_key: "api/chat",
+        outcome_code: "completed",
+      },
+      model_events: [
+        {
+          task_code: "conversation_reply",
+          source_code: "openai",
+          post_validation_outcome_code: "passed",
+          store_disabled: true,
+        },
+      ],
+    });
+    expect(JSON.stringify(completion.eventBundle)).not.toContain(
+      "I feel stretched thin.",
+    );
+    expect(JSON.stringify(completion.eventBundle)).not.toContain(
+      "What part feels hardest?",
+    );
   });
 
   it("replays an opted-in completed response without invoking AI", async () => {
@@ -87,6 +113,18 @@ describe("persisted chat turns", () => {
     );
     expect(conversationAgent).not.toHaveBeenCalled();
     expect(completeChatTurn).not.toHaveBeenCalled();
+    expect(recordAuthorizedAuditEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        eventBundle: expect.objectContaining({
+          safety_events: [],
+          model_events: [],
+          audit_event: expect.objectContaining({
+            route_key: "api/chat",
+            outcome_code: "replayed",
+          }),
+        }),
+      }),
+    );
   });
 
   it("returns a safe conflict for an active duplicate", async () => {

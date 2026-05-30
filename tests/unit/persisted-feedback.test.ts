@@ -34,6 +34,14 @@ describe("persisted feedback", () => {
       feltSafe: true,
       unsafeOrUnhelpful: false,
       commentEncrypted: null,
+      eventBundle: expect.objectContaining({
+        safety_events: [],
+        model_events: [],
+        audit_event: expect.objectContaining({
+          route_key: "api/feedback",
+          outcome_code: "received",
+        }),
+      }),
     }));
   });
 
@@ -44,6 +52,9 @@ describe("persisted feedback", () => {
     );
 
     const envelope = persistFeedback.mock.calls[0][0].commentEncrypted;
+    expect(
+      JSON.stringify(persistFeedback.mock.calls[0][0].eventBundle),
+    ).not.toContain("private feedback note");
     expect(decryptSensitiveJson(envelope, encryptionKey)).toEqual({
       version: "feedback_comment.v1",
       comment: "private feedback note",

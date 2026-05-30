@@ -69,12 +69,14 @@ describe("chat turns repository", () => {
       safetyState: "normal_support",
       userCreatedAt: "2026-05-30T00:00:00.000Z",
       assistantCreatedAt: "2026-05-30T00:00:01.000Z",
+      eventBundle: eventBundle(),
     });
 
-    expect(rpc).toHaveBeenCalledWith("complete_chat_turn", expect.objectContaining({
+    expect(rpc).toHaveBeenCalledWith("complete_chat_turn_with_events", expect.objectContaining({
       p_user_content_encrypted: envelope,
       p_assistant_content_encrypted: envelope,
       p_assistant_source: "chat_fallback",
+      p_event_bundle: eventBundle(),
     }));
   });
 
@@ -91,6 +93,7 @@ describe("chat turns repository", () => {
       responseEncrypted: envelope,
       riskLevel: null,
       safetyState: null,
+      eventBundle: eventBundle(),
     })).resolves.toEqual(envelope);
   });
 
@@ -145,5 +148,18 @@ function encryptedEnvelope() {
     iv: "AAAAAAAAAAAAAAAA",
     authTag: "AAAAAAAAAAAAAAAAAAAAAA==",
     ciphertext: "YQ==",
+  };
+}
+
+function eventBundle() {
+  return {
+    safety_events: [],
+    model_events: [],
+    audit_event: {
+      event_type: "authorized_session_action" as const,
+      route_key: "api/chat" as const,
+      outcome_code: "completed" as const,
+      error_code: null,
+    },
   };
 }

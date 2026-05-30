@@ -4,14 +4,17 @@ import { randomBytes } from "node:crypto";
 
 import {
   generateStructuredClarityMap,
+  getOpenAiClarityModel,
   type ClarityMapAgentResult,
 } from "@/lib/ai/clarity-map";
+import { getOpenAiTriageModel } from "@/lib/ai/triage";
 import {
   claimClarityMapGeneration,
   mergeOwnedSessionSafetyState,
   persistClarityMapResult,
 } from "@/lib/db/repositories/clarity-maps";
 import { loadPersistedTranscript } from "@/lib/db/repositories/messages";
+import { recordAuthorizedAuditEvent } from "@/lib/db/repositories/event-metadata";
 import { mockClarityMap } from "@/lib/mock/mock-clarity-map";
 import { classifyPolicyBoundary } from "@/lib/safety/policy-boundary-classifier";
 import { classifyRisk } from "@/lib/safety/risk-classifier";
@@ -30,6 +33,15 @@ import {
   decryptClarityMapResponse,
   encryptClarityMapResponse,
 } from "@/lib/server/persistence/clarity-map-payloads";
+import {
+  buildAiTriageModelEvents,
+  buildAuditEvent,
+  buildEventBundle,
+  buildModelEvent,
+  buildSafetyEvent,
+  type AuditOutcome,
+  type EventBundle,
+} from "@/lib/server/persistence/event-payloads";
 import { createAuthoritativeSessionContext } from "@/lib/server/session/authoritative-context";
 import type { OwnedSession } from "@/lib/server/session/ownership";
 import {
@@ -142,7 +154,16 @@ export async function createPersistedClarityMapResponse(
   dependencies: ClarityMapDependencies = {},
 ): Promise<ClarityMapApiResponse> {
   if (!isEnhancedClarityMapRequest(request)) {
-    return createClarityMapResponse(request, dependencies);
+    const response = await createClarityMapResponse(request, dependencies);
+    await recordAuthorizedAuditEvent({
+      ownerId: owned.owner.id,
+      sessionId: owned.session.id,
+      eventBundle: buildEventBundle({
+        auditEvent: buildAuditEvent("api/clarity-map", "legacy_served"),
+      }),
+    });
+
+    return response;
   }
 
   const retainedTranscript = owned.session.storageConsentAccepted
@@ -158,7 +179,7 @@ export async function createPersistedClarityMapResponse(
     sessionContext: createAuthoritativeSessionContext(owned.session),
     messages,
   };
-  let safetyDecision: SafetyDecision | undefined;
+  const safetyDecisions: SafetyDecision[] = [];
   let transcriptFingerprint: string | null = null;
   let leaseTokenHash: string | null = null;
   let replayed = false;
@@ -206,7 +227,7 @@ export async function createPersistedClarityMapResponse(
     {
       previousState: owned.session.currentSafetyState ?? undefined,
       onSafetyDecision: (decision) => {
-        safetyDecision = decision;
+        safetyDecisions.push(decision);
       },
     },
   );
@@ -216,18 +237,36 @@ export async function createPersistedClarityMapResponse(
   }
 
   try {
+    const eventBundle = buildClarityMapEventBundle(
+      response,
+      safetyDecisions,
+      replayed,
+    );
+
     if (response.type === "safety_blocked" || response.type === "boundary_blocked") {
-      await mergeSafetyStateIfEvaluated(owned, safetyDecision);
+      await mergeSafetyStateIfEvaluated(
+        owned,
+        safetyDecisions.at(-1),
+        eventBundle,
+      );
       return response;
     }
 
     if (response.type === "insufficient_context") {
-      await mergeSafetyStateIfEvaluated(owned, safetyDecision);
+      await mergeSafetyStateIfEvaluated(
+        owned,
+        safetyDecisions.at(-1),
+        eventBundle,
+      );
       return response;
     }
 
     if (!owned.session.storageConsentAccepted || replayed) {
-      await mergeSafetyStateIfEvaluated(owned, safetyDecision);
+      await mergeSafetyStateIfEvaluated(
+        owned,
+        safetyDecisions.at(-1),
+        eventBundle,
+      );
       return response;
     }
 
@@ -241,8 +280,9 @@ export async function createPersistedClarityMapResponse(
       schemaVersion: response.clarityMap.schemaVersion,
       transcriptFingerprint,
       leaseTokenHash,
-      riskLevel: safetyDecision?.risk.level ?? null,
-      safetyState: safetyDecision?.safetyState ?? null,
+      riskLevel: safetyDecisions.at(-1)?.risk.level ?? null,
+      safetyState: safetyDecisions.at(-1)?.safetyState ?? null,
+      eventBundle,
     });
 
     return decryptClarityMapResponse(retainedEnvelope, messages);
@@ -330,8 +370,14 @@ async function getSafetyBlock(
 async function mergeSafetyStateIfEvaluated(
   owned: OwnedSession,
   decision: SafetyDecision | undefined,
+  eventBundle: EventBundle,
 ) {
   if (!decision) {
+    await recordAuthorizedAuditEvent({
+      ownerId: owned.owner.id,
+      sessionId: owned.session.id,
+      eventBundle,
+    });
     return;
   }
 
@@ -340,7 +386,62 @@ async function mergeSafetyStateIfEvaluated(
     sessionId: owned.session.id,
     riskLevel: decision.risk.level,
     safetyState: decision.safetyState,
+    eventBundle,
   });
+}
+
+function buildClarityMapEventBundle(
+  response: EnhancedClarityMapResponse,
+  safetyDecisions: SafetyDecision[],
+  replayed: boolean,
+) {
+  const modelEvents =
+    response.type === "clarity_map" && !replayed
+      ? [
+          buildModelEvent({
+            taskCode: "clarity_map_generation",
+            sourceCode: response.source,
+            modelIdentifier: getOpenAiClarityModel(),
+          }),
+        ]
+      : [];
+
+  return buildEventBundle({
+    safetyEvents: safetyDecisions.map((decision) =>
+      buildSafetyEvent("api/clarity-map", decision),
+    ),
+    modelEvents: [
+      ...buildAiTriageModelEvents(safetyDecisions, getOpenAiTriageModel()),
+      ...modelEvents,
+    ],
+    auditEvent: buildAuditEvent(
+      "api/clarity-map",
+      getClarityMapAuditOutcome(response, replayed),
+    ),
+  });
+}
+
+function getClarityMapAuditOutcome(
+  response: EnhancedClarityMapResponse,
+  replayed: boolean,
+): AuditOutcome {
+  if (replayed) {
+    return "replayed";
+  }
+
+  if (response.type === "safety_blocked") {
+    return "safety_blocked";
+  }
+
+  if (response.type === "boundary_blocked") {
+    return "boundary_blocked";
+  }
+
+  if (response.type === "insufficient_context") {
+    return "insufficient_context";
+  }
+
+  return "completed";
 }
 
 function createTranscriptFingerprint(sessionId: string, messageRowIds: string[]) {

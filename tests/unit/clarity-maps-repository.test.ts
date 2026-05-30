@@ -65,12 +65,14 @@ describe("Clarity Maps repository", () => {
       leaseTokenHash: "b".repeat(64),
       riskLevel: "low",
       safetyState: "normal_support",
+      eventBundle: eventBundle(),
     })).resolves.toEqual(envelope);
 
-    expect(rpc).toHaveBeenCalledWith("persist_clarity_map_result", expect.objectContaining({
+    expect(rpc).toHaveBeenCalledWith("persist_clarity_map_result_with_events", expect.objectContaining({
       p_map_encrypted: envelope,
       p_transcript_fingerprint: "a".repeat(64),
       p_lease_token_hash: "b".repeat(64),
+      p_event_bundle: eventBundle(),
     }));
   });
 
@@ -82,13 +84,15 @@ describe("Clarity Maps repository", () => {
       sessionId: "session-id",
       riskLevel: "high",
       safetyState: "active_suicidal_ideation",
+      eventBundle: eventBundle(),
     });
 
-    expect(rpc).toHaveBeenCalledWith("merge_owned_session_safety_state", {
+    expect(rpc).toHaveBeenCalledWith("merge_owned_session_safety_state_with_events", {
       p_owner_id: "owner-id",
       p_session_id: "session-id",
       p_risk_level: "high",
       p_safety_state: "active_suicidal_ideation",
+      p_event_bundle: eventBundle(),
     });
   });
 
@@ -144,5 +148,18 @@ function encryptedEnvelope() {
     iv: "AAAAAAAAAAAAAAAA",
     authTag: "AAAAAAAAAAAAAAAAAAAAAA==",
     ciphertext: "YQ==",
+  };
+}
+
+function eventBundle() {
+  return {
+    safety_events: [],
+    model_events: [],
+    audit_event: {
+      event_type: "authorized_session_action" as const,
+      route_key: "api/clarity-map" as const,
+      outcome_code: "completed" as const,
+      error_code: null,
+    },
   };
 }

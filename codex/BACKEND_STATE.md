@@ -16,6 +16,8 @@ This is the canonical Codex backend handoff for the current MindBridge repo. Use
   anonymous owner/session/consent rows. Opted-in context-intake/chat and Clarity
   Map content is encrypted at rest, chat and map retries use raw-free claims,
   and feedback ratings append with encrypted opted-in comments.
+  Raw-free safety, policy, model, and authorized-action audit metadata commits
+  atomically with associated writes or safety-state merges.
 - Supabase: server-only client, encryption helper, migrations, and anonymous
   session creation are present. Session-bound routes enforce cookie ownership
   in Supabase mode. There is no Supabase auth or browser client.
@@ -127,14 +129,15 @@ Safety-critical details belong in `codex/SAFETY_RULES.md`.
 
 - `@supabase/supabase-js` is installed.
 - Additive SQL exists through
-  `supabase/migrations/0005_sprint1_persisted_clarity_feedback.sql`.
+  `supabase/migrations/0006_sprint1_event_metadata.sql`.
   `supabase/seed/resources_seed.sql` remains historical starter data.
 - Current app runtime does not use Supabase auth or a browser Supabase client.
   Server-owned session creation uses the service-role-only
   `create_anonymous_session(...)` RPC. Session-bound route guards resolve the
   cookie owner and query sessions with both `owner_id` and `sessionId`.
   Context-intake, chat, Clarity Map, safety-state merge, and feedback
-  persistence use narrow service-role-only RPCs.
+  persistence use narrow service-role-only RPCs. Raw-free event metadata uses
+  owner-scoped transactional wrappers and append-only event tables.
 - If future work enables Supabase:
   - keep service-role keys server-only;
   - enable RLS before production for public schema tables;
@@ -194,8 +197,7 @@ Anything prefixed `NEXT_PUBLIC_` is browser-exposed and must never contain secre
 
 ## Known Backend TODOs And Limitations
 
-- No accounts, safety/model/audit event persistence, delete/export, or
-  hydration.
+- No accounts, delete/export, or hydration.
 - Feedback has no durable human review workflow.
 - Resources are static/app-owned and not exhaustive.
 - Rate limits are not implemented yet and are required before public launch on AI, auth, write, and webhook endpoints.

@@ -8,6 +8,7 @@ Apply migrations in order:
 0003_sprint1_anonymous_session_creation_rpc.sql
 0004_sprint1_persisted_chat_turns.sql
 0005_sprint1_persisted_clarity_feedback.sql
+0006_sprint1_event_metadata.sql
 ```
 
 `0001` is the immutable starter migration. `0002` adds the Sprint 1 database
@@ -18,6 +19,8 @@ anonymous owner, create one session, and record its initial consent events.
 encrypted context-intake and chat retention.
 `0005` adds raw-free Clarity Map replay claims and service-role-only RPCs for
 encrypted map retention, raw-free safety-state merges, and feedback writes.
+`0006` hardens owner-linked safety events and adds service-role-only
+transactional wrappers for raw-free safety, policy, model, and audit metadata.
 
 ## Sprint 1 Foundation
 
@@ -34,7 +37,8 @@ encrypted map retention, raw-free safety-state merges, and feedback writes.
   recover abandoned generation after five minutes.
 - Feedback ratings and flags may persist without sensitive-content opt-in;
   comments require opt-in and an encrypted envelope.
-- Safety, model, and audit storage is structured and raw-free.
+- Safety, policy, model, and audit metadata is structured, raw-free, and
+  committed atomically with the associated Supabase-mode write or state merge.
 - Rate-limit buckets store only short-lived HMAC identifiers. The schema stores
   no raw IP address and makes no forwarded-header trust assumption.
 - Curated runtime resources continue to come from the tested TypeScript
@@ -44,7 +48,7 @@ encrypted map retention, raw-free safety-state merges, and feedback writes.
 ## Verification
 
 No remote Supabase project exists yet. Before any production project exists,
-apply `0001` through `0005` to a disposable Supabase project and
+apply `0001` through `0006` to a disposable Supabase project and
 verify:
 
 1. table, column, index, trigger, RLS, policy, grant, and RPC shape
@@ -57,6 +61,8 @@ verify:
    five-minute stale reclaim, and atomic completion
 8. Clarity Map encrypted replay, active conflicts, stale reclaim, raw-free
    opt-out generation, and append-only feedback writes
+9. atomic raw-free event wrappers, owner scoping, append-only event-table
+   access, and rejection of unknown metadata keys
 
 The server-only client, encryption helper, and anonymous session-creation
 repository are implemented. Ownership guards, encrypted context-intake/chat

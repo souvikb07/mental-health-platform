@@ -7,11 +7,12 @@ data foundation without adding accounts, changing public product boundaries, or
 rewriting Safety Core.
 
 This document describes the Sprint 1 target and current incremental progress.
-Blocks 1B through 1G now add the additive SQL foundation, server-only
+Blocks 1B through 1H now add the additive SQL foundation, server-only
 client/encryption helpers, server-owned anonymous session creation, and
 cookie-owner-scoped guards for session-bound routes. Consent-aware encrypted
-context-intake, chat, Clarity Map, and feedback retention is wired. Other
-runtime persistence remains pending. The full spike on
+context-intake, chat, Clarity Map, and feedback retention is wired. Raw-free
+safety, policy, model, and audit metadata now commits through owner-scoped
+transactional RPC wrappers. Other runtime controls remain pending. The full spike on
 `spike/sprint1-production-data-foundation-full-codex` at `9e196a1` is
 reference-only and is not merge-ready.
 
@@ -105,7 +106,7 @@ The reference spike identified three P1 blockers. Future implementation must:
 1E ownership guards [complete]
 1F persisted messages and chat turns [complete]
 1G persisted Clarity Maps and feedback [complete]
-1H safety, policy, model, and audit metadata
+1H safety, policy, model, and audit metadata [complete]
 1I rate limiting
 1J export, delete, and purge foundation
 1K frontend compatibility and hydration

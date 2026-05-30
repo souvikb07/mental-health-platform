@@ -7,13 +7,22 @@ import {
   type ConversationAgentInput,
   type ConversationAgentResult,
 } from "@/lib/ai/conversation-agent";
-import { validateAssistantResponse } from "@/lib/ai/post-response-validator";
-import type { AiTriageResult, TriagePromptInput } from "@/lib/ai/triage";
+import {
+  validateAssistantResponse,
+  type PostResponseValidation,
+} from "@/lib/ai/post-response-validator";
+import { getOpenAiModel } from "@/lib/ai/openai-client";
+import {
+  getOpenAiTriageModel,
+  type AiTriageResult,
+  type TriagePromptInput,
+} from "@/lib/ai/triage";
 import {
   claimChatTurn,
   completeChatTurn,
 } from "@/lib/db/repositories/chat-turns";
 import { findPersistedChatResponse } from "@/lib/db/repositories/messages";
+import { recordAuthorizedAuditEvent } from "@/lib/db/repositories/event-metadata";
 import {
   safetyOrchestrator,
   type SafetyDecision,
@@ -29,6 +38,14 @@ import {
   encryptChatAssistantResponse,
   encryptChatUserMessage,
 } from "@/lib/server/persistence/message-payloads";
+import {
+  buildAiTriageModelEvents,
+  buildAuditEvent,
+  buildEventBundle,
+  buildModelEvent,
+  buildSafetyEvent,
+  getChatPostValidationOutcome,
+} from "@/lib/server/persistence/event-payloads";
 import { createAuthoritativeSessionContext } from "@/lib/server/session/authoritative-context";
 import type { OwnedSession } from "@/lib/server/session/ownership";
 import type { ChatRequest } from "@/lib/validation/chat";
@@ -67,6 +84,10 @@ type ChatResponseDependencies = {
 type ChatResponseOptions = {
   previousState?: SafetyState;
   onSafetyDecision?: (decision: SafetyDecision) => void;
+  onConversationResult?: (
+    result: ConversationAgentResult,
+    validation: PostResponseValidation,
+  ) => void;
 };
 
 export async function createChatResponse(
@@ -109,6 +130,7 @@ export async function createChatResponse(
     risk: safetyDecision.risk,
   });
   const validation = validateAssistantResponse(agentResult.content);
+  options.onConversationResult?.(agentResult, validation);
   const content = validation.content;
   const source = validation.blocked ? "fallback" : agentResult.source;
 
@@ -148,7 +170,19 @@ export async function createPersistedChatResponse(
       throw chatTurnRetryUnavailable();
     }
 
-    return findPersistedChatResponse(owned.session.id, clientMessageId);
+    const retained = await findPersistedChatResponse(
+      owned.session.id,
+      clientMessageId,
+    );
+    await recordAuthorizedAuditEvent({
+      ownerId: owned.owner.id,
+      sessionId: owned.session.id,
+      eventBundle: buildEventBundle({
+        auditEvent: buildAuditEvent("api/chat", "replayed"),
+      }),
+    });
+
+    return retained;
   }
 
   const authoritativeRequest: ChatRequest = {
@@ -161,8 +195,21 @@ export async function createPersistedChatResponse(
     content: request.message,
     createdAt: new Date().toISOString(),
   };
+  let safetyDecision: SafetyDecision | undefined;
+  let conversationResult:
+    | {
+        result: ConversationAgentResult;
+        validation: PostResponseValidation;
+      }
+    | undefined;
   const response = await createChatResponse(authoritativeRequest, dependencies, {
     previousState: claim.currentSafetyState ?? undefined,
+    onSafetyDecision: (decision) => {
+      safetyDecision = decision;
+    },
+    onConversationResult: (result, validation) => {
+      conversationResult = { result, validation };
+    },
   });
 
   try {
@@ -182,6 +229,11 @@ export async function createPersistedChatResponse(
       safetyState: response.safetyState ?? "normal_support",
       userCreatedAt: userMessage.createdAt,
       assistantCreatedAt: response.assistantMessage.createdAt,
+      eventBundle: buildChatEventBundle(
+        response,
+        safetyDecision,
+        conversationResult,
+      ),
     });
   } catch {
     if (response.source === "safety" || response.source === "boundary") {
@@ -192,6 +244,49 @@ export async function createPersistedChatResponse(
   }
 
   return response;
+}
+
+function buildChatEventBundle(
+  response: ChatResponse,
+  safetyDecision: SafetyDecision | undefined,
+  conversationResult:
+    | {
+        result: ConversationAgentResult;
+        validation: PostResponseValidation;
+      }
+    | undefined,
+) {
+  const safetyDecisions = safetyDecision ? [safetyDecision] : [];
+  const modelEvents = conversationResult
+    ? [
+        buildModelEvent({
+          taskCode: "conversation_reply",
+          sourceCode: conversationResult.result.source,
+          modelIdentifier: getOpenAiModel(),
+          postValidationOutcomeCode: getChatPostValidationOutcome(
+            conversationResult.validation,
+          ),
+        }),
+      ]
+    : [];
+
+  return buildEventBundle({
+    safetyEvents: safetyDecisions.map((decision) =>
+      buildSafetyEvent("api/chat", decision),
+    ),
+    modelEvents: [
+      ...buildAiTriageModelEvents(safetyDecisions, getOpenAiTriageModel()),
+      ...modelEvents,
+    ],
+    auditEvent: buildAuditEvent(
+      "api/chat",
+      response.source === "safety"
+        ? "safety_blocked"
+        : response.source === "boundary"
+          ? "boundary_blocked"
+          : "completed",
+    ),
+  });
 }
 
 function createAssistantMessage(content: string): ApiChatMessage {

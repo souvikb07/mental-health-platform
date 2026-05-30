@@ -2,6 +2,7 @@ import "server-only";
 
 import { getSupabaseServerClient } from "@/lib/db/supabase-server";
 import { dataBackendUnavailable } from "@/lib/server/http/api-errors";
+import type { EventBundle } from "@/lib/server/persistence/event-payloads";
 import type { SafetyState } from "@/lib/safety-core";
 import type { EncryptedEnvelope } from "@/types/database";
 import type { RiskLevel } from "@/types/risk";
@@ -42,9 +43,10 @@ export async function persistClarityMapResult(input: {
   leaseTokenHash: string | null;
   riskLevel: RiskLevel | null;
   safetyState: SafetyState | null;
+  eventBundle: EventBundle;
 }): Promise<EncryptedEnvelope> {
   const client = getRequiredClient();
-  const { data, error } = await client.rpc("persist_clarity_map_result", {
+  const { data, error } = await client.rpc("persist_clarity_map_result_with_events", {
     p_owner_id: input.ownerId,
     p_session_id: input.sessionId,
     p_map_encrypted: input.mapEncrypted,
@@ -54,6 +56,7 @@ export async function persistClarityMapResult(input: {
     p_lease_token_hash: input.leaseTokenHash,
     p_risk_level: input.riskLevel,
     p_safety_state: input.safetyState,
+    p_event_bundle: input.eventBundle,
   });
 
   if (
@@ -73,13 +76,15 @@ export async function mergeOwnedSessionSafetyState(input: {
   sessionId: string;
   riskLevel: RiskLevel | null;
   safetyState: SafetyState | null;
+  eventBundle: EventBundle;
 }) {
   const client = getRequiredClient();
-  const { error } = await client.rpc("merge_owned_session_safety_state", {
+  const { error } = await client.rpc("merge_owned_session_safety_state_with_events", {
     p_owner_id: input.ownerId,
     p_session_id: input.sessionId,
     p_risk_level: input.riskLevel,
     p_safety_state: input.safetyState,
+    p_event_bundle: input.eventBundle,
   });
 
   if (error) {

@@ -99,6 +99,10 @@ describe("safety playbook engine", () => {
     expect(decision.mode).toBe("crisis");
     expect(decision.responseSource).toBe("safety");
     expect(decision.policyBoundary).toBeUndefined();
+    expect(decision.policyMetadata).toEqual({
+      action: "route_to_safety",
+      categories: ["self_harm_method_request"],
+    });
     expect(decision.responseContent).not.toContain("easiest way");
   });
 

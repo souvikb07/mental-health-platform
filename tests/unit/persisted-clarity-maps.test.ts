@@ -7,11 +7,13 @@ const {
   loadPersistedTranscript,
   mergeOwnedSessionSafetyState,
   persistClarityMapResult,
+  recordAuthorizedAuditEvent,
 } = vi.hoisted(() => ({
   claimClarityMapGeneration: vi.fn(),
   loadPersistedTranscript: vi.fn(),
   mergeOwnedSessionSafetyState: vi.fn(),
   persistClarityMapResult: vi.fn(),
+  recordAuthorizedAuditEvent: vi.fn(),
 }));
 
 vi.mock("@/lib/db/repositories/clarity-maps", () => ({
@@ -21,6 +23,9 @@ vi.mock("@/lib/db/repositories/clarity-maps", () => ({
 }));
 vi.mock("@/lib/db/repositories/messages", () => ({
   loadPersistedTranscript,
+}));
+vi.mock("@/lib/db/repositories/event-metadata", () => ({
+  recordAuthorizedAuditEvent,
 }));
 
 import {
@@ -47,6 +52,7 @@ describe("persisted Clarity Maps", () => {
     persistClarityMapResult.mockImplementation(async ({ mapEncrypted }) => (
       mapEncrypted
     ));
+    recordAuthorizedAuditEvent.mockResolvedValue(undefined);
   });
 
   it("prefers the retained transcript and persists an encrypted claimed map", async () => {
@@ -77,7 +83,23 @@ describe("persisted Clarity Maps", () => {
         kid: "v1",
         algorithm: "aes-256-gcm",
       }),
+      eventBundle: expect.objectContaining({
+        audit_event: expect.objectContaining({
+          route_key: "api/clarity-map",
+          outcome_code: "completed",
+        }),
+        model_events: [
+          expect.objectContaining({
+            task_code: "clarity_map_generation",
+            source_code: "fallback",
+            store_disabled: true,
+          }),
+        ],
+      }),
     }));
+    expect(
+      JSON.stringify(persistClarityMapResult.mock.calls[0][0].eventBundle),
+    ).not.toContain("server-owned context");
   });
 
   it("replays a completed fingerprint without calling the map agent", async () => {
@@ -104,6 +126,16 @@ describe("persisted Clarity Maps", () => {
     expect(clarityMapAgent).not.toHaveBeenCalled();
     expect(persistClarityMapResult).not.toHaveBeenCalled();
     expect(mergeOwnedSessionSafetyState).toHaveBeenCalledOnce();
+    expect(mergeOwnedSessionSafetyState).toHaveBeenCalledWith(
+      expect.objectContaining({
+        eventBundle: expect.objectContaining({
+          model_events: [],
+          audit_event: expect.objectContaining({
+            outcome_code: "replayed",
+          }),
+        }),
+      }),
+    );
   });
 
   it("returns a safe conflict while identical generation is active", async () => {
@@ -213,6 +245,26 @@ describe("persisted Clarity Maps", () => {
       content: "Different transcript.",
       createdAt: "2026-05-30T00:00:00.000Z",
     }])).toThrow("Please try again later.");
+  });
+
+  it("records an authorized audit event for the legacy map path", async () => {
+    await expect(createPersistedClarityMapResponse(
+      { sessionId: owned(true).session.id },
+      owned(true),
+    )).resolves.toHaveProperty("clarityMap");
+
+    expect(recordAuthorizedAuditEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        eventBundle: expect.objectContaining({
+          safety_events: [],
+          model_events: [],
+          audit_event: expect.objectContaining({
+            route_key: "api/clarity-map",
+            outcome_code: "legacy_served",
+          }),
+        }),
+      }),
+    );
   });
 });
 

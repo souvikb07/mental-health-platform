@@ -28,6 +28,8 @@ This is the canonical Codex status file. `docs/project-handoff/` is ChatGPT-web 
 - In Supabase mode, feedback ratings and flags append without sensitive-content
   opt-in. Free-text comments are discarded after opt-out and encrypted after
   opt-in.
+- In Supabase mode, raw-free safety, policy, model, and authorized-action audit
+  metadata commits atomically with retained writes or safety-state merges.
 - OpenAI conversation path uses server-only modules, non-streaming Responses API behavior, `store: false`, model env config, post-response validation, and deterministic fallback when config/output fails.
 - Policy boundary guardrails block diagnosis, medication, treatment protocol, therapy replacement, prompt injection, unsafe self-harm method requests, and related out-of-scope requests.
 - Safety Core / Safety Playbook Engine controls safety states, normal chat permission, Clarity Map permission, safety card visibility, resources, mode, and next actions.
@@ -64,13 +66,13 @@ This is the canonical Codex status file. `docs/project-handoff/` is ChatGPT-web 
 - Supabase-mode anonymous session creation, owner-scoped route guards, encrypted
   context-intake/chat retention, encrypted Clarity Map replay, and consent-aware
   feedback persistence are wired. Supabase auth remains absent.
-- Sprint 1 Blocks 1A through 1G document the production data contract, add
+- Sprint 1 Blocks 1A through 1H document the production data contract, add
   unapplied additive database migrations, add server-only
   Supabase/config/encryption infrastructure, and wire anonymous session
-  creation, enforce ownership on session-bound routes, and persist encrypted
-  opted-in journey content plus authoritative safety state. Event metadata,
-  rate-limit enforcement, export/delete endpoints, purge scheduling, and
-  server hydration are not implemented.
+  creation, enforce ownership on session-bound routes, persist encrypted
+  opted-in journey content plus authoritative safety state, and append
+  structured raw-free event metadata. Rate-limit enforcement, export/delete
+  endpoints, purge scheduling, and server hydration are not implemented.
 - No remote Supabase project exists yet. Future migration work must start with a disposable verification project.
 - Feedback still returns `status: "received"` only. Supabase mode persists
   anonymous ratings and flags, but no human review workflow exists.
@@ -84,15 +86,15 @@ This is the canonical Codex status file. `docs/project-handoff/` is ChatGPT-web 
 ## Important Next Backend Tasks
 
 - Keep tightening deterministic safety coverage from manual QA and eval findings.
-- Implement Sprint 1 Block 1H: safety, policy, model, and audit metadata.
+- Implement Sprint 1 Block 1I: rate limiting.
 - Add production rate limiting before any public launch on AI and write endpoints.
 - Keep Supabase persistence server-owned and explicitly scoped by the anonymous-owner cookie; `sessionId` must remain a locator only.
 - Continue maintaining synthetic eval coverage for chat, safety, boundary, context intake, Clarity Map, and resource routing.
 
 ## Sprint 1 Production Data Foundation
 
-- Blocks 1A through 1G are complete. The additive migrations through
-  `supabase/migrations/0005_sprint1_persisted_clarity_feedback.sql` have
+- Blocks 1A through 1H are complete. The additive migrations through
+  `supabase/migrations/0006_sprint1_event_metadata.sql` have
   not been applied to a remote project.
 - Locked decisions live in `docs/adr/ADR-0004-production-anonymous-data-foundation.md` and `docs/architecture/10-production-data-foundation.md`.
 - A full implementation spike exists on `spike/sprint1-production-data-foundation-full-codex` at commit `9e196a1`. It is reference-only, not merge-ready, and must not be copied wholesale.
@@ -118,6 +120,9 @@ This is the canonical Codex status file. `docs/project-handoff/` is ChatGPT-web 
   fingerprint replay claims with five-minute stale recovery, server-transcript
   preference when retained chat exists, and append-only feedback ratings with
   encrypted opted-in comments.
+- Block 1H adds owner-scoped transactional wrappers for append-only raw-free
+  safety, policy, model, and authorized-action audit metadata. Safety Core
+  behavior and AI/OpenAI modules remain unchanged.
 
 ## Frontend/API Dependencies
 
