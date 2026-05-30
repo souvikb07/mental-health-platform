@@ -1,6 +1,6 @@
 # Backend State
 
-Last updated: 2026-05-29.
+Last updated: 2026-05-31.
 
 This is the canonical Codex backend handoff for the current MindBridge repo. Use the actual codebase as source of truth. Do not treat `docs/project-handoff/` as canonical for Codex work.
 
@@ -13,8 +13,9 @@ This is the canonical Codex backend handoff for the current MindBridge repo. Use
 - AI SDK: `openai` package through server-only modules under `src/lib/ai`.
 - Tests: Vitest with unit tests under `tests/unit`.
 - Data persistence: Supabase-mode `POST /api/sessions` creates server-owned
-  anonymous owner/session/consent rows. Opted-in context-intake/chat content is
-  encrypted at rest, and chat retries use raw-free claims.
+  anonymous owner/session/consent rows. Opted-in context-intake/chat and Clarity
+  Map content is encrypted at rest, chat and map retries use raw-free claims,
+  and feedback ratings append with encrypted opted-in comments.
 - Supabase: server-only client, encryption helper, migrations, and anonymous
   session creation are present. Session-bound routes enforce cookie ownership
   in Supabase mode. There is no Supabase auth or browser client.
@@ -88,6 +89,8 @@ Current routes:
   - Safety/boundary gating happens before insufficient-context handling for the latest meaningful user message.
   - In Supabase mode, verifies the owner cookie and owner-scoped session before
     legacy or enhanced map logic.
+  - Enhanced Supabase requests prefer retained chat, encrypt opted-in maps, and
+    replay matching transcript fingerprints without duplicate generation.
 
 - `GET /api/resources`
   - Handler: `src/app/api/resources/route.ts`
@@ -99,9 +102,9 @@ Current routes:
   - Handler: `src/app/api/feedback/route.ts`
   - Service: `src/lib/server/feedback.ts`
   - Validation: `src/lib/validation/feedback.ts`
-  - Current behavior is mock receipt only: `{ status: "received" }`.
-  - In Supabase mode, verifies the owner cookie and owner-scoped session before
-    returning the mock receipt.
+  - Keeps the receipt-only response: `{ status: "received" }`.
+  - In Supabase mode, verifies ownership, appends raw-free ratings and flags,
+    discards opted-out comments, and encrypts opted-in comments.
 
 See `codex/API_CONTRACT.md` for frontend/backend request and response shapes.
 
@@ -124,13 +127,14 @@ Safety-critical details belong in `codex/SAFETY_RULES.md`.
 
 - `@supabase/supabase-js` is installed.
 - Additive SQL exists through
-  `supabase/migrations/0004_sprint1_persisted_chat_turns.sql`.
+  `supabase/migrations/0005_sprint1_persisted_clarity_feedback.sql`.
   `supabase/seed/resources_seed.sql` remains historical starter data.
 - Current app runtime does not use Supabase auth or a browser Supabase client.
   Server-owned session creation uses the service-role-only
   `create_anonymous_session(...)` RPC. Session-bound route guards resolve the
   cookie owner and query sessions with both `owner_id` and `sessionId`.
-  Context-intake and chat persistence uses narrow service-role-only RPCs.
+  Context-intake, chat, Clarity Map, safety-state merge, and feedback
+  persistence use narrow service-role-only RPCs.
 - If future work enables Supabase:
   - keep service-role keys server-only;
   - enable RLS before production for public schema tables;
@@ -190,9 +194,9 @@ Anything prefixed `NEXT_PUBLIC_` is browser-exposed and must never contain secre
 
 ## Known Backend TODOs And Limitations
 
-- No accounts, Clarity Map or feedback persistence, safety/model/audit event
-  persistence, delete/export, or hydration.
-- Feedback is mock receipt only and has no durable review workflow.
+- No accounts, safety/model/audit event persistence, delete/export, or
+  hydration.
+- Feedback has no durable human review workflow.
 - Resources are static/app-owned and not exhaustive.
 - Rate limits are not implemented yet and are required before public launch on AI, auth, write, and webhook endpoints.
 - OpenAI calls are non-streaming only.

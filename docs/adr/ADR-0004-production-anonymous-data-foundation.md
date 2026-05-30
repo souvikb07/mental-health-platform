@@ -2,10 +2,11 @@
 
 ## Status
 
-Accepted as the Sprint 1 implementation contract. Blocks 1B through 1F now
+Accepted as the Sprint 1 implementation contract. Blocks 1B through 1G now
 implement the additive SQL foundation, server-only client/encryption helpers,
-anonymous session creation, downstream route ownership guards, and encrypted
-context-intake/chat retention. Later content-persistence blocks remain pending.
+anonymous session creation, downstream route ownership guards, encrypted
+context-intake/chat retention, encrypted Clarity Map replay, and consent-aware
+feedback persistence. Later metadata and control blocks remain pending.
 
 ## Context
 

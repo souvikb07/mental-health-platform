@@ -170,6 +170,21 @@ Last updated: 2026-05-30.
 - Reason: storage failure must never suppress urgent local safety resources.
 - Consequence: normal opener/chat responses still fail closed with a safe
   backend-unavailable error when required persistence fails.
+- Decision: opted-in enhanced Clarity Maps prefer retained server transcript
+  rows when persisted chat exists. Raw-free transcript fingerprints and
+  five-minute leases prevent duplicate map generation and allow stale recovery.
+- Reason: browser transcript caches are UX state, while retained server rows
+  provide authoritative map inputs and safe replay identity without storing a
+  plaintext digest.
+- Consequence: blocked maps never persist as normal maps; opted-out maps remain
+  transient; legacy mock-compatible map requests remain backward-compatible.
+- Decision: feedback ratings and flags append as raw-free rows in Supabase mode.
+  Free-text comments are silently discarded after opt-out and encrypted after
+  opt-in.
+- Reason: product feedback metrics do not require sensitive note retention, and
+  existing clients should keep their stable receipt-only response.
+- Consequence: feedback does not imply analytics, clinical review, emergency
+  monitoring, or human follow-up.
 
 ## Sprint 1 Retention, Controls, And Runtime
 

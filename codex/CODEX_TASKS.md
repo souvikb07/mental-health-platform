@@ -62,7 +62,7 @@
 - [x] Block 1D: server-owned anonymous sessions
 - [x] Block 1E: ownership guards
 - [x] Block 1F: persisted messages and chat turns
-- [ ] Block 1G: persisted Clarity Maps and feedback
+- [x] Block 1G: persisted Clarity Maps and feedback
 - [ ] Block 1H: safety, policy, model, and audit metadata
 - [ ] Block 1I: rate limiting
 - [ ] Block 1J: export, delete, and purge foundation
@@ -77,4 +77,5 @@ server-only Supabase/config/encryption helpers. Block 1D added transactional
 server-owned anonymous session creation. Block 1E added same-origin checks and
 cookie-owner-scoped session guards. Block 1F added consent-aware encrypted
 context-intake/chat retention, raw-free retry claims, and persisted
-safety-state continuity. Next: Block 1G.
+safety-state continuity. Block 1G added encrypted Clarity Map replay and
+consent-aware feedback persistence. Next: Block 1H.

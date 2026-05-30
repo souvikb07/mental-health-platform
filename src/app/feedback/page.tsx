@@ -27,9 +27,10 @@ export default function FeedbackPage() {
           </h1>
           <p className="text-sm leading-6 text-muted-foreground sm:text-base">
             Share whether this reflection journey felt clear and useful. This
-            feedback helps improve the MVP; no database persistence, analytics
-            tracking, clinical review, emergency support, or human follow-up is
-            implied.
+            feedback helps improve the MVP. Anonymous ratings may be retained;
+            optional notes are encrypted only when journey storage was chosen.
+            No analytics provider, clinical review, emergency support, or human
+            follow-up is implied.
           </p>
         </section>
 

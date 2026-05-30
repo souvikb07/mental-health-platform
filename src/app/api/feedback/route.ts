@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 
-import { receiveMockFeedback } from "@/lib/server/feedback";
+import {
+  receiveMockFeedback,
+  receivePersistedFeedback,
+} from "@/lib/server/feedback";
 import {
   apiErrorResponse,
   validationError,
@@ -19,9 +22,13 @@ export async function POST(request: Request) {
       return validationError();
     }
 
-    await resolveOwnedSession(request, parsed.data.sessionId);
+    const owned = await resolveOwnedSession(request, parsed.data.sessionId);
 
-    return NextResponse.json(receiveMockFeedback(parsed.data));
+    return NextResponse.json(
+      owned
+        ? await receivePersistedFeedback(parsed.data, owned)
+        : receiveMockFeedback(parsed.data),
+    );
   } catch (error) {
     return apiErrorResponse(error);
   }

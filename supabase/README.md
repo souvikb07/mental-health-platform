@@ -7,6 +7,7 @@ Apply migrations in order:
 0002_sprint1_production_data_foundation.sql
 0003_sprint1_anonymous_session_creation_rpc.sql
 0004_sprint1_persisted_chat_turns.sql
+0005_sprint1_persisted_clarity_feedback.sql
 ```
 
 `0001` is the immutable starter migration. `0002` adds the Sprint 1 database
@@ -15,6 +16,8 @@ foundation while preserving ownerless legacy rows for compatibility.
 anonymous owner, create one session, and record its initial consent events.
 `0004` adds raw-free chat-turn claims and service-role-only RPCs for atomic
 encrypted context-intake and chat retention.
+`0005` adds raw-free Clarity Map replay claims and service-role-only RPCs for
+encrypted map retention, raw-free safety-state merges, and feedback writes.
 
 ## Sprint 1 Foundation
 
@@ -26,6 +29,9 @@ encrypted context-intake and chat retention.
   envelopes. Database triggers reject plaintext writes and malformed envelopes.
 - Context-intake responses and chat turns retain encrypted content only after
   storage opt-in. Chat retry claims remain raw-free for opted-out sessions.
+- Opted-in Clarity Maps retain encrypted responses. When a retained chat
+  transcript exists, raw-free fingerprint claims replay completed maps and
+  recover abandoned generation after five minutes.
 - Feedback ratings and flags may persist without sensitive-content opt-in;
   comments require opt-in and an encrypted envelope.
 - Safety, model, and audit storage is structured and raw-free.
@@ -38,7 +44,7 @@ encrypted context-intake and chat retention.
 ## Verification
 
 No remote Supabase project exists yet. Before any production project exists,
-apply `0001`, `0002`, `0003`, and `0004` to a disposable Supabase project and
+apply `0001` through `0005` to a disposable Supabase project and
 verify:
 
 1. table, column, index, trigger, RLS, policy, grant, and RPC shape
@@ -49,9 +55,11 @@ verify:
 6. fixed-window rate-limit increments, expiry, and input validation
 7. context-intake deduplication, chat-turn claim replay, active conflicts,
    five-minute stale reclaim, and atomic completion
+8. Clarity Map encrypted replay, active conflicts, stale reclaim, raw-free
+   opt-out generation, and append-only feedback writes
 
 The server-only client, encryption helper, and anonymous session-creation
 repository are implemented. Ownership guards, encrypted context-intake/chat
-retention, and safety-state continuity are implemented. Clarity Map and
-feedback persistence, purge scheduling, and the trusted deployment-header
-policy belong to later Sprint 1 blocks.
+retention, safety-state continuity, encrypted Clarity Map replay, and
+consent-aware feedback persistence are implemented. Purge scheduling and the
+trusted deployment-header policy belong to later Sprint 1 blocks.

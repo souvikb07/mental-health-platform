@@ -1,6 +1,6 @@
 # Current Status
 
-Last updated: 2026-05-30.
+Last updated: 2026-05-31.
 
 This is the canonical Codex status file. `docs/project-handoff/` is ChatGPT-web history and is not the Codex source of truth.
 
@@ -22,6 +22,12 @@ This is the canonical Codex status file. `docs/project-handoff/` is ChatGPT-web 
   retained as encrypted payloads. Raw-free chat-turn claims provide replay,
   active-conflict handling, and five-minute stale recovery. Stored safety state
   is loaded before chat evaluation and merged after context-intake/chat writes.
+- In Supabase mode, enhanced Clarity Maps prefer the retained server transcript
+  when persisted chat exists. Opted-in maps are encrypted, raw-free fingerprint
+  claims replay completed generation safely, and blocked maps never persist.
+- In Supabase mode, feedback ratings and flags append without sensitive-content
+  opt-in. Free-text comments are discarded after opt-out and encrypted after
+  opt-in.
 - OpenAI conversation path uses server-only modules, non-streaming Responses API behavior, `store: false`, model env config, post-response validation, and deterministic fallback when config/output fails.
 - Policy boundary guardrails block diagnosis, medication, treatment protocol, therapy replacement, prompt injection, unsafe self-harm method requests, and related out-of-scope requests.
 - Safety Core / Safety Playbook Engine controls safety states, normal chat permission, Clarity Map permission, safety card visibility, resources, mode, and next actions.
@@ -55,18 +61,19 @@ This is the canonical Codex status file. `docs/project-handoff/` is ChatGPT-web 
 ## Incomplete Or Limited Areas
 
 - No auth, profile, account history, persistent user database, payments, community, long-term memory, voice mode, mobile app, or production deployment hardening.
-- Supabase-mode anonymous session creation, owner-scoped route guards, and
-  encrypted context-intake/chat retention are wired. Other durable
-  journey-content persistence and Supabase auth remain absent.
-- Sprint 1 Blocks 1A through 1F document the production data contract, add
+- Supabase-mode anonymous session creation, owner-scoped route guards, encrypted
+  context-intake/chat retention, encrypted Clarity Map replay, and consent-aware
+  feedback persistence are wired. Supabase auth remains absent.
+- Sprint 1 Blocks 1A through 1G document the production data contract, add
   unapplied additive database migrations, add server-only
   Supabase/config/encryption infrastructure, and wire anonymous session
   creation, enforce ownership on session-bound routes, and persist encrypted
-  context-intake/chat content plus authoritative safety state. Clarity Map and
-  feedback persistence, rate-limit enforcement, export/delete endpoints, purge
-  scheduling, and server hydration are not implemented.
+  opted-in journey content plus authoritative safety state. Event metadata,
+  rate-limit enforcement, export/delete endpoints, purge scheduling, and
+  server hydration are not implemented.
 - No remote Supabase project exists yet. Future migration work must start with a disposable verification project.
-- Feedback backend returns mock `status: "received"` only; do not imply durable persistence or human review.
+- Feedback still returns `status: "received"` only. Supabase mode persists
+  anonymous ratings and flags, but no human review workflow exists.
 - Resources are static/app-owned and not exhaustive.
 - Rate limits are not implemented yet.
 - No OpenAI moderation path is active.
@@ -77,15 +84,15 @@ This is the canonical Codex status file. `docs/project-handoff/` is ChatGPT-web 
 ## Important Next Backend Tasks
 
 - Keep tightening deterministic safety coverage from manual QA and eval findings.
-- Implement Sprint 1 Block 1G: persisted Clarity Maps and feedback.
+- Implement Sprint 1 Block 1H: safety, policy, model, and audit metadata.
 - Add production rate limiting before any public launch on AI and write endpoints.
 - Keep Supabase persistence server-owned and explicitly scoped by the anonymous-owner cookie; `sessionId` must remain a locator only.
 - Continue maintaining synthetic eval coverage for chat, safety, boundary, context intake, Clarity Map, and resource routing.
 
 ## Sprint 1 Production Data Foundation
 
-- Blocks 1A through 1F are complete. The additive migrations through
-  `supabase/migrations/0004_sprint1_persisted_chat_turns.sql` have
+- Blocks 1A through 1G are complete. The additive migrations through
+  `supabase/migrations/0005_sprint1_persisted_clarity_feedback.sql` have
   not been applied to a remote project.
 - Locked decisions live in `docs/adr/ADR-0004-production-anonymous-data-foundation.md` and `docs/architecture/10-production-data-foundation.md`.
 - A full implementation spike exists on `spike/sprint1-production-data-foundation-full-codex` at commit `9e196a1`. It is reference-only, not merge-ready, and must not be copied wholesale.
@@ -107,6 +114,10 @@ This is the canonical Codex status file. `docs/project-handoff/` is ChatGPT-web 
 - Block 1F adds consent-aware encrypted context-intake/chat retention,
   raw-free idempotent chat-turn claims, and persisted safety-state continuity.
   Opt-out sessions retain no user or assistant text.
+- Block 1G adds consent-aware encrypted Clarity Map retention, raw-free
+  fingerprint replay claims with five-minute stale recovery, server-transcript
+  preference when retained chat exists, and append-only feedback ratings with
+  encrypted opted-in comments.
 
 ## Frontend/API Dependencies
 
