@@ -1,6 +1,6 @@
 # Decisions
 
-Last updated: 2026-05-29.
+Last updated: 2026-05-30.
 
 ## Codex Handoff Lives In `codex/`
 
@@ -97,3 +97,48 @@ Last updated: 2026-05-29.
 - Decision: frontend polish blocks should usually touch only the route/component in scope.
 - Reason: the app has many safety-sensitive flows and shared behavior.
 - Consequence: avoid broad refactors, global CSS churn, package additions, or shared component changes unless explicitly approved.
+
+## Sprint 1 Production Data Foundation Is Planned, Not Implemented
+
+- Decision: Sprint 1 adds a server-owned anonymous persistence foundation through small reviewable blocks. Block 1A records the contract only.
+- Reason: sensitive journey retention needs an explicit privacy and security contract before SQL or runtime work begins.
+- Consequence: do not describe persistence, ownership checks, encryption, rate limiting, export/delete, or hydration as implemented until their later blocks land.
+
+## Sprint 1 Anonymous Ownership And Consent
+
+- Decision: use a hashed opaque HttpOnly anonymous-owner cookie and treat `sessionId` only as a locator.
+- Reason: a public session identifier is not authorization.
+- Consequence: future sensitive operations must resolve the cookie owner and scope database access by that owner.
+- Decision: keep required product-boundary consent separate from optional `storageConsentAccepted` sensitive-content retention under policy version `sensitive_storage.v1`.
+- Reason: using the reflection tool must not silently imply consent to retain free-form mental-health text.
+- Consequence: without opt-in, persist only minimal raw-free metadata; with opt-in, encrypt retained notes, messages, Clarity Maps, and feedback comments server-side.
+
+## Sprint 1 Retention, Controls, And Runtime
+
+- Decision: retain each anonymous session for 30 days from that session's creation, not owner creation.
+- Reason: a newer journey must not inherit an almost-expired owner window.
+- Consequence: Block 1B migration design must model session-relative expiry and owner cleanup safely.
+- Decision: add JSON export and hard delete for every cookie-owned anonymous journey, while keeping resources on the static TypeScript runtime.
+- Reason: Sprint 1 needs privacy controls without expanding into history UI or a database-backed resource runtime.
+- Consequence: frontend additions stay limited to hydration plus small export/delete controls.
+- Decision: local development may fall back to transient mode, but production fails closed without valid Supabase persistence configuration.
+- Reason: development ergonomics must not become a production data-loss mode.
+- Consequence: Supabase service-role credentials and encryption keys remain server-only.
+
+## Sprint 1 Rate-Limit Foundation
+
+- Decision: plan Postgres RPC fixed-window buckets and short-lived HMAC identifiers for pre-cookie IP subjects.
+- Reason: distributed abuse protection is needed without retaining raw IP addresses.
+- Consequence: do not store or log raw IPs, and do not trust spoofable forwarding headers until a deployment-specific trusted-header policy is documented.
+
+## Sprint 1 Reference Spike Is Not Merge-Ready
+
+- Decision: treat `spike/sprint1-production-data-foundation-full-codex` at `9e196a1` as reference-only.
+- Reason: review found plaintext opt-out persistence, owner-relative retention, and spoofable forwarded-IP assumptions.
+- Consequence: do not merge or copy the spike wholesale. Reimplement narrower blocks with the P1 findings fixed.
+
+## Sprint 1 Scope Exclusions
+
+- Decision: Sprint 1 does not add RAG, agents, a vector database, payments, an admin dashboard, OAuth-first login, profile/history UI, a major frontend redesign, client-side safety classification, model-generated crisis resources, or diagnosis, treatment, or medication behavior.
+- Reason: Sprint 1 is the production data foundation only.
+- Consequence: keep later implementation blocks narrow.
