@@ -53,3 +53,22 @@
 - safety test matrix
 - Codex log highlights
 - walkthrough-ready screenshots
+
+## Sprint 1: Production Data Foundation
+
+- [x] Block 1A: decisions and documentation
+- [ ] Block 1B: additive database migrations
+- [ ] Block 1C: server Supabase client, environment validation, and encryption helper
+- [ ] Block 1D: server-owned anonymous sessions
+- [ ] Block 1E: ownership guards
+- [ ] Block 1F: persisted messages and chat turns
+- [ ] Block 1G: persisted Clarity Maps and feedback
+- [ ] Block 1H: safety, policy, model, and audit metadata
+- [ ] Block 1I: rate limiting
+- [ ] Block 1J: export, delete, and purge foundation
+- [ ] Block 1K: frontend compatibility and hydration
+- [ ] Block 1L: tests and QA
+
+Block 1B is gated on session-relative retention and raw-free storage opt-out
+design. The full spike on `spike/sprint1-production-data-foundation-full-codex`
+at `9e196a1` is reference-only and must not be copied wholesale.

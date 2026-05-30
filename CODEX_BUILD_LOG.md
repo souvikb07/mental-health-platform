@@ -1154,3 +1154,28 @@ Removed the visible `/feedback` journey stepper and replaced the prior utility-s
 
 Next step:
 Review `/feedback` visually at desktop and mobile widths, then move into final end-to-end demo QA.
+
+## 2026-05-30 19:56 CEST
+
+Task:
+Sprint 1 Block 1A - production data foundation decisions and documentation.
+
+Prompt used:
+Record the locked Sprint 1 Production Data Foundation decisions as planned work only. Add the ADR and architecture note, update the canonical Codex handoff, document the three P1 findings from the reference spike, and do not change application code, migrations, scripts, tests, environment files, package files, or README.
+
+Files changed:
+Added `docs/adr/ADR-0004-production-anonymous-data-foundation.md` and `docs/architecture/10-production-data-foundation.md`. Updated `codex/CURRENT_STATUS.md`, `codex/DECISIONS.md`, `codex/CODEX_TASKS.md`, and `CODEX_BUILD_LOG.md`.
+
+Commands run:
+`git diff --name-only`
+`git diff --check`
+`git status --short`
+
+Result:
+Documented the locked Sprint 1 contract and recorded that the full implementation spike on `spike/sprint1-production-data-foundation-full-codex` at `9e196a1` is reference-only and not merge-ready.
+
+Manual review notes:
+No application behavior changed. No `src/**`, migration, script, test, `.env.example`, `package.json`, or README files were modified. Future implementation must prevent plaintext free-text persistence without storage opt-in, keep retention session-relative, and require a trusted deployment policy before using forwarded IP headers for rate limiting.
+
+Next step:
+Implement Block 1B as additive migration design only after resolving session-relative expiry and raw-free opt-out fields.

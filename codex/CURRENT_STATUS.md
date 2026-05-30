@@ -1,6 +1,6 @@
 # Current Status
 
-Last updated: 2026-05-29.
+Last updated: 2026-05-30.
 
 This is the canonical Codex status file. `docs/project-handoff/` is ChatGPT-web history and is not the Codex source of truth.
 
@@ -46,6 +46,8 @@ This is the canonical Codex status file. `docs/project-handoff/` is ChatGPT-web 
 
 - No auth, profile, account history, persistent user database, payments, community, long-term memory, voice mode, mobile app, or production deployment hardening.
 - Supabase dependency, migration SQL, and seed SQL exist, but Supabase is not wired into live runtime persistence/auth.
+- Sprint 1 Block 1A documents the planned production data foundation. It does not implement migrations, runtime persistence, anonymous-owner cookies, ownership guards, encryption, rate limiting, export/delete endpoints, purge scheduling, or server hydration.
+- No remote Supabase project exists yet. Future migration work must start with a disposable verification project.
 - Feedback backend returns mock `status: "received"` only; do not imply durable persistence or human review.
 - Resources are static/app-owned and not exhaustive.
 - Rate limits are not implemented yet.
@@ -57,11 +59,21 @@ This is the canonical Codex status file. `docs/project-handoff/` is ChatGPT-web 
 ## Important Next Backend Tasks
 
 - Keep tightening deterministic safety coverage from manual QA and eval findings.
-- Add production rate limiting before any public launch on AI, auth, write, and webhook endpoints.
-- Decide whether and how to wire Supabase persistence/RLS/auth in a future explicit block.
-- Define retention/delete/export behavior before storing real user data.
-- Decide the feedback persistence/review model before implying durable feedback handling.
+- Implement Sprint 1 Block 1B as additive migration design only after encoding session-relative retention and raw-free opt-out fields.
+- Add production rate limiting before any public launch on AI and write endpoints.
+- Keep Supabase persistence server-owned and explicitly scoped by the anonymous-owner cookie; `sessionId` must remain a locator only.
 - Continue maintaining synthetic eval coverage for chat, safety, boundary, context intake, Clarity Map, and resource routing.
+
+## Sprint 1 Production Data Foundation
+
+- Block 1A documentation is complete on `docs/sprint1-data-foundation-decisions`.
+- Locked decisions live in `docs/adr/ADR-0004-production-anonymous-data-foundation.md` and `docs/architecture/10-production-data-foundation.md`.
+- A full implementation spike exists on `spike/sprint1-production-data-foundation-full-codex` at commit `9e196a1`. It is reference-only, not merge-ready, and must not be copied wholesale.
+- Future implementation must fix three P1 findings from the spike:
+  1. Storage opt-out must not persist arbitrary plaintext free text.
+  2. Retention must be 30 days from each session's creation, not from owner creation.
+  3. IP rate limiting must not trust spoofable forwarding headers without a trusted deployment policy.
+- No application code, migrations, scripts, tests, environment templates, or package files changed in Block 1A.
 
 ## Frontend/API Dependencies
 
