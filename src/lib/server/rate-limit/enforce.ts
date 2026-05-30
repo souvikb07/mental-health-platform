@@ -17,11 +17,16 @@ import {
   FEEDBACK_RATE_LIMIT,
   RESOURCES_FALLBACK_RATE_LIMIT,
   RESOURCES_RATE_LIMIT,
+  SESSIONS_DELETE_RATE_LIMIT,
+  SESSIONS_EXPORT_RATE_LIMIT,
   SESSION_CREATION_RATE_LIMIT,
   type RateLimitPolicy,
 } from "@/lib/server/rate-limit/config";
 import { getTrustedVercelIpSubject } from "@/lib/server/rate-limit/trusted-subject";
-import type { OwnedSession } from "@/lib/server/session/ownership";
+import type {
+  OwnedSession,
+  ResolvedAnonymousOwner,
+} from "@/lib/server/session/ownership";
 
 const RESOURCES_FALLBACK_SUBJECT = "shared_resources_fallback";
 
@@ -130,6 +135,20 @@ export async function enforceFeedbackRateLimit(
   await enforceOwnedSessionRateLimit(FEEDBACK_RATE_LIMIT, owned, dependencies);
 }
 
+export async function enforceSessionsExportRateLimit(
+  owner: ResolvedAnonymousOwner,
+  dependencies: RateLimitDependencies = {},
+) {
+  await enforceOwnerRateLimit(SESSIONS_EXPORT_RATE_LIMIT, owner, dependencies);
+}
+
+export async function enforceSessionsDeleteRateLimit(
+  owner: ResolvedAnonymousOwner,
+  dependencies: RateLimitDependencies = {},
+) {
+  await enforceOwnerRateLimit(SESSIONS_DELETE_RATE_LIMIT, owner, dependencies);
+}
+
 export function buildRateLimitBucketKey(input: {
   policy: RateLimitPolicy;
   subjectScope: string;
@@ -173,6 +192,26 @@ async function enforceOwnedSessionRateLimit(
     policy,
     "owner_session",
     `${owned.owner.id}:${owned.session.id}`,
+    environment,
+    dependencies,
+  );
+}
+
+async function enforceOwnerRateLimit(
+  policy: RateLimitPolicy,
+  owner: ResolvedAnonymousOwner,
+  dependencies: RateLimitDependencies,
+) {
+  const environment = getEnvironment(dependencies);
+
+  if (environment.mode === "transient") {
+    return;
+  }
+
+  await enforceRateLimit(
+    policy,
+    "owner",
+    owner.id,
     environment,
     dependencies,
   );

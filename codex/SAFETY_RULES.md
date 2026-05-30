@@ -201,7 +201,8 @@ Boundary behavior:
 
 - Supabase-mode production rate limits run before current AI-capable route
   services. Direct Vercel ingress must be verified before public deployment.
-- No accounts or delete/export controls yet.
+- No accounts. Backend export/delete controls exist without changing Safety
+  Core behavior; minimal frontend controls remain pending.
 - No OpenAI moderation path currently used.
 - Safety rules are deterministic plus optional triage and require continued regression tests for new phrasing.
 - Resource catalog is static and not exhaustive.

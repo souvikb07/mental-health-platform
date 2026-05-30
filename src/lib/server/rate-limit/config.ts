@@ -44,6 +44,20 @@ export const FEEDBACK_RATE_LIMIT = {
   limit: 10,
 } as const satisfies RateLimitPolicy;
 
+export const SESSIONS_EXPORT_RATE_LIMIT = {
+  routeKey: "api.sessions.export",
+  subjectKind: "owner_hmac",
+  windowSeconds: 60 * 60,
+  limit: 5,
+} as const satisfies RateLimitPolicy;
+
+export const SESSIONS_DELETE_RATE_LIMIT = {
+  routeKey: "api.sessions.delete",
+  subjectKind: "owner_hmac",
+  windowSeconds: 60 * 60,
+  limit: 5,
+} as const satisfies RateLimitPolicy;
+
 export const RESOURCES_RATE_LIMIT = {
   routeKey: "api.resources",
   subjectKind: "ip_hmac",

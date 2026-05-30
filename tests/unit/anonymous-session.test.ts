@@ -7,6 +7,7 @@ import {
   getValidAnonymousOwnerToken,
   resolveAnonymousOwnerToken,
   serializeAnonymousOwnerCookie,
+  serializeClearAnonymousOwnerCookie,
 } from "../../src/lib/server/session/anonymous-session";
 
 describe("anonymous owner cookie", () => {
@@ -37,6 +38,12 @@ describe("anonymous owner cookie", () => {
 
     expect(serializeAnonymousOwnerCookie(createAnonymousOwnerToken())).toContain(
       "; Secure",
+    );
+  });
+
+  it("clears the cookie with matching security attributes", () => {
+    expect(serializeClearAnonymousOwnerCookie()).toBe(
+      `${ANONYMOUS_OWNER_COOKIE}=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT`,
     );
   });
 

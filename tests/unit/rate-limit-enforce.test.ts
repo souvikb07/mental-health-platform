@@ -6,6 +6,8 @@ import {
   buildRateLimitBucketKey,
   enforceChatRateLimit,
   enforceResourcesRateLimit,
+  enforceSessionsDeleteRateLimit,
+  enforceSessionsExportRateLimit,
   enforceSessionCreationRateLimit,
 } from "../../src/lib/server/rate-limit/enforce";
 import {
@@ -82,6 +84,28 @@ describe("rate-limit enforcement", () => {
     });
     expect(JSON.stringify(consume.mock.calls)).not.toContain("owner-id");
     expect(JSON.stringify(consume.mock.calls)).not.toContain("session-id");
+  });
+
+  it.each([
+    [enforceSessionsExportRateLimit, "api.sessions.export"],
+    [enforceSessionsDeleteRateLimit, "api.sessions.delete"],
+  ])("sends only an owner HMAC digest for %s", async (enforce, routeKey) => {
+    const consume = vi.fn().mockResolvedValue({ allowed: true, retryAfterSeconds: 30 });
+
+    await enforce({ id: "owner-id" }, {
+      consume,
+      getEnvironment: () => supabaseEnvironment,
+      now: () => 1_000,
+    });
+
+    expect(consume).toHaveBeenCalledWith({
+      routeKey,
+      subjectKind: "owner_hmac",
+      bucketKey: expect.stringMatching(/^[0-9a-f]{64}$/),
+      windowSeconds: 3600,
+      limit: 5,
+    });
+    expect(JSON.stringify(consume.mock.calls)).not.toContain("owner-id");
   });
 
   it("throws a safe 429 before callers continue when the bucket is denied", async () => {

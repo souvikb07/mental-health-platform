@@ -65,7 +65,7 @@
 - [x] Block 1G: persisted Clarity Maps and feedback
 - [x] Block 1H: safety, policy, model, and audit metadata
 - [x] Block 1I: rate limiting
-- [ ] Block 1J: export, delete, and purge foundation
+- [x] Block 1J: export, delete, and purge foundation
 - [ ] Block 1K: frontend compatibility and hydration
 - [ ] Block 1L: tests and QA
 
@@ -81,4 +81,5 @@ safety-state continuity. Block 1G added encrypted Clarity Map replay and
 consent-aware feedback persistence. Block 1H added atomic raw-free safety,
 policy, model, and authorized-action audit metadata. Block 1I added distributed
 RPC-backed rate limits with window-scoped HMAC subjects and an explicit
-direct-Vercel trusted-IP policy. Next: Block 1J.
+direct-Vercel trusted-IP policy. Block 1J added cookie-owner-scoped JSON export,
+idempotent hard delete, and a scheduler-ready purge runner. Next: Block 1K.

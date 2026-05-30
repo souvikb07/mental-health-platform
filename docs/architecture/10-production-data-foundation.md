@@ -7,13 +7,14 @@ data foundation without adding accounts, changing public product boundaries, or
 rewriting Safety Core.
 
 This document describes the Sprint 1 target and current incremental progress.
-Blocks 1B through 1I now add the additive SQL foundation, server-only
+Blocks 1B through 1J now add the additive SQL foundation, server-only
 client/encryption helpers, server-owned anonymous session creation, and
 cookie-owner-scoped guards for session-bound routes. Consent-aware encrypted
 context-intake, chat, Clarity Map, and feedback retention is wired. Raw-free
 safety, policy, model, and audit metadata now commits through owner-scoped
-transactional RPC wrappers. Distributed RPC-backed rate limiting is wired. Other
-runtime controls remain pending. The full spike on
+transactional RPC wrappers. Distributed RPC-backed rate limiting, cookie-owned
+JSON export, hard delete, and the scheduler-ready purge runner are wired.
+Frontend hydration remains pending. The full spike on
 `spike/sprint1-production-data-foundation-full-codex` at `9e196a1` is
 reference-only and is not merge-ready.
 
@@ -52,16 +53,19 @@ Decrypt only for server-owned reads scoped to the current anonymous owner.
 Feedback ratings and flags may persist without opt-in. Free-text feedback
 comments follow the encrypted opt-in path.
 
-## Planned Retention And Data Controls
+## Retention And Data Controls
 
 - Each session expires 30 days after its own creation.
 - Owner cleanup must not shorten a newer session's retention window.
-- JSON export covers every retained journey owned by the current cookie and
-  uses no-store response behavior.
-- Hard delete removes every cookie-owned anonymous journey and clears the
-  cookie.
-- A purge foundation will be scheduler-ready, but deployment-specific
-  scheduling is outside Block 1A.
+- `GET /api/sessions/export` covers every retained journey owned by the current
+  cookie, decrypts opted-in content server-side, and returns a no-store JSON
+  attachment without internal hashes or encryption envelopes.
+- `DELETE /api/sessions` removes every cookie-owned anonymous journey through
+  one narrow cascade RPC and clears the owner cookie. Missing or unknown
+  cookies remain idempotent deletion success.
+- `npm run purge:anonymous-data` calls the session-relative purge RPC and
+  prints deletion counts only. Deployment-specific scheduling remains a
+  release decision.
 
 ## Planned Runtime And Protection
 
@@ -112,7 +116,7 @@ The reference spike identified three P1 blockers. Future implementation must:
 1G persisted Clarity Maps and feedback [complete]
 1H safety, policy, model, and audit metadata [complete]
 1I rate limiting [complete]
-1J export, delete, and purge foundation
+1J export, delete, and purge foundation [complete]
 1K frontend compatibility and hydration
 1L tests and QA
 ```

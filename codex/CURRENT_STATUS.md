@@ -34,6 +34,13 @@ This is the canonical Codex status file. `docs/project-handoff/` is ChatGPT-web 
   before existing services run. Session-bound buckets use window-scoped
   owner-plus-session HMAC subjects. Session creation and resources use trusted
   Vercel IP subjects without storing raw IP addresses.
+- In Supabase mode, `GET /api/sessions/export` returns a no-store JSON
+  attachment for every cookie-owned retained journey. Retained sensitive
+  payloads decrypt only server-side, and internal hashes, claims, envelopes,
+  and rate buckets are omitted.
+- `DELETE /api/sessions` is idempotent, clears the anonymous-owner cookie after
+  success, and removes every cookie-owned journey through one narrow cascade
+  RPC. A scheduler-ready purge runner reuses the session-relative purge RPC.
 - OpenAI conversation path uses server-only modules, non-streaming Responses API behavior, `store: false`, model env config, post-response validation, and deterministic fallback when config/output fails.
 - Policy boundary guardrails block diagnosis, medication, treatment protocol, therapy replacement, prompt injection, unsafe self-harm method requests, and related out-of-scope requests.
 - Safety Core / Safety Playbook Engine controls safety states, normal chat permission, Clarity Map permission, safety card visibility, resources, mode, and next actions.
@@ -70,14 +77,14 @@ This is the canonical Codex status file. `docs/project-handoff/` is ChatGPT-web 
 - Supabase-mode anonymous session creation, owner-scoped route guards, encrypted
   context-intake/chat retention, encrypted Clarity Map replay, and consent-aware
   feedback persistence are wired. Supabase auth remains absent.
-- Sprint 1 Blocks 1A through 1I document the production data contract, add
+- Sprint 1 Blocks 1A through 1J document the production data contract, add
   unapplied additive database migrations, add server-only
   Supabase/config/encryption infrastructure, and wire anonymous session
   creation, enforce ownership on session-bound routes, persist encrypted
   opted-in journey content plus authoritative safety state, append structured
-  raw-free event metadata, and enforce distributed rate limits.
-  Export/delete endpoints, purge scheduling, and server hydration are not
-  implemented.
+  raw-free event metadata, enforce distributed rate limits, and add server-owned
+  export/delete plus a purge runner. Purge scheduling and server hydration are
+  not implemented.
 - No remote Supabase project exists yet. Future migration work must start with a disposable verification project.
 - Feedback still returns `status: "received"` only. Supabase mode persists
   anonymous ratings and flags, but no human review workflow exists.
@@ -92,7 +99,7 @@ This is the canonical Codex status file. `docs/project-handoff/` is ChatGPT-web 
 ## Important Next Backend Tasks
 
 - Keep tightening deterministic safety coverage from manual QA and eval findings.
-- Implement Sprint 1 Block 1J: export, delete, and purge foundation.
+- Implement Sprint 1 Block 1K: frontend compatibility and hydration.
 - Verify direct Vercel ingress and exposed Vercel system variables before
   public launch.
 - Keep Supabase persistence server-owned and explicitly scoped by the anonymous-owner cookie; `sessionId` must remain a locator only.
@@ -100,8 +107,8 @@ This is the canonical Codex status file. `docs/project-handoff/` is ChatGPT-web 
 
 ## Sprint 1 Production Data Foundation
 
-- Blocks 1A through 1I are complete. The additive migrations through
-  `supabase/migrations/0007_sprint1_rate_limit_hardening.sql` have
+- Blocks 1A through 1J are complete. The additive migrations through
+  `supabase/migrations/0008_sprint1_data_controls_hardening.sql` have
   not been applied to a remote project.
 - Locked decisions live in `docs/adr/ADR-0004-production-anonymous-data-foundation.md` and `docs/architecture/10-production-data-foundation.md`.
 - A full implementation spike exists on `spike/sprint1-production-data-foundation-full-codex` at commit `9e196a1`. It is reference-only, not merge-ready, and must not be copied wholesale.
@@ -134,6 +141,9 @@ This is the canonical Codex status file. `docs/project-handoff/` is ChatGPT-web 
   window-scoped HMAC digests, and resolves the final P1 trusted-header issue:
   Vercel-overwritten `x-forwarded-for` is read only behind the explicit
   direct-Vercel policy gate.
+- Block 1J adds cookie-owner-scoped no-store JSON export, idempotent anonymous
+  hard delete through a narrow cascade RPC, owner-only export/delete rate
+  limits, and a scheduler-ready purge runner that prints deletion counts only.
 
 ## Frontend/API Dependencies
 

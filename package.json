@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "eval:ai:smoke": "node scripts/evals/run-real-ai-smoke.mjs"
+    "eval:ai:smoke": "node scripts/evals/run-real-ai-smoke.mjs",
+    "purge:anonymous-data": "node scripts/purge-expired-anonymous-data.mjs"
   },
   "dependencies": {
     "@hugeicons/core-free-icons": "^4.1.4",

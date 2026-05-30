@@ -19,6 +19,8 @@ This is the canonical Codex backend handoff for the current MindBridge repo. Use
   Raw-free safety, policy, model, and authorized-action audit metadata commits
   atomically with associated writes or safety-state merges. Supabase-mode API
   routes enforce distributed RPC-backed rate limits before existing services.
+  Cookie-owner-scoped JSON export, idempotent hard delete, and a scheduler-ready
+  expired-data purge runner are present.
 - Supabase: server-only client, encryption helper, migrations, and anonymous
   session creation are present. Session-bound routes enforce cookie ownership
   in Supabase mode. There is no Supabase auth or browser client.
@@ -130,7 +132,7 @@ Safety-critical details belong in `codex/SAFETY_RULES.md`.
 
 - `@supabase/supabase-js` is installed.
 - Additive SQL exists through
-  `supabase/migrations/0007_sprint1_rate_limit_hardening.sql`.
+  `supabase/migrations/0008_sprint1_data_controls_hardening.sql`.
   `supabase/seed/resources_seed.sql` remains historical starter data.
 - Current app runtime does not use Supabase auth or a browser Supabase client.
   Server-owned session creation uses the service-role-only
@@ -141,6 +143,10 @@ Safety-critical details belong in `codex/SAFETY_RULES.md`.
   owner-scoped transactional wrappers and append-only event tables. Rate-limit
   buckets store window-scoped HMAC digests only and mutate through the
   service-role-only `consume_rate_limit(...)` RPC.
+  JSON export reads only cookie-owner-scoped rows and decrypts retained content
+  server-side. Owner hard delete uses only
+  `delete_anonymous_owner_data(...)`; the purge runner reuses
+  `purge_expired_anonymous_data()`.
 - If future work enables Supabase:
   - keep service-role keys server-only;
   - enable RLS before production for public schema tables;
@@ -201,7 +207,8 @@ Anything prefixed `NEXT_PUBLIC_` is browser-exposed and must never contain secre
 
 ## Known Backend TODOs And Limitations
 
-- No accounts, delete/export, or hydration.
+- No accounts or server hydration. Export/delete endpoints exist, but their
+  minimal frontend controls land in Block 1K.
 - Feedback has no durable human review workflow.
 - Resources are static/app-owned and not exhaustive.
 - RPC-backed rate limits are implemented for current AI, write, session
