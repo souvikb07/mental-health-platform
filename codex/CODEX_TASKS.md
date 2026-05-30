@@ -60,7 +60,7 @@
 - [x] Block 1B: additive database migrations
 - [x] Block 1C: server Supabase client, environment validation, and encryption helper
 - [x] Block 1D: server-owned anonymous sessions
-- [ ] Block 1E: ownership guards
+- [x] Block 1E: ownership guards
 - [ ] Block 1F: persisted messages and chat turns
 - [ ] Block 1G: persisted Clarity Maps and feedback
 - [ ] Block 1H: safety, policy, model, and audit metadata
@@ -74,4 +74,5 @@ guardrails in SQL. The full spike on
 `spike/sprint1-production-data-foundation-full-codex` at `9e196a1` remains
 reference-only and must not be copied wholesale. Block 1C added unwired
 server-only Supabase/config/encryption helpers. Block 1D added transactional
-server-owned anonymous session creation. Next: Block 1E.
+server-owned anonymous session creation. Block 1E added same-origin checks and
+cookie-owner-scoped session guards. Next: Block 1F.

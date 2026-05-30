@@ -11,7 +11,10 @@ vi.mock("@/lib/db/supabase-server", () => ({
   getSupabaseServerClient,
 }));
 
-import { createOwnedAnonymousSession } from "../../src/lib/db/repositories/sessions";
+import {
+  createOwnedAnonymousSession,
+  findOwnedSession,
+} from "../../src/lib/db/repositories/sessions";
 
 const rpcRow = {
   owner_id: "owner-id",
@@ -71,6 +74,57 @@ describe("sessions repository", () => {
       }),
     ).rejects.toThrow("Anonymous session creation failed.");
   });
+
+  it("finds sessions only through an owner-scoped non-expired query", async () => {
+    const query = createSessionQuery({
+      data: {
+        id: "session-id",
+        owner_id: "owner-id",
+        expires_at: "2026-06-29T00:00:00.000Z",
+      },
+      error: null,
+    });
+    const from = vi.fn(() => query);
+    getSupabaseServerClient.mockReturnValue({ rpc, from });
+
+    await expect(findOwnedSession("owner-id", "session-id")).resolves.toEqual({
+      id: "session-id",
+      ownerId: "owner-id",
+      expiresAt: "2026-06-29T00:00:00.000Z",
+    });
+
+    expect(from).toHaveBeenCalledWith("sessions");
+    expect(query.select).toHaveBeenCalledWith("id, owner_id, expires_at");
+    expect(query.eq.mock.calls).toEqual([
+      ["owner_id", "owner-id"],
+      ["id", "session-id"],
+    ]);
+    expect(query.gt).toHaveBeenCalledWith("expires_at", expect.any(String));
+    expect(query.maybeSingle).toHaveBeenCalledOnce();
+  });
+
+  it("returns the same session-not-found error for absent owner-scoped rows", async () => {
+    const query = createSessionQuery({ data: null, error: null });
+    getSupabaseServerClient.mockReturnValue({ rpc, from: () => query });
+
+    await expect(findOwnedSession("owner-id", "unknown-session")).rejects.toMatchObject({
+      code: "SESSION_NOT_FOUND",
+      status: 404,
+    });
+  });
+
+  it("maps session query failures to a safe backend error", async () => {
+    const query = createSessionQuery({
+      data: null,
+      error: { message: "private database detail" },
+    });
+    getSupabaseServerClient.mockReturnValue({ rpc, from: () => query });
+
+    await expect(findOwnedSession("owner-id", "session-id")).rejects.toMatchObject({
+      code: "DATA_BACKEND_UNAVAILABLE",
+      status: 503,
+    });
+  });
 });
 
 describe("0003 anonymous session RPC migration", () => {
@@ -99,3 +153,17 @@ describe("0003 anonymous session RPC migration", () => {
     expect(migration).not.toContain("p_main_reason");
   });
 });
+
+function createSessionQuery(result: unknown) {
+  const query = {
+    select: vi.fn(),
+    eq: vi.fn(),
+    gt: vi.fn(),
+    maybeSingle: vi.fn().mockResolvedValue(result),
+  };
+
+  query.select.mockReturnValue(query);
+  query.eq.mockReturnValue(query);
+  query.gt.mockReturnValue(query);
+  return query;
+}

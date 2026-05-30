@@ -16,7 +16,8 @@ This is the canonical Codex backend handoff for the current MindBridge repo. Use
   anonymous owner/session/consent rows. Other runtime database writes remain
   pending.
 - Supabase: server-only client, encryption helper, migrations, and anonymous
-  session creation are present. There is no Supabase auth or browser client.
+  session creation are present. Session-bound routes enforce cookie ownership
+  in Supabase mode. There is no Supabase auth or browser client.
 
 ## Backend Folder Structure
 
@@ -63,12 +64,16 @@ Current routes:
   - Service: `src/lib/server/context-intake.ts`
   - Requires visible onboarding context: `sessionId`, `countryCode` `US` or `IN`, `ageConfirmed: true`, `consentAccepted: true`, `mainConcernCategory`, and `mainConcernLabel`.
   - Runs Safety Core on optional onboarding text before generating a normal opener.
+  - In Supabase mode, verifies the owner cookie and owner-scoped session before
+    Safety Core or opener generation.
 
 - `POST /api/chat`
   - Handler: `src/app/api/chat/route.ts`
   - Service: `src/lib/server/chat.ts`
   - Validation: `src/lib/validation/chat.ts`
   - Runs Safety Core before normal conversation. High/imminent safety and policy-boundary routes do not call the conversation agent.
+  - In Supabase mode, verifies the owner cookie and owner-scoped session before
+    Safety Core or conversation generation.
 
 - `POST /api/clarity-map`
   - Handler: `src/app/api/clarity-map/route.ts`
@@ -77,6 +82,8 @@ Current routes:
   - Legacy `{ sessionId }` request returns mock-compatible `{ clarityMap }`.
   - Enhanced request with `sessionContext` and `messages` returns generated map, safety block, boundary block, or insufficient context.
   - Safety/boundary gating happens before insufficient-context handling for the latest meaningful user message.
+  - In Supabase mode, verifies the owner cookie and owner-scoped session before
+    legacy or enhanced map logic.
 
 - `GET /api/resources`
   - Handler: `src/app/api/resources/route.ts`
@@ -89,6 +96,8 @@ Current routes:
   - Service: `src/lib/server/feedback.ts`
   - Validation: `src/lib/validation/feedback.ts`
   - Current behavior is mock receipt only: `{ status: "received" }`.
+  - In Supabase mode, verifies the owner cookie and owner-scoped session before
+    returning the mock receipt.
 
 See `codex/API_CONTRACT.md` for frontend/backend request and response shapes.
 
@@ -113,8 +122,8 @@ Safety-critical details belong in `codex/SAFETY_RULES.md`.
 - SQL exists in `supabase/migrations/0001_phase1_schema.sql` and `supabase/seed/resources_seed.sql`.
 - Current app runtime does not use Supabase auth or a browser Supabase client.
   Server-owned session creation uses the service-role-only
-  `create_anonymous_session(...)` RPC. Downstream route ownership checks are
-  not implemented yet.
+  `create_anonymous_session(...)` RPC. Session-bound route guards resolve the
+  cookie owner and query sessions with both `owner_id` and `sessionId`.
 - If future work enables Supabase:
   - keep service-role keys server-only;
   - enable RLS before production for public schema tables;
@@ -174,8 +183,8 @@ Anything prefixed `NEXT_PUBLIC_` is browser-exposed and must never contain secre
 
 ## Known Backend TODOs And Limitations
 
-- No accounts, downstream ownership guards, durable journey-content
-  persistence, delete/export, or hydration.
+- No accounts, durable journey-content persistence, authoritative persisted
+  safety state, delete/export, or hydration.
 - Feedback is mock receipt only and has no durable review workflow.
 - Resources are static/app-owned and not exhaustive.
 - Rate limits are not implemented yet and are required before public launch on AI, auth, write, and webhook endpoints.

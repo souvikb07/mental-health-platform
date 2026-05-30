@@ -7,10 +7,11 @@ data foundation without adding accounts, changing public product boundaries, or
 rewriting Safety Core.
 
 This document describes the Sprint 1 target and current incremental progress.
-Blocks 1B through 1D now add the additive SQL foundation, server-only
-client/encryption helpers, and server-owned anonymous session creation. Other
-runtime persistence and ownership enforcement remain pending. The full spike
-on `spike/sprint1-production-data-foundation-full-codex` at `9e196a1` is
+Blocks 1B through 1E now add the additive SQL foundation, server-only
+client/encryption helpers, server-owned anonymous session creation, and
+cookie-owner-scoped guards for session-bound routes. Other runtime persistence
+remains pending. The full spike on
+`spike/sprint1-production-data-foundation-full-codex` at `9e196a1` is
 reference-only and is not merge-ready.
 
 ## Planned Ownership Flow
@@ -64,6 +65,9 @@ comments follow the encrypted opt-in path.
 - `transient` mode keeps local development usable when Supabase is absent.
 - Production requires valid Supabase persistence configuration and fails
   closed instead of silently falling back.
+- In Supabase mode, context intake, chat, Clarity Map, and feedback routes
+  require the valid owner cookie and an unexpired owner-scoped session lookup.
+- Browser mutation routes reject cross-site requests and mismatched origins.
 - OpenAI and Supabase service-role usage remain server-only.
 - Resources continue to use the current tested static TypeScript catalog.
 - Postgres RPC fixed-window buckets provide planned distributed rate limits.
@@ -97,7 +101,7 @@ The reference spike identified three P1 blockers. Future implementation must:
 1B additive database migrations [complete]
 1C server Supabase client, env validation, and encryption helper [complete]
 1D server-owned anonymous sessions [complete]
-1E ownership guards
+1E ownership guards [complete]
 1F persisted messages and chat turns
 1G persisted Clarity Maps and feedback
 1H safety, policy, model, and audit metadata

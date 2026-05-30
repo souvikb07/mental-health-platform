@@ -40,7 +40,8 @@ Avoid language such as:
 
 Normal chat flow:
 
-1. Route validates the request.
+1. Route validates the request and, in Supabase mode, verifies cookie ownership
+   of the session locator.
 2. `src/lib/server/chat.ts` calls `safetyOrchestrator.evaluate`.
 3. Safety Core runs deterministic risk classification.
 4. Safety Core runs policy-boundary classification.
@@ -51,19 +52,22 @@ Normal chat flow:
 
 Context intake flow:
 
-1. `/api/context-intake` validates complete visible onboarding context.
+1. `/api/context-intake` validates complete visible onboarding context and, in
+   Supabase mode, verifies cookie ownership of the session locator.
 2. Optional `mainConcernText` runs through Safety Core before opener generation.
 3. Safety or boundary routes return local responses and do not call the context-intake model.
 4. Missing model config returns deterministic fallback opener.
 
 Clarity Map flow:
 
-1. Enhanced `/api/clarity-map` extracts meaningful user messages.
-2. Safety Core/policy boundary gating runs on the latest meaningful user message before insufficient-context handling.
-3. Submitted user messages are also scanned for deterministic blocking safety signals.
-4. Safety or boundary routes block generation before any Clarity Map model call.
-5. Normal generated maps are structured, validated, non-diagnostic, and evidence-grounded.
-6. Safety-blocked cases do not return a normal Harmony Signal or `/100` score.
+1. `/api/clarity-map` validates the request and, in Supabase mode, verifies
+   cookie ownership of the session locator.
+2. Enhanced `/api/clarity-map` extracts meaningful user messages.
+3. Safety Core/policy boundary gating runs on the latest meaningful user message before insufficient-context handling.
+4. Submitted user messages are also scanned for deterministic blocking safety signals.
+5. Safety or boundary routes block generation before any Clarity Map model call.
+6. Normal generated maps are structured, validated, non-diagnostic, and evidence-grounded.
+7. Safety-blocked cases do not return a normal Harmony Signal or `/100` score.
 
 ## Risk Categories
 
@@ -187,7 +191,8 @@ Boundary behavior:
 ## Known Safety Gaps Or TODOs
 
 - No production rate limits yet.
-- No auth, server-side ownership checks, or durable user data controls yet.
+- No accounts, durable journey-content persistence, authoritative persisted
+  safety state, or delete/export controls yet.
 - No OpenAI moderation path currently used.
 - Safety rules are deterministic plus optional triage and require continued regression tests for new phrasing.
 - Resource catalog is static and not exhaustive.

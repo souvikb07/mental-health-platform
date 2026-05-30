@@ -62,11 +62,15 @@ Last updated: 2026-05-30.
 - Reason: Phase 1 scope is the core reflection journey, not account infrastructure.
 - Consequence: do not add auth, profile, account history, community, payments, long-term memory, or database-backed user history without explicit approval.
 
-## Supabase Is Present But Not Live Runtime Persistence
+## Supabase Session Ownership Is Partially Wired
 
-- Decision: Supabase dependency and SQL files exist, but live app behavior does not use Supabase auth/database writes yet.
-- Reason: security guardrails, safety, AI, and MVP flow came before production persistence.
-- Consequence: do not assume database persistence or RLS-backed ownership exists; future Supabase work must be explicit and server-authorized.
+- Decision: Supabase-mode anonymous session creation and owner-scoped
+  session-bound route guards are wired, but durable journey-content
+  persistence and Supabase auth are not.
+- Reason: session ownership must be enforced before later persistence expands.
+- Consequence: do not assume message, Clarity Map, feedback, or authoritative
+  safety-state persistence exists; future Supabase writes must remain explicit
+  and server-authorized.
 
 ## Current Journey Uses `sessionStorage`
 
@@ -100,9 +104,15 @@ Last updated: 2026-05-30.
 
 ## Sprint 1 Production Data Foundation Lands In Narrow Blocks
 
-- Decision: Sprint 1 adds a server-owned anonymous persistence foundation through small reviewable blocks. Blocks 1A through 1C record the contract, add the unapplied SQL foundation, and add unwired server-only client/config/encryption infrastructure.
+- Decision: Sprint 1 adds a server-owned anonymous persistence foundation
+  through small reviewable blocks. Blocks 1A through 1E record the contract,
+  add the unapplied SQL foundation, add server-only client/config/encryption
+  infrastructure, wire anonymous session creation, and enforce owner-scoped
+  route guards.
 - Reason: sensitive journey retention needs an explicit privacy and security contract before SQL or runtime work begins.
-- Consequence: do not describe runtime persistence, ownership checks, rate-limit enforcement, export/delete, or hydration as implemented until their later blocks land.
+- Consequence: do not describe durable journey-content persistence,
+  rate-limit enforcement, export/delete, or hydration as implemented until
+  their later blocks land.
 
 ## Sprint 1 Server Data Infrastructure
 
@@ -131,6 +141,19 @@ Last updated: 2026-05-30.
 - Consequence: owners remain expiry-neutral, the existing SQL trigger derives
   each session's expiry, and downstream ownership enforcement remains a
   separate Block 1E responsibility.
+- Decision: in Supabase mode, session-bound route guards resolve the HttpOnly
+  cookie owner and query sessions with both `owner_id` and `sessionId` before
+  invoking business services. Unknown and cross-owner locators return the same
+  `SESSION_NOT_FOUND` response.
+- Reason: service-role clients bypass RLS and public session identifiers are
+  locators only, never authorization.
+- Consequence: do not add unscoped session fallback lookups or trust
+  browser-submitted context for authorization.
+- Decision: browser mutation routes reject cross-site requests and mismatched
+  origins while allowing absent `Origin` for non-browser callers.
+- Reason: anonymous-owner cookies need a narrow CSRF guard without breaking the
+  existing server-side smoke harness.
+- Consequence: keep relative same-origin frontend API calls unchanged.
 
 ## Sprint 1 Retention, Controls, And Runtime
 

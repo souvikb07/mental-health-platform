@@ -23,10 +23,20 @@ const sessionContextSchema = z.object({
   mainConcernText: z.string().trim().min(1).max(1000).optional(),
 });
 
-export const chatRequestSchema = z.object({
-  sessionId: z.string().trim().min(1).max(120),
-  message: z.string().trim().min(1).max(4000),
-  sessionContext: sessionContextSchema.optional(),
-});
+export const chatRequestSchema = z
+  .object({
+    sessionId: z.string().trim().min(1).max(120),
+    message: z.string().trim().min(1).max(4000),
+    sessionContext: sessionContextSchema.optional(),
+  })
+  .refine(
+    (request) =>
+      !request.sessionContext ||
+      request.sessionContext.sessionId === request.sessionId,
+    {
+      message: "Session context must match the session locator.",
+      path: ["sessionContext", "sessionId"],
+    },
+  );
 
 export type ChatRequest = z.infer<typeof chatRequestSchema>;

@@ -15,6 +15,9 @@ This is the canonical Codex status file. `docs/project-handoff/` is ChatGPT-web 
   HttpOnly owner cookie.
 - `/api/context-intake` validates complete onboarding context, gates optional onboarding text through Safety Core, and returns an opener, safety route, or boundary route.
 - `/api/chat` runs Safety Core before normal conversation and preserves the stable chat response shape.
+- In Supabase mode, context intake, chat, Clarity Map, and feedback routes now
+  verify the HttpOnly owner cookie and an unexpired owner-scoped session before
+  invoking their existing business services.
 - OpenAI conversation path uses server-only modules, non-streaming Responses API behavior, `store: false`, model env config, post-response validation, and deterministic fallback when config/output fails.
 - Policy boundary guardrails block diagnosis, medication, treatment protocol, therapy replacement, prompt injection, unsafe self-harm method requests, and related out-of-scope requests.
 - Safety Core / Safety Playbook Engine controls safety states, normal chat permission, Clarity Map permission, safety card visibility, resources, mode, and next actions.
@@ -48,11 +51,13 @@ This is the canonical Codex status file. `docs/project-handoff/` is ChatGPT-web 
 ## Incomplete Or Limited Areas
 
 - No auth, profile, account history, persistent user database, payments, community, long-term memory, voice mode, mobile app, or production deployment hardening.
-- Supabase dependency, migration SQL, and seed SQL exist, but Supabase is not wired into live runtime persistence/auth.
-- Sprint 1 Blocks 1A through 1D document the production data contract, add
+- Supabase-mode anonymous session creation and owner-scoped route guards are
+  wired. Durable journey-content persistence and Supabase auth remain absent.
+- Sprint 1 Blocks 1A through 1E document the production data contract, add
   unapplied additive database migrations, add server-only
   Supabase/config/encryption infrastructure, and wire anonymous session
-  creation. Downstream ownership guards, durable journey-content persistence,
+  creation, and enforce ownership on session-bound routes. Durable
+  journey-content persistence, authoritative persisted safety state,
   rate-limit enforcement, export/delete endpoints, purge scheduling, and
   server hydration are not implemented.
 - No remote Supabase project exists yet. Future migration work must start with a disposable verification project.
@@ -67,14 +72,14 @@ This is the canonical Codex status file. `docs/project-handoff/` is ChatGPT-web 
 ## Important Next Backend Tasks
 
 - Keep tightening deterministic safety coverage from manual QA and eval findings.
-- Implement Sprint 1 Block 1E: ownership guards.
+- Implement Sprint 1 Block 1F: persisted messages and chat turns.
 - Add production rate limiting before any public launch on AI and write endpoints.
 - Keep Supabase persistence server-owned and explicitly scoped by the anonymous-owner cookie; `sessionId` must remain a locator only.
 - Continue maintaining synthetic eval coverage for chat, safety, boundary, context intake, Clarity Map, and resource routing.
 
 ## Sprint 1 Production Data Foundation
 
-- Blocks 1A through 1D are complete. The additive migrations through
+- Blocks 1A through 1E are complete. The additive migrations through
   `supabase/migrations/0003_sprint1_anonymous_session_creation_rpc.sql` have
   not been applied to a remote project.
 - Locked decisions live in `docs/adr/ADR-0004-production-anonymous-data-foundation.md` and `docs/architecture/10-production-data-foundation.md`.
@@ -88,8 +93,12 @@ This is the canonical Codex status file. `docs/project-handoff/` is ChatGPT-web 
 - Block 1D wires server-owned anonymous session creation only. The owner cookie
   is opaque and HttpOnly, Postgres stores only its SHA-256 hash, each session
   retains SQL-derived session-relative expiry, opted-out free text stays out of
-  Postgres, and opted-in onboarding context is encrypted. Downstream routes do
-  not enforce ownership yet.
+  Postgres, and opted-in onboarding context is encrypted. Ownership enforcement
+  for downstream routes lands in Block 1E.
+- Block 1E adds same-origin mutation checks and Supabase-mode owner-scoped
+  session guards before context intake, chat, Clarity Map, and feedback
+  services. Unknown and cross-owner session locators intentionally share the
+  same `SESSION_NOT_FOUND` response.
 
 ## Frontend/API Dependencies
 
