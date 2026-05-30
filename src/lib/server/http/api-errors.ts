@@ -59,6 +59,15 @@ export function chatTurnRetryUnavailable() {
   );
 }
 
+export function clarityMapInProgress() {
+  return new ApiError(
+    "CLARITY_MAP_IN_PROGRESS",
+    409,
+    "That Clarity Map is still being generated.",
+    { "Retry-After": "5" },
+  );
+}
+
 export function validationError() {
   return NextResponse.json(
     {

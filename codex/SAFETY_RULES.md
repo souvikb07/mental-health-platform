@@ -170,6 +170,8 @@ Boundary behavior:
 - Generated maps must ground evidence in submitted message IDs.
 - Harmony Signal is a non-clinical reflection signal, not a clinical score.
 - Backend recomputes Harmony Signal score/band from validated components.
+- Supabase-mode enhanced generation prefers the retained encrypted transcript
+  when persisted chat exists. Blocked responses never persist as normal maps.
 
 ## Frontend Safety Behavior
 
@@ -189,15 +191,15 @@ Boundary behavior:
 - Do not send raw mental-health content to analytics providers.
 - Do not expose server-only secrets to frontend code.
 - Raw chat content remains in `sessionStorage` for the active browser journey.
-  After storage opt-in, retained server copies are encrypted before database
-  writes.
+  After storage opt-in, retained server copies of chat, Clarity Maps, and
+  feedback comments are encrypted before database writes.
 - Browser storage is not secure persistence or authorization.
 
 ## Known Safety Gaps Or TODOs
 
 - No production rate limits yet.
-- No accounts, Clarity Map or feedback persistence, event-level safety
-  metadata persistence, or delete/export controls yet.
+- No accounts, event-level safety metadata persistence, or delete/export
+  controls yet.
 - No OpenAI moderation path currently used.
 - Safety rules are deterministic plus optional triage and require continued regression tests for new phrasing.
 - Resource catalog is static and not exhaustive.

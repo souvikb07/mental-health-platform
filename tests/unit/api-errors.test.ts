@@ -4,6 +4,7 @@ import {
   apiErrorResponse,
   chatTurnInProgress,
   chatTurnRetryUnavailable,
+  clarityMapInProgress,
   sessionNotFound,
   unauthorizedSession,
 } from "../../src/lib/server/http/api-errors";
@@ -14,6 +15,7 @@ describe("safe API errors", () => {
     [sessionNotFound(), 404, "SESSION_NOT_FOUND"],
     [chatTurnInProgress(), 409, "CHAT_TURN_IN_PROGRESS"],
     [chatTurnRetryUnavailable(), 409, "CHAT_TURN_RETRY_UNAVAILABLE"],
+    [clarityMapInProgress(), 409, "CLARITY_MAP_IN_PROGRESS"],
   ])("returns safe structured errors", async (error, status, code) => {
     const response = apiErrorResponse(error);
 
@@ -25,6 +27,12 @@ describe("safe API errors", () => {
 
   it("includes retry guidance for active duplicate turns", () => {
     const response = apiErrorResponse(chatTurnInProgress());
+
+    expect(response.headers.get("Retry-After")).toBe("5");
+  });
+
+  it("includes retry guidance for active duplicate Clarity Maps", () => {
+    const response = apiErrorResponse(clarityMapInProgress());
 
     expect(response.headers.get("Retry-After")).toBe("5");
   });

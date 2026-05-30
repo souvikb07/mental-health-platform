@@ -31,9 +31,9 @@ export function FeedbackForm() {
               Feedback received for this MVP run.
             </p>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              The feedback endpoint accepted it. No account, database record,
-              analytics provider, clinical review, emergency follow-up, or human
-              response is implied.
+              The feedback endpoint accepted it. Anonymous ratings may be
+              retained. No account, analytics provider, clinical review,
+              emergency follow-up, or human response is implied.
             </p>
           </div>
         </div>
@@ -76,7 +76,8 @@ export function FeedbackForm() {
           </p>
           <p className="mt-1">
             This form helps improve the MVP experience. It is not monitored as
-            emergency support.
+            emergency support. Anonymous ratings may be retained. Optional notes
+            are encrypted only when you chose journey storage during onboarding.
           </p>
         </div>
       </div>

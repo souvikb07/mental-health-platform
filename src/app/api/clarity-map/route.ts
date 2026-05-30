@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 
-import { createClarityMapResponse } from "@/lib/server/clarity-map";
+import {
+  createClarityMapResponse,
+  createPersistedClarityMapResponse,
+} from "@/lib/server/clarity-map";
 import {
   apiErrorResponse,
   validationError,
@@ -19,9 +22,13 @@ export async function POST(request: Request) {
       return validationError();
     }
 
-    await resolveOwnedSession(request, parsed.data.sessionId);
+    const owned = await resolveOwnedSession(request, parsed.data.sessionId);
 
-    return NextResponse.json(await createClarityMapResponse(parsed.data));
+    return NextResponse.json(
+      owned
+        ? await createPersistedClarityMapResponse(parsed.data, owned)
+        : await createClarityMapResponse(parsed.data),
+    );
   } catch (error) {
     return apiErrorResponse(error);
   }

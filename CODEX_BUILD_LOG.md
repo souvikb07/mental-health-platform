@@ -1372,3 +1372,46 @@ files remain unchanged.
 Next step:
 Apply `0001` through `0004` to a disposable Supabase project, then implement
 Block 1G persisted Clarity Maps and feedback.
+
+## 2026-05-31 00:17 CEST
+
+Task:
+Sprint 1 Block 1G - persisted Clarity Maps and feedback.
+
+Prompt used:
+Add consent-aware encrypted Clarity Map and feedback persistence in Supabase
+mode, preserve transient and legacy behavior, prefer retained server transcript
+rows, and keep Safety Core and OpenAI modules unchanged.
+
+Files changed:
+Added `supabase/migrations/0005_sprint1_persisted_clarity_feedback.sql`,
+server-only Clarity Map and feedback repositories, encrypted payload helpers,
+authoritative transcript loading, route orchestration, focused tests, minimal
+feedback copy updates, and canonical handoff updates.
+
+Commands run:
+`npx vitest run ...` focused Block 1G and existing regression files
+`npm test`
+`npm run lint`
+`npm run build`
+`git diff --check`
+Read-only scans for logging calls, browser-exposed secrets, `localStorage`
+writes, OpenAI `store: false`, changed paths, and scoped non-changes
+
+Result:
+Supabase-mode enhanced Clarity Maps now prefer retained encrypted chat when it
+exists. Opted-in maps use raw-free transcript fingerprints, five-minute replay
+claims, encrypted retention, and strict replay validation. Feedback ratings and
+flags append without storage opt-in; comments are discarded after opt-out and
+encrypted after opt-in.
+
+Manual review notes:
+Blocked Clarity Maps never persist as normal maps. Safety and boundary blocks
+remain visible with additive `persistenceStatus: "unavailable"` if a raw-free
+state merge fails. Safety Core, AI/OpenAI modules, `store: false`, event
+metadata persistence, rate-limit enforcement, export/delete, hydration,
+package files, and env files remain unchanged.
+
+Next step:
+Apply `0001` through `0005` to a disposable Supabase project, then implement
+Block 1H safety, policy, model, and audit metadata.

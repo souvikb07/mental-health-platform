@@ -1,6 +1,6 @@
 # Frontend State
 
-Last updated: 2026-05-29.
+Last updated: 2026-05-31.
 
 ## Stack
 
@@ -38,7 +38,8 @@ Last updated: 2026-05-29.
 - `/chat`: hydrates session/messages from `sessionStorage`, calls context-intake once when needed, sends chat messages with stable per-submission UUIDs, renders safety/resources, and can generate a Clarity Map.
 - `/clarity-map`: reads generated map from `sessionStorage`; shows empty CTA when no generated map exists.
 - `/resources`: fetches app-owned resources through `/api/resources`; falls back to `mockResources` on failure.
-- `/feedback`: submits MVP feedback to `/api/feedback`; does not imply persistence or review.
+- `/feedback`: submits MVP feedback to `/api/feedback`; explains anonymous
+  ratings retention and does not imply review.
 - `/demo`: safety and routing preview; not exposed in main header.
 
 ## Styling And Design Conventions
@@ -73,8 +74,9 @@ Last updated: 2026-05-29.
   - `mindbridge.sessionId`
   - `mindbridge.sessionContext`
 - Raw chat content must not be stored in localStorage.
-- After storage opt-in, server-retained context-intake/chat copies are encrypted
-  before database writes. Browser `sessionStorage` remains the active UX cache.
+- After storage opt-in, server-retained context-intake/chat, Clarity Map, and
+  feedback-comment copies are encrypted before database writes. Browser
+  `sessionStorage` remains the active UX cache.
 - Onboarding sends an optional unchecked `storageConsentAccepted` choice and
   writes active context through the existing `sessionStorage` cache only.
 - Browser storage is not authorization.
@@ -84,7 +86,8 @@ Last updated: 2026-05-29.
 - Frontend API expectations are documented in `codex/API_CONTRACT.md`.
 - API helpers live in `src/lib/api/client.ts`.
 - Resource cards must render backend/app-owned resource data, not invented client-side resources.
-- Feedback currently submits to a mock server receiver; UI must remain honest about no implied persistence or review.
+- Feedback retains its receipt-only response. UI must remain honest about
+  anonymous rating retention and no implied review.
 - Do not change request/response shapes from UI polish tasks.
 
 ## Frontend Safety Behavior
@@ -98,7 +101,7 @@ Last updated: 2026-05-29.
 ## Known TODOs And Limitations
 
 - Final full journey QA is still recommended after the latest polish work.
-- Feedback has no durable backend persistence.
+- Feedback has no durable human review workflow.
 - Resources are app-owned/static and not exhaustive.
 - The app is anonymous-session MVP; production auth, RLS, delete/export, and durable privacy controls are not implemented.
 - Lint warning exists for the landing plain `<img>` local hero asset.

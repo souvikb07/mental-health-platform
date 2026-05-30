@@ -1,14 +1,37 @@
 import "server-only";
 
+import { randomBytes } from "node:crypto";
+
 import {
   generateStructuredClarityMap,
   type ClarityMapAgentResult,
 } from "@/lib/ai/clarity-map";
+import {
+  claimClarityMapGeneration,
+  mergeOwnedSessionSafetyState,
+  persistClarityMapResult,
+} from "@/lib/db/repositories/clarity-maps";
+import { loadPersistedTranscript } from "@/lib/db/repositories/messages";
 import { mockClarityMap } from "@/lib/mock/mock-clarity-map";
 import { classifyPolicyBoundary } from "@/lib/safety/policy-boundary-classifier";
 import { classifyRisk } from "@/lib/safety/risk-classifier";
-import { safetyOrchestrator } from "@/lib/safety-core";
+import {
+  safetyOrchestrator,
+  type SafetyDecision,
+  type SafetyState,
+} from "@/lib/safety-core";
 import { determineSafetyState } from "@/lib/safety-core/safety-state-machine";
+import { sha256 } from "@/lib/server/crypto/sensitive-data";
+import {
+  clarityMapInProgress,
+  dataBackendUnavailable,
+} from "@/lib/server/http/api-errors";
+import {
+  decryptClarityMapResponse,
+  encryptClarityMapResponse,
+} from "@/lib/server/persistence/clarity-map-payloads";
+import { createAuthoritativeSessionContext } from "@/lib/server/session/authoritative-context";
+import type { OwnedSession } from "@/lib/server/session/ownership";
 import {
   type ClarityMapRequest,
   type EnhancedClarityMapRequest,
@@ -40,12 +63,14 @@ export type EnhancedClarityMapResponse =
       risk: ApiRiskClassification;
       safety: SafetyUi | null;
       resources: SupportResource[];
+      persistenceStatus?: "unavailable";
     }
   | {
       type: "boundary_blocked";
       source: "boundary";
       assistantMessage: ApiChatMessage;
       policyBoundary: PolicyBoundaryResult;
+      persistenceStatus?: "unavailable";
     }
   | {
       type: "insufficient_context";
@@ -63,9 +88,15 @@ type ClarityMapDependencies = {
   ) => Promise<ClarityMapAgentResult>;
 };
 
+type ClarityMapOptions = {
+  previousState?: SafetyState;
+  onSafetyDecision?: (decision: SafetyDecision) => void;
+};
+
 export async function createClarityMapResponse(
   request: ClarityMapRequest,
   dependencies: ClarityMapDependencies = {},
+  options: ClarityMapOptions = {},
 ): Promise<ClarityMapApiResponse> {
   if (!isEnhancedClarityMapRequest(request)) {
     return getMockClarityMap(request);
@@ -73,7 +104,11 @@ export async function createClarityMapResponse(
 
   const meaningfulUserMessages = getMeaningfulUserMessages(request.messages);
 
-  const safetyBlock = await getSafetyBlock(request, meaningfulUserMessages);
+  const safetyBlock = await getSafetyBlock(
+    request,
+    meaningfulUserMessages,
+    options,
+  );
 
   if (safetyBlock) {
     return safetyBlock;
@@ -101,6 +136,125 @@ export async function createClarityMapResponse(
   };
 }
 
+export async function createPersistedClarityMapResponse(
+  request: ClarityMapRequest,
+  owned: OwnedSession,
+  dependencies: ClarityMapDependencies = {},
+): Promise<ClarityMapApiResponse> {
+  if (!isEnhancedClarityMapRequest(request)) {
+    return createClarityMapResponse(request, dependencies);
+  }
+
+  const retainedTranscript = owned.session.storageConsentAccepted
+    ? await loadPersistedTranscript(owned.session.id)
+    : null;
+  const hasAuthoritativeTranscript =
+    retainedTranscript?.hasChatUser === true;
+  const messages = hasAuthoritativeTranscript
+    ? retainedTranscript.messages
+    : request.messages;
+  const authoritativeRequest: EnhancedClarityMapRequest = {
+    ...request,
+    sessionContext: createAuthoritativeSessionContext(owned.session),
+    messages,
+  };
+  let safetyDecision: SafetyDecision | undefined;
+  let transcriptFingerprint: string | null = null;
+  let leaseTokenHash: string | null = null;
+  let replayed = false;
+
+  const response = await createClarityMapResponse(
+    authoritativeRequest,
+    {
+      clarityMapAgent: async (input) => {
+        if (hasAuthoritativeTranscript && retainedTranscript) {
+          transcriptFingerprint = createTranscriptFingerprint(
+            owned.session.id,
+            retainedTranscript.messageRowIds,
+          );
+          leaseTokenHash = sha256(randomBytes(32).toString("base64url"));
+          const claim = await claimClarityMapGeneration({
+            ownerId: owned.owner.id,
+            sessionId: owned.session.id,
+            transcriptFingerprint,
+            leaseTokenHash,
+          });
+
+          if (claim.status === "in_progress") {
+            throw clarityMapInProgress();
+          }
+
+          if (claim.status === "completed") {
+            replayed = true;
+            const retained = decryptClarityMapResponse(
+              claim.mapEncrypted,
+              messages,
+            );
+
+            return {
+              source: retained.source,
+              clarityMap: retained.clarityMap,
+            };
+          }
+        }
+
+        return (dependencies.clarityMapAgent ?? generateStructuredClarityMap)(
+          input,
+        );
+      },
+    },
+    {
+      previousState: owned.session.currentSafetyState ?? undefined,
+      onSafetyDecision: (decision) => {
+        safetyDecision = decision;
+      },
+    },
+  );
+
+  if (!("type" in response)) {
+    throw dataBackendUnavailable();
+  }
+
+  try {
+    if (response.type === "safety_blocked" || response.type === "boundary_blocked") {
+      await mergeSafetyStateIfEvaluated(owned, safetyDecision);
+      return response;
+    }
+
+    if (response.type === "insufficient_context") {
+      await mergeSafetyStateIfEvaluated(owned, safetyDecision);
+      return response;
+    }
+
+    if (!owned.session.storageConsentAccepted || replayed) {
+      await mergeSafetyStateIfEvaluated(owned, safetyDecision);
+      return response;
+    }
+
+    const mapEncrypted = encryptClarityMapResponse(response);
+    decryptClarityMapResponse(mapEncrypted, messages);
+    const retainedEnvelope = await persistClarityMapResult({
+      ownerId: owned.owner.id,
+      sessionId: owned.session.id,
+      mapEncrypted,
+      source: response.source,
+      schemaVersion: response.clarityMap.schemaVersion,
+      transcriptFingerprint,
+      leaseTokenHash,
+      riskLevel: safetyDecision?.risk.level ?? null,
+      safetyState: safetyDecision?.safetyState ?? null,
+    });
+
+    return decryptClarityMapResponse(retainedEnvelope, messages);
+  } catch {
+    if (response.type === "safety_blocked" || response.type === "boundary_blocked") {
+      return { ...response, persistenceStatus: "unavailable" };
+    }
+
+    throw dataBackendUnavailable();
+  }
+}
+
 export function getMockClarityMap(request: Pick<ClarityMapRequest, "sessionId">) {
   void request;
 
@@ -112,6 +266,7 @@ export function getMockClarityMap(request: Pick<ClarityMapRequest, "sessionId">)
 async function getSafetyBlock(
   request: EnhancedClarityMapRequest,
   meaningfulUserMessages: ApiChatMessage[],
+  options: ClarityMapOptions,
 ): Promise<EnhancedClarityMapResponse | null> {
   const latestUserMessage = meaningfulUserMessages.at(-1);
 
@@ -122,7 +277,9 @@ async function getSafetyBlock(
   const latestDecision = await safetyOrchestrator.evaluate({
     message: latestUserMessage.content,
     sessionContext: request.sessionContext,
+    previousState: options.previousState,
   });
+  options.onSafetyDecision?.(latestDecision);
 
   if (!latestDecision.allowNormalChat) {
     return toBlockedResponse(latestDecision.responseSource, {
@@ -148,6 +305,7 @@ async function getSafetyBlock(
     {
       message: deterministicBlock.content,
       sessionContext: request.sessionContext,
+      previousState: options.previousState,
     },
     {
       aiTriageClassifier: async () => ({
@@ -156,6 +314,7 @@ async function getSafetyBlock(
       }),
     },
   );
+  options.onSafetyDecision?.(blockDecision);
 
   return toBlockedResponse(blockDecision.responseSource, {
     content:
@@ -166,6 +325,26 @@ async function getSafetyBlock(
     resources: blockDecision.resources,
     policyBoundary: blockDecision.policyBoundary,
   });
+}
+
+async function mergeSafetyStateIfEvaluated(
+  owned: OwnedSession,
+  decision: SafetyDecision | undefined,
+) {
+  if (!decision) {
+    return;
+  }
+
+  await mergeOwnedSessionSafetyState({
+    ownerId: owned.owner.id,
+    sessionId: owned.session.id,
+    riskLevel: decision.risk.level,
+    safetyState: decision.safetyState,
+  });
+}
+
+function createTranscriptFingerprint(sessionId: string, messageRowIds: string[]) {
+  return sha256(["clarity_map_input.v1", sessionId, ...messageRowIds].join("\n"));
 }
 
 function findDeterministicTranscriptBlock(messages: ApiChatMessage[]) {

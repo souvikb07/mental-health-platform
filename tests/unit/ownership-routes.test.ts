@@ -3,20 +3,24 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const {
   createChatResponse,
   createClarityMapResponse,
+  createPersistedClarityMapResponse,
   createContextIntakeResponse,
   createPersistedChatResponse,
   createPersistedContextIntakeResponse,
   createSession,
   receiveMockFeedback,
+  receivePersistedFeedback,
   resolveOwnedSession,
 } = vi.hoisted(() => ({
   createChatResponse: vi.fn(),
   createClarityMapResponse: vi.fn(),
+  createPersistedClarityMapResponse: vi.fn(),
   createContextIntakeResponse: vi.fn(),
   createPersistedChatResponse: vi.fn(),
   createPersistedContextIntakeResponse: vi.fn(),
   createSession: vi.fn(),
   receiveMockFeedback: vi.fn(),
+  receivePersistedFeedback: vi.fn(),
   resolveOwnedSession: vi.fn(),
 }));
 
@@ -24,12 +28,18 @@ vi.mock("@/lib/server/chat", () => ({
   createChatResponse,
   createPersistedChatResponse,
 }));
-vi.mock("@/lib/server/clarity-map", () => ({ createClarityMapResponse }));
+vi.mock("@/lib/server/clarity-map", () => ({
+  createClarityMapResponse,
+  createPersistedClarityMapResponse,
+}));
 vi.mock("@/lib/server/context-intake", () => ({
   createContextIntakeResponse,
   createPersistedContextIntakeResponse,
 }));
-vi.mock("@/lib/server/feedback", () => ({ receiveMockFeedback }));
+vi.mock("@/lib/server/feedback", () => ({
+  receiveMockFeedback,
+  receivePersistedFeedback,
+}));
 vi.mock("@/lib/server/session/ownership", () => ({ resolveOwnedSession }));
 vi.mock("@/lib/server/sessions", () => ({ createSession }));
 
@@ -51,7 +61,9 @@ describe("session-bound route ownership guards", () => {
     createChatResponse.mockResolvedValue({ source: "fallback" });
     createPersistedChatResponse.mockResolvedValue({ source: "fallback" });
     createClarityMapResponse.mockResolvedValue({ clarityMap: {} });
+    createPersistedClarityMapResponse.mockResolvedValue({ clarityMap: {} });
     receiveMockFeedback.mockReturnValue({ status: "received" });
+    receivePersistedFeedback.mockResolvedValue({ status: "received" });
     createSession.mockResolvedValue({
       result: {
         sessionId,
@@ -151,6 +163,34 @@ describe("session-bound route ownership guards", () => {
       sessionId,
     );
     expect(receiveMockFeedback).toHaveBeenCalledOnce();
+  });
+
+  it("uses persisted Clarity Map orchestration after a Supabase ownership lookup", async () => {
+    const owned = { owner: { id: "owner-id" }, session: { id: sessionId } };
+    resolveOwnedSession.mockResolvedValue(owned);
+
+    await expectOk(postJson(postClarityMap, "/api/clarity-map", { sessionId }));
+
+    expect(createPersistedClarityMapResponse).toHaveBeenCalledWith(
+      { sessionId },
+      owned,
+    );
+    expect(createClarityMapResponse).not.toHaveBeenCalled();
+  });
+
+  it("uses persisted feedback orchestration after a Supabase ownership lookup", async () => {
+    const owned = { owner: { id: "owner-id" }, session: { id: sessionId } };
+    resolveOwnedSession.mockResolvedValue(owned);
+    const feedback = {
+      sessionId,
+      clarityRating: 4,
+      helpfulnessRating: 4,
+    };
+
+    await expectOk(postJson(postFeedback, "/api/feedback", feedback));
+
+    expect(receivePersistedFeedback).toHaveBeenCalledWith(feedback, owned);
+    expect(receiveMockFeedback).not.toHaveBeenCalled();
   });
 
   it("does not invoke the chat service after a rejected ownership lookup", async () => {

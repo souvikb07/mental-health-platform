@@ -1,6 +1,6 @@
 # API Contract
 
-Last updated: 2026-05-29.
+Last updated: 2026-05-31.
 
 This is the canonical Codex frontend/backend contract for the current Phase 1 MVP. Preserve these shapes unless a task explicitly approves a contract change.
 
@@ -23,7 +23,7 @@ This is the canonical Codex frontend/backend contract for the current Phase 1 MV
 - Anonymous session creation is server-owned in Supabase mode. Downstream
   session-bound routes now verify the HttpOnly owner cookie and an unexpired
   owner-scoped session row before invoking business services. Opted-in
-  context-intake/chat retention is encrypted at rest.
+  context-intake/chat retention and Clarity Map replay are encrypted at rest.
 - Browser-provided `sessionContext`, `lastRisk`, and `lastSafetyState` are hints only. Backend safety decisions must be recomputed server-side where safety matters.
 - Browser mutation routes reject cross-site requests and mismatched `Origin`
   headers. Non-browser callers without `Origin` remain supported.
@@ -38,6 +38,7 @@ SESSION_NOT_FOUND         404
 DATA_BACKEND_UNAVAILABLE  503
 CHAT_TURN_IN_PROGRESS     409
 CHAT_TURN_RETRY_UNAVAILABLE 409
+CLARITY_MAP_IN_PROGRESS   409
 ```
 
 ## POST /api/sessions
@@ -266,6 +267,7 @@ Enhanced responses:
   risk: ApiRiskClassification;
   safety: SafetyUi | null;
   resources: SupportResource[];
+  persistenceStatus?: "unavailable";
 }
 ```
 
@@ -275,6 +277,7 @@ Enhanced responses:
   source: "boundary";
   assistantMessage: ApiChatMessage;
   policyBoundary: PolicyBoundaryResult;
+  persistenceStatus?: "unavailable";
 }
 ```
 
@@ -294,6 +297,12 @@ Safety behavior:
 - Diagnosis, medication, treatment protocol, therapy replacement, and related policy-boundary requests return `boundary_blocked`.
 - Safety-blocked cases do not produce a normal Harmony Signal or `/100` score.
 - Generated maps must be non-diagnostic, evidence-grounded, and based only on submitted messages.
+- In Supabase mode, enhanced generation uses server-owned context and prefers
+  the retained encrypted transcript when persisted chat exists.
+- Opted-in retained transcripts use raw-free fingerprint claims to replay one
+  encrypted map for matching content. Active duplicates return
+  `CLARITY_MAP_IN_PROGRESS`.
+- Opt-out maps remain transient. Blocked maps are never persisted.
 
 Frontend storage contract:
 
@@ -361,10 +370,11 @@ Response:
 }
 ```
 
-Current behavior is mock receipt only. UI and docs must not imply database persistence, analytics tracking, clinical review, emergency support, or human follow-up.
-
-In Supabase mode, the owner cookie and top-level `sessionId` are verified before
-the mock receipt runs.
+Transient behavior is mock receipt only. In Supabase mode, the owner cookie and
+top-level `sessionId` are verified, ratings and flags append as raw-free rows,
+opted-out comments are discarded, and opted-in comments are encrypted before
+storage. The receipt does not imply analytics tracking, clinical review,
+emergency support, or human follow-up.
 
 ## Shared Types
 
@@ -429,15 +439,16 @@ Do not expose raw evidence, matched phrases, regex names, model output, or secre
 ## Temporary Or Mock Areas
 
 - `/api/sessions` uses mock anonymous session IDs.
-- `/api/feedback` returns mock receipt only.
+- `/api/feedback` retains its receipt-only response shape.
 - Legacy `/api/clarity-map` `{ sessionId }` path returns mock-compatible map data for backward compatibility.
-- Supabase schema/seed files exist but are not live runtime persistence.
+- Supabase migrations exist through Block 1G but have not been applied to a
+  remote project.
 
 ## Open Alignment Questions
 
 - Production auth/session ownership model.
 - Durable storage, export/delete, and retention policy.
 - Rate limiting strategy for public AI/auth/write/webhook endpoints.
-- Feedback persistence and review workflow.
+- Feedback review workflow.
 - Resource catalog governance and update process.
 - Whether/when to wire Supabase database and RLS-backed resources.

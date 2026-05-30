@@ -106,12 +106,14 @@ export type EnhancedClarityMapResponse =
       risk: ApiRiskClassification;
       safety: SafetyUi | null;
       resources: SupportResource[];
+      persistenceStatus?: "unavailable";
     }
   | {
       type: "boundary_blocked";
       source: "boundary";
       assistantMessage: ApiChatMessage;
       policyBoundary: PolicyBoundaryResult;
+      persistenceStatus?: "unavailable";
     }
   | {
       type: "insufficient_context";

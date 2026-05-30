@@ -80,6 +80,18 @@ const persistedChatAssistantSchema = z.object({
   response: chatResponseSchema,
 });
 
+const userMessageSchema = z.object({
+  id: z.string(),
+  role: z.literal("user"),
+  content: z.string(),
+  createdAt: z.string(),
+});
+
+const persistedChatUserSchema = z.object({
+  version: z.literal("chat_message.v1"),
+  message: userMessageSchema,
+});
+
 export function encryptContextIntakeResponse(
   response: ContextIntakeResponse,
 ): EncryptedEnvelope {
@@ -131,6 +143,18 @@ export function decryptChatAssistantResponse(envelope: unknown): ChatResponse {
     }
 
     return payload.response as ChatResponse;
+  } catch {
+    throw dataBackendUnavailable();
+  }
+}
+
+export function decryptChatUserMessage(
+  envelope: unknown,
+): ApiChatMessage & { role: "user" } {
+  try {
+    return persistedChatUserSchema.parse(
+      decryptSensitiveJson<unknown>(envelope),
+    ).message;
   } catch {
     throw dataBackendUnavailable();
   }
