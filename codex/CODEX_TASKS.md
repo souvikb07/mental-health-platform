@@ -58,7 +58,7 @@
 
 - [x] Block 1A: decisions and documentation
 - [x] Block 1B: additive database migrations
-- [ ] Block 1C: server Supabase client, environment validation, and encryption helper
+- [x] Block 1C: server Supabase client, environment validation, and encryption helper
 - [ ] Block 1D: server-owned anonymous sessions
 - [ ] Block 1E: ownership guards
 - [ ] Block 1F: persisted messages and chat turns
@@ -72,4 +72,5 @@
 Block 1B encodes session-relative retention and raw-free storage opt-out
 guardrails in SQL. The full spike on
 `spike/sprint1-production-data-foundation-full-codex` at `9e196a1` remains
-reference-only and must not be copied wholesale. Next: Block 1C.
+reference-only and must not be copied wholesale. Block 1C added unwired
+server-only Supabase/config/encryption helpers. Next: Block 1D.
