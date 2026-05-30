@@ -18,6 +18,7 @@ export const createSessionRequestSchema = z.object({
   mainConcernCategory: mainConcernCategorySchema,
   mainConcernText: z.string().trim().max(1000).optional(),
   mainConcern: z.string().trim().min(1).max(1000).optional(),
+  storageConsentAccepted: z.boolean().optional(),
 });
 
 export type CreateSessionRequest = z.infer<typeof createSessionRequestSchema>;

@@ -124,6 +124,13 @@ Last updated: 2026-05-30.
 - Decision: keep required product-boundary consent separate from optional `storageConsentAccepted` sensitive-content retention under policy version `sensitive_storage.v1`.
 - Reason: using the reflection tool must not silently imply consent to retain free-form mental-health text.
 - Consequence: without opt-in, persist only minimal raw-free metadata; with opt-in, encrypt retained notes, messages, Clarity Maps, and feedback comments server-side.
+- Decision: create or reuse the hashed anonymous owner, create the session, and
+  record initial `product_boundary.v1` and `sensitive_storage.v1` consent events
+  inside one service-role-only Postgres RPC.
+- Reason: initial ownership and consent rows must commit or roll back together.
+- Consequence: owners remain expiry-neutral, the existing SQL trigger derives
+  each session's expiry, and downstream ownership enforcement remains a
+  separate Block 1E responsibility.
 
 ## Sprint 1 Retention, Controls, And Runtime
 

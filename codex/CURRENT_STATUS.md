@@ -9,7 +9,10 @@ This is the canonical Codex status file. `docs/project-handoff/` is ChatGPT-web 
 - Next.js App Router API routes exist under `src/app/api`.
 - API route handlers are thin and delegate to `src/lib/server/**`.
 - Zod validation exists for chat, Clarity Map, sessions, resources, and feedback.
-- `/api/sessions` creates a mock anonymous session and typed `SessionContext`.
+- `/api/sessions` creates a mock-compatible transient session locally. In
+  Supabase mode it atomically creates or reuses a hashed-cookie anonymous
+  owner, creates one session, records initial consent events, and issues an
+  HttpOnly owner cookie.
 - `/api/context-intake` validates complete onboarding context, gates optional onboarding text through Safety Core, and returns an opener, safety route, or boundary route.
 - `/api/chat` runs Safety Core before normal conversation and preserves the stable chat response shape.
 - OpenAI conversation path uses server-only modules, non-streaming Responses API behavior, `store: false`, model env config, post-response validation, and deterministic fallback when config/output fails.
@@ -46,7 +49,12 @@ This is the canonical Codex status file. `docs/project-handoff/` is ChatGPT-web 
 
 - No auth, profile, account history, persistent user database, payments, community, long-term memory, voice mode, mobile app, or production deployment hardening.
 - Supabase dependency, migration SQL, and seed SQL exist, but Supabase is not wired into live runtime persistence/auth.
-- Sprint 1 Blocks 1A through 1C document the production data contract, add an unapplied additive database migration, and add unwired server-only Supabase/config/encryption infrastructure. Runtime persistence, anonymous-owner cookies, ownership guards, rate-limit enforcement, export/delete endpoints, purge scheduling, and server hydration are not implemented.
+- Sprint 1 Blocks 1A through 1D document the production data contract, add
+  unapplied additive database migrations, add server-only
+  Supabase/config/encryption infrastructure, and wire anonymous session
+  creation. Downstream ownership guards, durable journey-content persistence,
+  rate-limit enforcement, export/delete endpoints, purge scheduling, and
+  server hydration are not implemented.
 - No remote Supabase project exists yet. Future migration work must start with a disposable verification project.
 - Feedback backend returns mock `status: "received"` only; do not imply durable persistence or human review.
 - Resources are static/app-owned and not exhaustive.
@@ -59,14 +67,16 @@ This is the canonical Codex status file. `docs/project-handoff/` is ChatGPT-web 
 ## Important Next Backend Tasks
 
 - Keep tightening deterministic safety coverage from manual QA and eval findings.
-- Implement Sprint 1 Block 1D: server-owned anonymous sessions.
+- Implement Sprint 1 Block 1E: ownership guards.
 - Add production rate limiting before any public launch on AI and write endpoints.
 - Keep Supabase persistence server-owned and explicitly scoped by the anonymous-owner cookie; `sessionId` must remain a locator only.
 - Continue maintaining synthetic eval coverage for chat, safety, boundary, context intake, Clarity Map, and resource routing.
 
 ## Sprint 1 Production Data Foundation
 
-- Blocks 1A through 1C are complete. `supabase/migrations/0002_sprint1_production_data_foundation.sql` is additive and has not been applied to a remote project.
+- Blocks 1A through 1D are complete. The additive migrations through
+  `supabase/migrations/0003_sprint1_anonymous_session_creation_rpc.sql` have
+  not been applied to a remote project.
 - Locked decisions live in `docs/adr/ADR-0004-production-anonymous-data-foundation.md` and `docs/architecture/10-production-data-foundation.md`.
 - A full implementation spike exists on `spike/sprint1-production-data-foundation-full-codex` at commit `9e196a1`. It is reference-only, not merge-ready, and must not be copied wholesale.
 - Future implementation must fix three P1 findings from the spike:
@@ -75,6 +85,11 @@ This is the canonical Codex status file. `docs/project-handoff/` is ChatGPT-web 
   3. IP rate limiting must not trust spoofable forwarding headers without a trusted deployment policy.
 - Block 1B encodes the first two P1 protections in SQL: owner-linked plaintext writes are rejected and each session receives its own 30-day expiry. Its rate-limit schema stores HMAC digests only and intentionally leaves trusted-header selection to Block 1I.
 - Block 1C adds server-only, currently unwired infrastructure: validated transient/Supabase data modes, a backend-only cached Supabase client, AES-256-GCM sensitive JSON envelopes, SHA-256 owner-token hashing, and HMAC-SHA-256 helpers. No API route, business service, Safety Core, AI/OpenAI module, frontend component, journey-storage module, migration, or package file changed in Block 1C.
+- Block 1D wires server-owned anonymous session creation only. The owner cookie
+  is opaque and HttpOnly, Postgres stores only its SHA-256 hash, each session
+  retains SQL-derived session-relative expiry, opted-out free text stays out of
+  Postgres, and opted-in onboarding context is encrypted. Downstream routes do
+  not enforce ownership yet.
 
 ## Frontend/API Dependencies
 

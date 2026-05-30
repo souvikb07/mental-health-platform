@@ -53,6 +53,7 @@ export function createSessionContext(input: {
   mainConcernText?: string;
   ageConfirmed?: boolean;
   consentAccepted?: boolean;
+  storageConsentAccepted?: boolean;
 }): SessionContext {
   const countryCode = normalizeCountryCode(input.country);
   const mainConcernLabel = input.mainConcernCategory
@@ -65,6 +66,7 @@ export function createSessionContext(input: {
     countryLabel: input.country?.trim() || undefined,
     ageConfirmed: input.ageConfirmed,
     consentAccepted: input.consentAccepted,
+    storageConsentAccepted: input.storageConsentAccepted,
     ageBand: input.ageBand,
     mainConcern: input.mainConcern,
     mainConcernCategory: input.mainConcernCategory,

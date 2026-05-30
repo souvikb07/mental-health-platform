@@ -12,8 +12,11 @@ This is the canonical Codex backend handoff for the current MindBridge repo. Use
 - Server orchestration: focused service modules under `src/lib/server`.
 - AI SDK: `openai` package through server-only modules under `src/lib/ai`.
 - Tests: Vitest with unit tests under `tests/unit`.
-- Data persistence: no active app database writes in the current runtime path.
-- Supabase: dependency and SQL files exist, but Supabase auth/database integration is not live.
+- Data persistence: Supabase-mode `POST /api/sessions` creates server-owned
+  anonymous owner/session/consent rows. Other runtime database writes remain
+  pending.
+- Supabase: server-only client, encryption helper, migrations, and anonymous
+  session creation are present. There is no Supabase auth or browser client.
 
 ## Backend Folder Structure
 
@@ -50,7 +53,10 @@ Current routes:
   - Handler: `src/app/api/sessions/route.ts`
   - Service: `src/lib/server/sessions.ts`
   - Validation: `src/lib/validation/sessions.ts`
-  - Creates a mock anonymous session ID and typed `SessionContext`.
+  - Creates a mock-compatible transient session locally.
+  - In Supabase mode, atomically creates or reuses a hashed-cookie owner,
+    creates one owner-linked session, records initial consent events, and
+    returns additive storage-consent, server-owned, and expiry fields.
 
 - `POST /api/context-intake`
   - Handler: `src/app/api/context-intake/route.ts`
@@ -105,8 +111,10 @@ Safety-critical details belong in `codex/SAFETY_RULES.md`.
 
 - `@supabase/supabase-js` is installed.
 - SQL exists in `supabase/migrations/0001_phase1_schema.sql` and `supabase/seed/resources_seed.sql`.
-- Current app runtime does not use Supabase auth, Supabase database writes, RLS-backed user data, or service-role operations.
-- Do not add Supabase auth/database persistence without explicit approval.
+- Current app runtime does not use Supabase auth or a browser Supabase client.
+  Server-owned session creation uses the service-role-only
+  `create_anonymous_session(...)` RPC. Downstream route ownership checks are
+  not implemented yet.
 - If future work enables Supabase:
   - keep service-role keys server-only;
   - enable RLS before production for public schema tables;
@@ -134,20 +142,25 @@ Current server-side OpenAI variables:
 - `OPENAI_CLARITY_MODEL`
 - `OPENAI_RISK_MODEL` placeholder exists, but current safety routing is deterministic plus optional triage, not a separate risk model route.
 
-Current planned/placeholder service variables:
+Current server-only data variables:
 
-- `SUPABASE_SERVICE_ROLE_KEY`
+- `MIND_BRIDGE_DATA_MODE`
+- `SUPABASE_URL`
+- `SUPABASE_SECRET_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY` legacy fallback only
+- `MIND_BRIDGE_DATA_ENCRYPTION_KEY_V1`
+- `MIND_BRIDGE_RATE_LIMIT_HMAC_KEY`
+
+Other planned/placeholder service variables:
+
 - `STRIPE_SECRET_KEY`
 - `STRIPE_WEBHOOK_SECRET`
-- `ENABLE_CHAT_STORAGE`
 - `ENABLE_ANALYTICS`
 
 Browser-exposed placeholders:
 
 - `NEXT_PUBLIC_APP_URL`
 - `NEXT_PUBLIC_APP_NAME`
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
 
 Anything prefixed `NEXT_PUBLIC_` is browser-exposed and must never contain secrets.
@@ -161,7 +174,8 @@ Anything prefixed `NEXT_PUBLIC_` is browser-exposed and must never contain secre
 
 ## Known Backend TODOs And Limitations
 
-- No production persistence, auth, ownership checks, delete/export, or account data.
+- No accounts, downstream ownership guards, durable journey-content
+  persistence, delete/export, or hydration.
 - Feedback is mock receipt only and has no durable review workflow.
 - Resources are static/app-owned and not exhaustive.
 - Rate limits are not implemented yet and are required before public launch on AI, auth, write, and webhook endpoints.

@@ -6,7 +6,8 @@ This is the canonical Codex frontend/backend contract for the current Phase 1 MV
 
 ## Common Behavior
 
-- All current endpoints are unauthenticated.
+- The product remains account-free. `POST /api/sessions` may issue an
+  HttpOnly anonymous-owner cookie in Supabase mode.
 - All current endpoints return JSON.
 - Validation failures return HTTP 400 with:
 
@@ -19,7 +20,9 @@ This is the canonical Codex frontend/backend contract for the current Phase 1 MV
 }
 ```
 
-- There is no production authorization, database ownership check, or durable user persistence yet.
+- Anonymous session creation is server-owned in Supabase mode. Downstream
+  ownership enforcement and durable journey persistence are not implemented
+  yet.
 - Browser-provided `sessionContext`, `lastRisk`, and `lastSafetyState` are hints only. Backend safety decisions must be recomputed server-side where safety matters.
 
 ## POST /api/sessions
@@ -44,6 +47,7 @@ Request:
   ageBand?: string;
   mainConcern?: string;
   mainConcernText?: string;
+  storageConsentAccepted?: boolean; // defaults false
 }
 ```
 
@@ -56,10 +60,16 @@ Response:
   sessionId: string;
   sessionContext: SessionContext;
   status: "created";
+  storageConsentAccepted: boolean;
+  serverOwned: boolean;
+  expiresAt?: string;
 }
 ```
 
-Current implementation is mock/local. `sessionId` is not auth.
+Transient mode returns a mock-compatible session with `serverOwned: false`.
+Supabase mode atomically creates or reuses a hashed-cookie owner, creates one
+session, records initial consent events, returns `serverOwned: true`, and sets
+the HttpOnly `mindbridge_anon_owner` cookie. `sessionId` is a locator, not auth.
 
 ## POST /api/context-intake
 

@@ -2,7 +2,10 @@
 
 ## Status
 
-Accepted as the Sprint 1 implementation contract. Not implemented yet.
+Accepted as the Sprint 1 implementation contract. Blocks 1B through 1D now
+implement the additive SQL foundation, server-only client/encryption helpers,
+and anonymous session creation. Later persistence and ownership-enforcement
+blocks remain pending.
 
 ## Context
 
