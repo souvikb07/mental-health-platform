@@ -1503,3 +1503,53 @@ Next step:
 Apply `0001` through `0007` to a disposable Supabase project, verify direct
 Vercel ingress before public deployment, then implement Block 1J export,
 delete, and purge foundation.
+
+## 2026-05-31 01:41 CEST
+
+Task:
+Sprint 1 Block 1J - export, delete, and purge foundation.
+
+Prompt used:
+Add cookie-owner-scoped JSON export, idempotent anonymous hard delete, and a
+scheduler-ready expired-data purge runner without frontend, Safety Core, or
+AI/OpenAI changes.
+
+Files changed:
+Added `supabase/migrations/0008_sprint1_data_controls_hardening.sql`, the
+server-only data-controls repository and orchestration modules,
+`GET /api/sessions/export`, `DELETE /api/sessions`, export payload validators,
+the purge runner, owner-only rate-limit policies, focused tests, and canonical
+handoff updates.
+
+Commands run:
+`npx vitest run tests/unit/data-controls-*.test.ts tests/unit/purge-expired-anonymous-data-script.test.ts tests/unit/anonymous-session.test.ts tests/unit/ownership.test.ts tests/unit/rate-limit-config.test.ts tests/unit/rate-limit-enforce.test.ts`
+`npm test`
+`npm run lint`
+`npm run build`
+`npx tsc --noEmit`
+`git diff --check`
+`env -u SUPABASE_URL -u SUPABASE_SECRET_KEY -u SUPABASE_SERVICE_ROLE_KEY npm run purge:anonymous-data`
+Read-only scans for server logging calls, browser-exposed secrets,
+`localStorage` writes, OpenAI `store: false`, protected-path diffs, changed
+paths, and untracked files
+
+Result:
+Supabase-mode export reads only cookie-owned retained rows, decrypts opted-in
+content server-side, and omits internal hashes, claims, encryption envelopes,
+and rate-limit buckets. Delete clears the cookie after an idempotent cascade
+RPC success. The purge runner reuses the existing session-relative RPC and
+prints normalized deletion counts only.
+
+Manual review notes:
+`npm test` passes with 62 files and 486 tests. `npm run lint` reports only the
+known landing-page `<img>` warning. `npm run build` passes and includes
+`/api/sessions/export`.
+`npx tsc --noEmit` still reports only the pre-existing
+`tests/unit/origin-guard.test.ts` header-union typing issue. Safety Core,
+AI/OpenAI modules, prompts, frontend code, browser storage, env files, earlier
+migrations, and existing `store: false` calls remain unchanged.
+
+Next step:
+Apply `0001` through `0008` to a disposable Supabase project, choose a purge
+scheduler before public launch, then implement Block 1K frontend compatibility
+and hydration.

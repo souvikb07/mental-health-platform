@@ -192,6 +192,22 @@ Last updated: 2026-05-30.
 - Decision: add JSON export and hard delete for every cookie-owned anonymous journey, while keeping resources on the static TypeScript runtime.
 - Reason: Sprint 1 needs privacy controls without expanding into history UI or a database-backed resource runtime.
 - Consequence: frontend additions stay limited to hydration plus small export/delete controls.
+- Decision: export all cookie-owned rows still retained in Postgres, including
+  expired sessions awaiting purge. Hard delete is idempotent for missing,
+  malformed, unknown, and already-deleted cookies and clears the owner cookie
+  after success.
+- Reason: export must match retained storage truth, while deletion must avoid
+  owner-existence oracles and remain easy to retry.
+- Consequence: export fails with `DATA_BACKEND_UNAVAILABLE` in transient mode;
+  transient delete remains a harmless cookie-clearing success.
+- Decision: keep user deletion behind one service-role-only owner cascade RPC
+  and reuse the existing session-relative purge RPC from `0002`.
+- Reason: direct owner-table deletion is broader than runtime needs, while the
+  existing purge order already preserves newer sessions and removes expired
+  buckets safely.
+- Consequence: purge scheduling remains a deployment decision; the committed
+  runner reads injected server-only Supabase configuration and prints counts
+  only.
 - Decision: local development may fall back to transient mode, but production fails closed without valid Supabase persistence configuration.
 - Reason: development ergonomics must not become a production data-loss mode.
 - Consequence: Supabase service-role credentials and encryption keys remain server-only.

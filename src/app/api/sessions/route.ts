@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { deleteAnonymousOwnerJourneys } from "@/lib/server/data-controls";
 import {
   apiErrorResponse,
   validationError,
@@ -28,6 +29,21 @@ export async function POST(request: Request) {
       response.headers.append("Set-Cookie", setCookie);
     }
 
+    return response;
+  } catch (error) {
+    return apiErrorResponse(error);
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    assertSameOrigin(request);
+    const { result, setCookie } = await deleteAnonymousOwnerJourneys(request);
+    const response = NextResponse.json(result, {
+      headers: { "Cache-Control": "no-store" },
+    });
+
+    response.headers.append("Set-Cookie", setCookie);
     return response;
   } catch (error) {
     return apiErrorResponse(error);

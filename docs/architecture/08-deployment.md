@@ -60,8 +60,12 @@ git diff --check
 
 Manual checks:
 
-- apply migrations through `0007` to a disposable Supabase project first
+- apply migrations through `0008` to a disposable Supabase project first
+- run `npm run purge:anonymous-data` only with injected server-only Supabase
+  configuration and choose a deployment scheduler before public launch
 - verify direct Vercel ingress and exposed Vercel system variables
 - verify no secrets enter the browser bundle
 - verify normal, safety, boundary, Clarity Map, resources, and feedback flows
 - verify rate-limited routes return safe `429` responses with `Retry-After`
+- verify owner-scoped JSON export, hard-delete cascades, and expired-session
+  purge behavior

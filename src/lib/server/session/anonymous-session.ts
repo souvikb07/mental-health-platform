@@ -55,6 +55,19 @@ export function serializeAnonymousOwnerCookie(token: string) {
   ].join("; ");
 }
 
+export function serializeClearAnonymousOwnerCookie() {
+  const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
+
+  return [
+    `${ANONYMOUS_OWNER_COOKIE}=`,
+    "HttpOnly",
+    "SameSite=Lax",
+    "Path=/",
+    "Max-Age=0",
+    `Expires=Thu, 01 Jan 1970 00:00:00 GMT${secure}`,
+  ].join("; ");
+}
+
 function isCanonicalAnonymousOwnerToken(token: string) {
   if (!/^[A-Za-z0-9_-]+$/.test(token)) {
     return false;

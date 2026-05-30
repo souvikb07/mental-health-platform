@@ -21,33 +21,51 @@ export type OwnedSession = {
   session: OwnedSessionReference;
 };
 
+export type ResolvedAnonymousOwner = AnonymousOwnerReference;
+
 type OwnershipDependencies = {
   findOwnerByTokenHash?: typeof findAnonymousOwnerByTokenHash;
   findSessionByOwner?: typeof findOwnedSession;
   getEnvironment?: typeof getDataEnvironment;
 };
 
+export async function resolveAnonymousOwner(
+  request: Request,
+  dependencies: OwnershipDependencies = {},
+): Promise<ResolvedAnonymousOwner | null> {
+  if ((dependencies.getEnvironment ?? getDataEnvironment)().mode === "transient") {
+    return null;
+  }
+
+  const owner = await resolveSupabaseAnonymousOwner(request, dependencies);
+
+  if (!owner) {
+    throw unauthorizedSession();
+  }
+
+  return owner;
+}
+
+export async function resolveAnonymousOwnerIfPresent(
+  request: Request,
+  dependencies: OwnershipDependencies = {},
+): Promise<ResolvedAnonymousOwner | null> {
+  if ((dependencies.getEnvironment ?? getDataEnvironment)().mode === "transient") {
+    return null;
+  }
+
+  return resolveSupabaseAnonymousOwner(request, dependencies);
+}
+
 export async function resolveOwnedSession(
   request: Request,
   sessionId: string,
   dependencies: OwnershipDependencies = {},
 ): Promise<OwnedSession | null> {
-  if ((dependencies.getEnvironment ?? getDataEnvironment)().mode === "transient") {
-    return null;
-  }
-
-  const token = getValidAnonymousOwnerToken(request);
-
-  if (!token) {
-    throw unauthorizedSession();
-  }
-
-  const owner = await (
-    dependencies.findOwnerByTokenHash ?? findAnonymousOwnerByTokenHash
-  )(sha256(token));
+  const owner = await resolveAnonymousOwner(request, dependencies);
 
   if (!owner) {
-    throw unauthorizedSession();
+    return null;
   }
 
   if (!isUuid(sessionId)) {
@@ -59,6 +77,21 @@ export async function resolveOwnedSession(
   )(owner.id, sessionId);
 
   return { owner, session };
+}
+
+async function resolveSupabaseAnonymousOwner(
+  request: Request,
+  dependencies: OwnershipDependencies,
+) {
+  const token = getValidAnonymousOwnerToken(request);
+
+  if (!token) {
+    return null;
+  }
+
+  return (dependencies.findOwnerByTokenHash ?? findAnonymousOwnerByTokenHash)(
+    sha256(token),
+  );
 }
 
 function isUuid(value: string) {

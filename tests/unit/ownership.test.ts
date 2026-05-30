@@ -4,7 +4,11 @@ import { describe, expect, it, vi } from "vitest";
 
 import { sha256 } from "../../src/lib/server/crypto/sensitive-data";
 import { ApiError, sessionNotFound } from "../../src/lib/server/http/api-errors";
-import { resolveOwnedSession } from "../../src/lib/server/session/ownership";
+import {
+  resolveAnonymousOwner,
+  resolveAnonymousOwnerIfPresent,
+  resolveOwnedSession,
+} from "../../src/lib/server/session/ownership";
 
 const token = randomBytes(32).toString("base64url");
 const sessionId = "11111111-1111-4111-8111-111111111111";
@@ -103,6 +107,52 @@ describe("owned session coordinator", () => {
       "SESSION_NOT_FOUND",
       404,
     );
+  });
+});
+
+describe("anonymous owner coordinator", () => {
+  it("strictly resolves the hashed owner cookie for export", async () => {
+    const findOwnerByTokenHash = vi.fn().mockResolvedValue({ id: "owner-id" });
+
+    await expect(
+      resolveAnonymousOwner(request(token), {
+        findOwnerByTokenHash,
+        getEnvironment: supabaseEnvironment,
+      }),
+    ).resolves.toEqual({ id: "owner-id" });
+
+    expect(findOwnerByTokenHash).toHaveBeenCalledWith(sha256(token));
+    expect(findOwnerByTokenHash).not.toHaveBeenCalledWith(token);
+  });
+
+  it("strict export resolution rejects unknown cookies while permissive deletion does not", async () => {
+    const dependencies = {
+      findOwnerByTokenHash: vi.fn().mockResolvedValue(null),
+      getEnvironment: supabaseEnvironment,
+    };
+
+    await expectApiError(
+      resolveAnonymousOwner(request(token), dependencies),
+      "UNAUTHORIZED_SESSION",
+      401,
+    );
+    await expect(
+      resolveAnonymousOwnerIfPresent(request(token), dependencies),
+    ).resolves.toBeNull();
+  });
+
+  it("keeps transient export and deletion owner-free", async () => {
+    const findOwnerByTokenHash = vi.fn();
+    const dependencies = {
+      findOwnerByTokenHash,
+      getEnvironment: () => ({ mode: "transient" as const }),
+    };
+
+    await expect(resolveAnonymousOwner(request(), dependencies)).resolves.toBeNull();
+    await expect(
+      resolveAnonymousOwnerIfPresent(request(), dependencies),
+    ).resolves.toBeNull();
+    expect(findOwnerByTokenHash).not.toHaveBeenCalled();
   });
 });
 

@@ -103,7 +103,8 @@ Last updated: 2026-05-31.
 - Final full journey QA is still recommended after the latest polish work.
 - Feedback has no durable human review workflow.
 - Resources are app-owned/static and not exhaustive.
-- The app is anonymous-session MVP; production auth, RLS, delete/export, and durable privacy controls are not implemented.
+- The app is anonymous-session MVP. Backend export/delete endpoints now exist,
+  but frontend controls and server hydration remain pending Block 1K.
 - Lint warning exists for the landing plain `<img>` local hero asset.
 
 ## Commands

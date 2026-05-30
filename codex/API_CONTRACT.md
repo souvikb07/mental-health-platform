@@ -32,6 +32,8 @@ This is the canonical Codex frontend/backend contract for the current Phase 1 MV
 - Supabase-mode routes enforce distributed fixed-window rate limits before
   existing service orchestration. Session-bound buckets use server-owned
   owner-plus-session subjects. Only HMAC digests reach Postgres.
+- Supabase-mode data controls resolve the cookie owner server-side. They never
+  accept owner IDs, owner hashes, or cookie tokens from the browser.
 
 Safe route errors:
 
@@ -382,6 +384,39 @@ opted-out comments are discarded, and opted-in comments are encrypted before
 storage. The receipt does not imply analytics tracking, clinical review,
 emergency support, or human follow-up.
 
+## GET /api/sessions/export
+
+Returns a no-store JSON attachment containing every cookie-owned anonymous
+journey still retained in Postgres, including expired sessions awaiting purge.
+The server decrypts opted-in retained content before returning the attachment.
+
+The export includes session context codes, consent events, retained messages,
+Clarity Maps, feedback ratings/flags/comments, and raw-free safety, model, and
+audit metadata. It omits owner IDs, hashes, cookie values, database row IDs
+other than `sessionId`, encryption envelopes, claim rows, transcript
+fingerprints, rate-limit buckets, secrets, and legacy ownerless rows.
+
+Transient mode returns `DATA_BACKEND_UNAVAILABLE` because the server cannot
+truthfully export browser-only `sessionStorage`.
+
+## DELETE /api/sessions
+
+Hard-deletes every journey owned by the current anonymous-owner cookie and
+clears that cookie.
+
+Response:
+
+```ts
+{
+  status: "deleted";
+}
+```
+
+The route is idempotent: transient mode and missing, malformed, unknown, or
+already-deleted cookies return the same deletion success and clear the cookie.
+Resolvable-owner backend failures and rate-limit denials do not clear the
+cookie so the browser can retry.
+
 ## Shared Types
 
 `ApiChatMessage`:
@@ -447,13 +482,13 @@ Do not expose raw evidence, matched phrases, regex names, model output, or secre
 - `/api/sessions` uses mock anonymous session IDs.
 - `/api/feedback` retains its receipt-only response shape.
 - Legacy `/api/clarity-map` `{ sessionId }` path returns mock-compatible map data for backward compatibility.
-- Supabase migrations exist through Block 1I but have not been applied to a
+- Supabase migrations exist through Block 1J but have not been applied to a
   remote project.
 
 ## Open Alignment Questions
 
 - Production auth/session ownership model.
-- Durable storage, export/delete, and retention policy.
+- Frontend hydration and minimal export/delete controls.
 - Feedback review workflow.
 - Resource catalog governance and update process.
 - Whether/when to wire Supabase database and RLS-backed resources.

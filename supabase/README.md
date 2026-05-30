@@ -10,6 +10,7 @@ Apply migrations in order:
 0005_sprint1_persisted_clarity_feedback.sql
 0006_sprint1_event_metadata.sql
 0007_sprint1_rate_limit_hardening.sql
+0008_sprint1_data_controls_hardening.sql
 ```
 
 `0001` is the immutable starter migration. `0002` adds the Sprint 1 database
@@ -24,6 +25,8 @@ encrypted map retention, raw-free safety-state merges, and feedback writes.
 transactional wrappers for raw-free safety, policy, model, and audit metadata.
 `0007` removes direct service-role access to rate-limit bucket rows so runtime
 increments remain behind the narrow `consume_rate_limit(...)` RPC.
+`0008` removes direct service-role owner deletion and exposes one narrow
+service-role-only `delete_anonymous_owner_data(...)` cascade RPC.
 
 ## Sprint 1 Foundation
 
@@ -48,11 +51,15 @@ increments remain behind the narrow `consume_rate_limit(...)` RPC.
 - Curated runtime resources continue to come from the tested TypeScript
   catalog. `seed/resources_seed.sql` is historical starter data, not the live
   catalog.
+- JSON export is assembled server-side from cookie-owner-scoped reads. Hard
+  delete removes the cookie-owned owner row through one narrow RPC and relies
+  on existing cascades. The purge runner calls the existing session-relative
+  purge RPC and prints deletion counts only.
 
 ## Verification
 
 No remote Supabase project exists yet. Before any production project exists,
-apply `0001` through `0007` to a disposable Supabase project and
+apply `0001` through `0008` to a disposable Supabase project and
 verify:
 
 1. table, column, index, trigger, RLS, policy, grant, and RPC shape
@@ -72,5 +79,6 @@ The server-only client, encryption helper, and anonymous session-creation
 repository are implemented. Ownership guards, encrypted context-intake/chat
 retention, safety-state continuity, encrypted Clarity Map replay, and
 consent-aware feedback persistence are implemented. Distributed RPC-backed
-rate-limit enforcement is implemented. Purge scheduling belongs to a later
-Sprint 1 block.
+rate-limit enforcement, server-owned export/delete controls, and the
+scheduler-ready purge runner are implemented. Deployment scheduling remains a
+release decision.

@@ -18,6 +18,9 @@
 - [ ] All protected routes verify session server-side
 - [ ] Authorization checks are server-side
 - [ ] RPC-backed rate limits verified on AI, write, and resources endpoints
+- [ ] Export verified owner-scoped with no-store attachment headers
+- [ ] Hard-delete cascade verified through the narrow owner-delete RPC
+- [ ] Expired-session purge scheduler configured and verified
 - [ ] No raw sensitive logs
 - [ ] Error responses do not leak stack traces/secrets
 
