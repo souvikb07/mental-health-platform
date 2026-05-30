@@ -15,6 +15,7 @@ export type SessionContext = {
   countryLabel?: string;
   ageConfirmed?: boolean;
   consentAccepted?: boolean;
+  storageConsentAccepted?: boolean;
   ageBand?: string;
   mainConcern?: string;
   mainConcernCategory?: MainConcernCategory;

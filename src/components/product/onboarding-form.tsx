@@ -20,6 +20,7 @@ export function OnboardingForm() {
   const [mainConcernText, setMainConcernText] = useState("");
   const [consented, setConsented] = useState(false);
   const [isAdult, setIsAdult] = useState(false);
+  const [storageConsented, setStorageConsented] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const canContinue =
@@ -52,12 +53,8 @@ export function OnboardingForm() {
             consentAccepted: consented,
             mainConcernCategory,
             mainConcernText: mainConcernText.trim() || undefined,
+            storageConsentAccepted: storageConsented,
           });
-          window.localStorage.setItem("mindbridge.sessionId", response.sessionId);
-          window.localStorage.setItem(
-            "mindbridge.sessionContext",
-            JSON.stringify(response.sessionContext),
-          );
           saveSessionContext(response.sessionContext);
           router.push("/chat");
         } catch {
@@ -162,6 +159,18 @@ export function OnboardingForm() {
           checked={isAdult}
           onChange={setIsAdult}
           label="I confirm I am 18 or older."
+        />
+        <AcknowledgementRow
+          checked={storageConsented}
+          onChange={setStorageConsented}
+          label={
+            <>
+              Optional: retain my notes, chat messages, Clarity Maps, and
+              feedback comments for up to 30 days for this browser&apos;s
+              anonymous journey. Sensitive text is encrypted. Ratings and
+              raw-free safety metadata may still be stored without this choice.
+            </>
+          }
         />
       </div>
 

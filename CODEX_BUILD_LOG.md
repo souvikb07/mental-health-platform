@@ -1236,3 +1236,49 @@ No API route, business service, Safety Core, AI/OpenAI module, frontend componen
 
 Next step:
 Verify `0001` then `0002` against a disposable Supabase project, then implement Block 1D server-owned anonymous sessions.
+
+## 2026-05-30 22:15 CEST
+
+Task:
+Sprint 1 Block 1D - server-owned anonymous sessions.
+
+Prompt used:
+Add server-owned anonymous session creation only: a service-role-only
+transactional RPC, a hashed opaque HttpOnly owner cookie, Supabase-mode session
+creation with SQL-derived session-relative retention, separate optional storage
+consent, encrypted opted-in onboarding context, additive response fields, and
+focused tests. Do not add downstream ownership guards or journey persistence.
+
+Files changed:
+Added `supabase/migrations/0003_sprint1_anonymous_session_creation_rpc.sql`,
+`src/lib/db/repositories/sessions.ts`,
+`src/lib/server/session/anonymous-session.ts`, and focused Block 1D tests.
+Updated the sessions route/service/validation, shared session context, API
+client, onboarding form, Supabase README, canonical architecture/handoff docs,
+and `CODEX_BUILD_LOG.md`.
+
+Commands run:
+`npx vitest run tests/unit/anonymous-session.test.ts tests/unit/sessions-repository.test.ts tests/unit/sessions-service.test.ts tests/unit/sessions-route.test.ts tests/unit/onboarding-form.test.tsx tests/unit/session-context.test.ts`
+`npm test`
+`npm run lint`
+`npm run build`
+`git diff --check`
+Read-only scans for legacy localStorage writes, browser-exposed secrets,
+logging calls, changed paths, and scoped non-changes
+
+Result:
+Added server-owned anonymous session creation in Supabase mode while preserving
+config-free transient fallback. Owner tokens stay in HttpOnly cookies, only
+SHA-256 hashes reach Postgres, initial session/consent writes are atomic, and
+opted-out onboarding free text stays out of database RPC parameters.
+
+Manual review notes:
+No downstream route ownership guard, chat/message persistence, Clarity Map
+persistence, feedback persistence, hydration, export/delete, rate limiting,
+Safety Core edit, AI/OpenAI edit, package change, or `.env.local` change was
+added. The migrations remain unapplied because no disposable Supabase project
+is configured locally.
+
+Next step:
+Apply `0001`, `0002`, and `0003` to a disposable Supabase project, then
+implement Block 1E ownership guards.

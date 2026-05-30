@@ -69,10 +69,12 @@ Last updated: 2026-05-29.
 - Clarity Map keys:
   - `mindbridge:clarity-map:<sessionId>`
   - `mindbridge:last-clarity-map-session`
-- Legacy localStorage session keys may still be written/read for compatibility:
+- Legacy localStorage session keys remain read-only migration fallbacks:
   - `mindbridge.sessionId`
   - `mindbridge.sessionContext`
 - Raw chat content must not be stored in localStorage.
+- Onboarding sends an optional unchecked `storageConsentAccepted` choice and
+  writes active context through the existing `sessionStorage` cache only.
 - Browser storage is not authorization.
 
 ## API And Mock Data

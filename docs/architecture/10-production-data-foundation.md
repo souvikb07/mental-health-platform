@@ -6,9 +6,12 @@ Move MindBridge from browser-only MVP state toward a server-owned anonymous
 data foundation without adding accounts, changing public product boundaries, or
 rewriting Safety Core.
 
-This document describes planned work. Runtime persistence is not implemented
-yet. The full spike on `spike/sprint1-production-data-foundation-full-codex` at
-`9e196a1` is reference-only and is not merge-ready.
+This document describes the Sprint 1 target and current incremental progress.
+Blocks 1B through 1D now add the additive SQL foundation, server-only
+client/encryption helpers, and server-owned anonymous session creation. Other
+runtime persistence and ownership enforcement remain pending. The full spike
+on `spike/sprint1-production-data-foundation-full-codex` at `9e196a1` is
+reference-only and is not merge-ready.
 
 ## Planned Ownership Flow
 
@@ -20,21 +23,23 @@ browser HttpOnly anonymous-owner cookie
   -> opted-in encrypted content and raw-free metadata
 ```
 
-The cookie is planned as `mindbridge_anon_owner`: opaque, 256-bit, `HttpOnly`,
-`SameSite=Lax`, scoped to `Path=/`, secure in production, and capped at 30
-days. Only its SHA-256 hash belongs in Postgres. A `sessionId` locates a
-journey; it never authorizes access.
+The session-creation path now issues `mindbridge_anon_owner`: opaque, 256-bit,
+`HttpOnly`, `SameSite=Lax`, scoped to `Path=/`, secure in production, and
+capped at 30 days. Only its SHA-256 hash belongs in Postgres. A `sessionId`
+locates a journey; it never authorizes access.
 
-## Planned Consent And Persistence
+## Consent And Persistence
 
-The existing required consent covers the product boundary. A separate optional
+The existing required consent covers the product boundary under
+`product_boundary.v1`. A separate optional
 `storageConsentAccepted` choice under policy version `sensitive_storage.v1`
 covers retention of sensitive journey content.
 
-Without storage opt-in, retain only minimal raw-free metadata needed for
-ownership, consent, safety continuity, policy review, model operations, audit,
-and abuse protection. Free-form onboarding text, messages, Clarity Maps, and
-feedback comments remain transient.
+The Block 1D session-creation path retains only minimal raw-free session and
+consent metadata without storage opt-in. Future blocks must preserve the same
+rule for safety, policy, model, audit, and abuse-protection metadata.
+Free-form onboarding text, messages, Clarity Maps, and feedback comments remain
+transient without storage opt-in.
 
 With storage opt-in, encrypt retained sensitive JSON server-side using
 AES-256-GCM versioned envelopes with a key id, IV, auth tag, and ciphertext.
@@ -85,13 +90,13 @@ The reference spike identified three P1 blockers. Future implementation must:
 3. Reject spoofable forwarded-IP assumptions until a trusted deployment policy
    is chosen and documented.
 
-## Planned Implementation Blocks
+## Implementation Blocks
 
 ```txt
-1A decisions and documentation
-1B additive database migrations
-1C server Supabase client, env validation, and encryption helper
-1D server-owned anonymous sessions
+1A decisions and documentation [complete]
+1B additive database migrations [complete]
+1C server Supabase client, env validation, and encryption helper [complete]
+1D server-owned anonymous sessions [complete]
 1E ownership guards
 1F persisted messages and chat turns
 1G persisted Clarity Maps and feedback

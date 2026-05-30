@@ -32,12 +32,16 @@ export type CreateSessionInput = {
   mainConcern?: string;
   mainConcernCategory: MainConcernCategory;
   mainConcernText?: string;
+  storageConsentAccepted?: boolean;
 };
 
 export type CreateSessionResponse = {
   sessionId: string;
   sessionContext: SessionContext;
   status: "created";
+  storageConsentAccepted: boolean;
+  serverOwned: boolean;
+  expiresAt?: string;
 };
 
 export type ChatResponse = {

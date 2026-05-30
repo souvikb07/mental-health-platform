@@ -25,9 +25,10 @@ describe("session context", () => {
       createSessionContext({
         sessionId: "mock_session_test",
         country: "USA",
-        ageConfirmed: true,
-        consentAccepted: true,
-        mainConcernCategory: "overwhelmed",
+      ageConfirmed: true,
+      consentAccepted: true,
+      storageConsentAccepted: false,
+      mainConcernCategory: "overwhelmed",
         mainConcernText: "Extra context",
       }),
     ).toEqual({
@@ -36,6 +37,7 @@ describe("session context", () => {
       countryLabel: "USA",
       ageConfirmed: true,
       consentAccepted: true,
+      storageConsentAccepted: false,
       ageBand: undefined,
       mainConcern: undefined,
       mainConcernCategory: "overwhelmed",
