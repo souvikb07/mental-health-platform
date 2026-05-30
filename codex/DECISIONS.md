@@ -98,11 +98,23 @@ Last updated: 2026-05-30.
 - Reason: the app has many safety-sensitive flows and shared behavior.
 - Consequence: avoid broad refactors, global CSS churn, package additions, or shared component changes unless explicitly approved.
 
-## Sprint 1 Production Data Foundation Is Planned, Not Implemented
+## Sprint 1 Production Data Foundation Lands In Narrow Blocks
 
-- Decision: Sprint 1 adds a server-owned anonymous persistence foundation through small reviewable blocks. Block 1A records the contract only.
+- Decision: Sprint 1 adds a server-owned anonymous persistence foundation through small reviewable blocks. Blocks 1A through 1C record the contract, add the unapplied SQL foundation, and add unwired server-only client/config/encryption infrastructure.
 - Reason: sensitive journey retention needs an explicit privacy and security contract before SQL or runtime work begins.
-- Consequence: do not describe persistence, ownership checks, encryption, rate limiting, export/delete, or hydration as implemented until their later blocks land.
+- Consequence: do not describe runtime persistence, ownership checks, rate-limit enforcement, export/delete, or hydration as implemented until their later blocks land.
+
+## Sprint 1 Server Data Infrastructure
+
+- Decision: server persistence configuration is resolved only when a backend helper is called. Local development and tests default to transient mode; production defaults to Supabase mode and rejects explicit transient mode.
+- Reason: CI builds and local transient development must remain configuration-free, while production must fail closed rather than silently lose retained data.
+- Consequence: routes remain unchanged until later blocks wire the infrastructure. No persistence helper validates configuration at module import time.
+- Decision: prefer `SUPABASE_SECRET_KEY` for server-only Supabase access while temporarily accepting `SUPABASE_SERVICE_ROLE_KEY` as a legacy fallback.
+- Reason: the modern backend secret naming is clearer, but existing private deployment configuration may still use the legacy name.
+- Consequence: never add browser Supabase credentials, export secret values, or create a browser Supabase client.
+- Decision: sensitive JSON encryption uses server-only Node crypto with AES-256-GCM envelopes containing `kid`, `algorithm`, `iv`, `authTag`, and `ciphertext`. Encryption and rate-limit HMAC keys must be canonical base64 strings decoding to exactly 32 bytes.
+- Reason: application-level encryption and strict key validation prevent malformed secrets and plaintext retained-content writes from reaching later persistence paths.
+- Consequence: later repositories must use the Block 1C helper for retained sensitive content and must keep plaintext, ciphertext, keys, and secret-bearing configuration out of logs.
 
 ## Sprint 1 Anonymous Ownership And Consent
 

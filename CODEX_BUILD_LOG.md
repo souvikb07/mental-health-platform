@@ -1208,3 +1208,31 @@ Manual review notes:
 
 Next step:
 Verify `0001` then `0002` against a disposable Supabase project, then implement Block 1C server Supabase config and application encryption helper.
+
+## 2026-05-30 21:50 CEST
+
+Task:
+Sprint 1 Block 1C - server Supabase client, environment validation, and encryption helper.
+
+Prompt used:
+Add backend-only infrastructure for later persistence blocks: validated transient/Supabase modes, a cached server-only Supabase client, AES-256-GCM sensitive JSON envelopes, SHA-256 and HMAC helpers, placeholder environment documentation, focused tests, and canonical handoff updates. Do not wire routes, make database calls, or change runtime business behavior.
+
+Files changed:
+Added `src/lib/db/supabase-server.ts`, `src/lib/server/config/data-env.ts`, `src/lib/server/crypto/sensitive-data.ts`, `src/types/database.ts`, `tests/unit/data-env.test.ts`, `tests/unit/sensitive-data.test.ts`, and `tests/unit/supabase-server.test.ts`. Updated `.env.example`, `src/lib/db/README.md`, `codex/CURRENT_STATUS.md`, `codex/DECISIONS.md`, `codex/CODEX_TASKS.md`, and `CODEX_BUILD_LOG.md`.
+
+Commands run:
+`npx vitest run tests/unit/data-env.test.ts tests/unit/sensitive-data.test.ts tests/unit/supabase-server.test.ts`
+`npm test`
+`npm run lint`
+`npm run build`
+`git diff --check`
+Read-only scans for browser-exposed secrets, server-key references, logging calls, changed paths, and scoped non-changes
+
+Result:
+Added unwired server-only infrastructure for later Sprint 1 persistence blocks. Transient development stays configuration-free, production fails closed without valid Supabase-mode values, sensitive JSON envelopes use AES-256-GCM, and hashing helpers are available for later anonymous-owner and rate-limit work.
+
+Manual review notes:
+No API route, business service, Safety Core, AI/OpenAI module, frontend component, journey-storage module, Supabase migration, package file, or `.env.local` file changed. No database connection is attempted by this block. The Supabase client validates configuration only when requested and is not imported by live routes.
+
+Next step:
+Verify `0001` then `0002` against a disposable Supabase project, then implement Block 1D server-owned anonymous sessions.
