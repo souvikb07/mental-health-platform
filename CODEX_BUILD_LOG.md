@@ -1179,3 +1179,32 @@ No application behavior changed. No `src/**`, migration, script, test, `.env.exa
 
 Next step:
 Implement Block 1B as additive migration design only after resolving session-relative expiry and raw-free opt-out fields.
+
+## 2026-05-30 21:05 CEST
+
+Task:
+Sprint 1 Block 1B - Supabase/Postgres migration foundation.
+
+Prompt used:
+Add an immutable-`0001`, additive-`0002` database foundation for server-owned anonymous sessions, encrypted sensitive-content envelopes, raw-free metadata, session-relative retention, hard-delete cascades, orphan-safe purge behavior, restricted RLS surface, and short-lived HMAC rate-limit buckets. Do not change application code, env files, package files, scripts, tests, frontend code, or the historical seed.
+
+Files changed:
+Added `supabase/migrations/0002_sprint1_production_data_foundation.sql` and `supabase/README.md`. Updated `codex/CURRENT_STATUS.md`, `codex/CODEX_TASKS.md`, and `CODEX_BUILD_LOG.md`.
+
+Commands run:
+`shasum -a 256 supabase/migrations/0001_phase1_schema.sql`
+`git diff --check`
+`git status --short`
+Static SQL inspection for tables, columns, constraints, indexes, triggers, RLS, policy removal, grants, and RPC definitions
+`npm test`
+`npm run lint`
+`npm run build`
+
+Result:
+Added the unapplied additive Sprint 1 migration foundation. New owner-linked rows reject plaintext sensitive content, each session receives an independent 30-day expiry, owner cleanup is orphan-safe, the unused public resources policy is removed, and rate-limit buckets store HMAC digests without making a forwarded-header trust assumption.
+
+Manual review notes:
+`0001` remains byte-for-byte unchanged. No remote Supabase project exists yet. This machine has no Supabase CLI or `psql`, and its Docker daemon is not running, so `0001` then `0002` still require application to a disposable Supabase project before production use. No application code, seed SQL, scripts, tests, `.env.example`, `package.json`, or frontend files changed.
+
+Next step:
+Verify `0001` then `0002` against a disposable Supabase project, then implement Block 1C server Supabase config and application encryption helper.

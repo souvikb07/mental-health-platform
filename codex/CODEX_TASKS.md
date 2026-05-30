@@ -57,7 +57,7 @@
 ## Sprint 1: Production Data Foundation
 
 - [x] Block 1A: decisions and documentation
-- [ ] Block 1B: additive database migrations
+- [x] Block 1B: additive database migrations
 - [ ] Block 1C: server Supabase client, environment validation, and encryption helper
 - [ ] Block 1D: server-owned anonymous sessions
 - [ ] Block 1E: ownership guards
@@ -69,6 +69,7 @@
 - [ ] Block 1K: frontend compatibility and hydration
 - [ ] Block 1L: tests and QA
 
-Block 1B is gated on session-relative retention and raw-free storage opt-out
-design. The full spike on `spike/sprint1-production-data-foundation-full-codex`
-at `9e196a1` is reference-only and must not be copied wholesale.
+Block 1B encodes session-relative retention and raw-free storage opt-out
+guardrails in SQL. The full spike on
+`spike/sprint1-production-data-foundation-full-codex` at `9e196a1` remains
+reference-only and must not be copied wholesale. Next: Block 1C.
