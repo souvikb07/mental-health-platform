@@ -9,6 +9,7 @@ Apply migrations in order:
 0004_sprint1_persisted_chat_turns.sql
 0005_sprint1_persisted_clarity_feedback.sql
 0006_sprint1_event_metadata.sql
+0007_sprint1_rate_limit_hardening.sql
 ```
 
 `0001` is the immutable starter migration. `0002` adds the Sprint 1 database
@@ -21,6 +22,8 @@ encrypted context-intake and chat retention.
 encrypted map retention, raw-free safety-state merges, and feedback writes.
 `0006` hardens owner-linked safety events and adds service-role-only
 transactional wrappers for raw-free safety, policy, model, and audit metadata.
+`0007` removes direct service-role access to rate-limit bucket rows so runtime
+increments remain behind the narrow `consume_rate_limit(...)` RPC.
 
 ## Sprint 1 Foundation
 
@@ -39,8 +42,9 @@ transactional wrappers for raw-free safety, policy, model, and audit metadata.
   comments require opt-in and an encrypted envelope.
 - Safety, policy, model, and audit metadata is structured, raw-free, and
   committed atomically with the associated Supabase-mode write or state merge.
-- Rate-limit buckets store only short-lived HMAC identifiers. The schema stores
-  no raw IP address and makes no forwarded-header trust assumption.
+- Rate-limit buckets store only short-lived HMAC identifiers. The runtime
+  trusts Vercel-overwritten `x-forwarded-for` only behind an explicit direct
+  Vercel-ingress policy and stores no raw IP address.
 - Curated runtime resources continue to come from the tested TypeScript
   catalog. `seed/resources_seed.sql` is historical starter data, not the live
   catalog.
@@ -48,7 +52,7 @@ transactional wrappers for raw-free safety, policy, model, and audit metadata.
 ## Verification
 
 No remote Supabase project exists yet. Before any production project exists,
-apply `0001` through `0006` to a disposable Supabase project and
+apply `0001` through `0007` to a disposable Supabase project and
 verify:
 
 1. table, column, index, trigger, RLS, policy, grant, and RPC shape
@@ -67,5 +71,6 @@ verify:
 The server-only client, encryption helper, and anonymous session-creation
 repository are implemented. Ownership guards, encrypted context-intake/chat
 retention, safety-state continuity, encrypted Clarity Map replay, and
-consent-aware feedback persistence are implemented. Purge scheduling and the
-trusted deployment-header policy belong to later Sprint 1 blocks.
+consent-aware feedback persistence are implemented. Distributed RPC-backed
+rate-limit enforcement is implemented. Purge scheduling belongs to a later
+Sprint 1 block.

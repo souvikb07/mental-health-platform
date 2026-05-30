@@ -17,7 +17,8 @@ This is the canonical Codex backend handoff for the current MindBridge repo. Use
   Map content is encrypted at rest, chat and map retries use raw-free claims,
   and feedback ratings append with encrypted opted-in comments.
   Raw-free safety, policy, model, and authorized-action audit metadata commits
-  atomically with associated writes or safety-state merges.
+  atomically with associated writes or safety-state merges. Supabase-mode API
+  routes enforce distributed RPC-backed rate limits before existing services.
 - Supabase: server-only client, encryption helper, migrations, and anonymous
   session creation are present. Session-bound routes enforce cookie ownership
   in Supabase mode. There is no Supabase auth or browser client.
@@ -129,7 +130,7 @@ Safety-critical details belong in `codex/SAFETY_RULES.md`.
 
 - `@supabase/supabase-js` is installed.
 - Additive SQL exists through
-  `supabase/migrations/0006_sprint1_event_metadata.sql`.
+  `supabase/migrations/0007_sprint1_rate_limit_hardening.sql`.
   `supabase/seed/resources_seed.sql` remains historical starter data.
 - Current app runtime does not use Supabase auth or a browser Supabase client.
   Server-owned session creation uses the service-role-only
@@ -137,7 +138,9 @@ Safety-critical details belong in `codex/SAFETY_RULES.md`.
   cookie owner and query sessions with both `owner_id` and `sessionId`.
   Context-intake, chat, Clarity Map, safety-state merge, and feedback
   persistence use narrow service-role-only RPCs. Raw-free event metadata uses
-  owner-scoped transactional wrappers and append-only event tables.
+  owner-scoped transactional wrappers and append-only event tables. Rate-limit
+  buckets store window-scoped HMAC digests only and mutate through the
+  service-role-only `consume_rate_limit(...)` RPC.
 - If future work enables Supabase:
   - keep service-role keys server-only;
   - enable RLS before production for public schema tables;
@@ -173,6 +176,7 @@ Current server-only data variables:
 - `SUPABASE_SERVICE_ROLE_KEY` legacy fallback only
 - `MIND_BRIDGE_DATA_ENCRYPTION_KEY_V1`
 - `MIND_BRIDGE_RATE_LIMIT_HMAC_KEY`
+- `MIND_BRIDGE_TRUSTED_IP_SOURCE`
 
 Other planned/placeholder service variables:
 
@@ -200,7 +204,9 @@ Anything prefixed `NEXT_PUBLIC_` is browser-exposed and must never contain secre
 - No accounts, delete/export, or hydration.
 - Feedback has no durable human review workflow.
 - Resources are static/app-owned and not exhaustive.
-- Rate limits are not implemented yet and are required before public launch on AI, auth, write, and webhook endpoints.
+- RPC-backed rate limits are implemented for current AI, write, session
+  creation, and resources routes. Public deployment still requires direct
+  Vercel-ingress verification.
 - OpenAI calls are non-streaming only.
 - No OpenAI moderation path is currently used.
 - No payment webhook handling is active.

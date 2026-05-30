@@ -5,6 +5,7 @@ import {
   chatTurnInProgress,
   chatTurnRetryUnavailable,
   clarityMapInProgress,
+  rateLimited,
   sessionNotFound,
   unauthorizedSession,
 } from "../../src/lib/server/http/api-errors";
@@ -16,6 +17,7 @@ describe("safe API errors", () => {
     [chatTurnInProgress(), 409, "CHAT_TURN_IN_PROGRESS"],
     [chatTurnRetryUnavailable(), 409, "CHAT_TURN_RETRY_UNAVAILABLE"],
     [clarityMapInProgress(), 409, "CLARITY_MAP_IN_PROGRESS"],
+    [rateLimited(17), 429, "RATE_LIMITED"],
   ])("returns safe structured errors", async (error, status, code) => {
     const response = apiErrorResponse(error);
 
@@ -35,6 +37,12 @@ describe("safe API errors", () => {
     const response = apiErrorResponse(clarityMapInProgress());
 
     expect(response.headers.get("Retry-After")).toBe("5");
+  });
+
+  it("includes retry guidance for rate limits", () => {
+    const response = apiErrorResponse(rateLimited(17));
+
+    expect(response.headers.get("Retry-After")).toBe("17");
   });
 
   it("maps unknown failures to a generic backend-unavailable response", async () => {

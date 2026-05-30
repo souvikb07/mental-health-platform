@@ -666,6 +666,7 @@ Read-only inspection of project handoff docs, Stitch design docs, `reference/sti
 `npm test`
 `npm run lint`
 `npm run build`
+`npx tsc --noEmit`
 `git diff --check`
 Browser manual QA for `/` at desktop and mobile viewport widths, including primary and secondary CTA navigation.
 
@@ -1456,3 +1457,49 @@ fallbacks, generated copy, and existing `store: false` calls remain unchanged.
 Next step:
 Apply `0001` through `0006` to a disposable Supabase project, then implement
 Block 1I rate limiting.
+
+## 2026-05-31 01:13 CEST
+
+Task:
+Sprint 1 Block 1I - production rate limiting.
+
+Prompt used:
+Add distributed Supabase-mode fixed-window rate limits before current route
+services, use window-scoped HMAC subjects, preserve transient behavior, and
+resolve the trusted forwarding-header P1 with an explicit direct-Vercel policy.
+
+Files changed:
+Added `supabase/migrations/0007_sprint1_rate_limit_hardening.sql`, a
+digest-only rate-limit repository, server-only policy/trusted-subject/enforcement
+helpers, thin route wiring, safe `RATE_LIMITED` errors, focused tests, and
+canonical handoff and deployment-document updates.
+
+Commands run:
+`npx vitest run ...` focused Block 1I and API-error files
+`npm test`
+`npm run lint`
+`npm run build`
+`npx tsc --noEmit`
+`git diff --check`
+Read-only scans for logging calls, browser-exposed secrets, `localStorage`
+writes, OpenAI `store: false`, forwarded-header use, changed paths, and scoped
+non-changes
+
+Result:
+Supabase-mode routes now consume atomic Postgres fixed-window buckets before
+existing services run. Bucket rows store only rotating HMAC digests. Production
+session creation fails closed without the explicitly gated trusted Vercel IP
+subject; public static resources retain a conservative shared fallback bucket.
+
+Manual review notes:
+Direct service-role bucket-table access is revoked by `0007`; runtime mutation
+remains behind `consume_rate_limit(...)`. Safety Core, AI/OpenAI modules,
+business services, prompts, fallbacks, parsing, generated output, frontend
+code, and existing `store: false` calls remain unchanged. `npx tsc --noEmit`
+still reports the pre-existing `tests/unit/origin-guard.test.ts` header-union
+typing issue.
+
+Next step:
+Apply `0001` through `0007` to a disposable Supabase project, verify direct
+Vercel ingress before public deployment, then implement Block 1J export,
+delete, and purge foundation.

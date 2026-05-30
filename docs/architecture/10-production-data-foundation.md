@@ -7,12 +7,13 @@ data foundation without adding accounts, changing public product boundaries, or
 rewriting Safety Core.
 
 This document describes the Sprint 1 target and current incremental progress.
-Blocks 1B through 1H now add the additive SQL foundation, server-only
+Blocks 1B through 1I now add the additive SQL foundation, server-only
 client/encryption helpers, server-owned anonymous session creation, and
 cookie-owner-scoped guards for session-bound routes. Consent-aware encrypted
 context-intake, chat, Clarity Map, and feedback retention is wired. Raw-free
 safety, policy, model, and audit metadata now commits through owner-scoped
-transactional RPC wrappers. Other runtime controls remain pending. The full spike on
+transactional RPC wrappers. Distributed RPC-backed rate limiting is wired. Other
+runtime controls remain pending. The full spike on
 `spike/sprint1-production-data-foundation-full-codex` at `9e196a1` is
 reference-only and is not merge-ready.
 
@@ -72,11 +73,14 @@ comments follow the encrypted opt-in path.
 - Browser mutation routes reject cross-site requests and mismatched origins.
 - OpenAI and Supabase service-role usage remain server-only.
 - Resources continue to use the current tested static TypeScript catalog.
-- Postgres RPC fixed-window buckets provide planned distributed rate limits.
+- Postgres RPC fixed-window buckets provide distributed rate limits before
+  existing route services run.
 - Pre-cookie session-creation protection uses short-lived HMAC identifiers
   derived from an IP subject. Raw IP addresses are never stored or logged.
-- Forwarded IP headers may be used only after a trusted deployment policy
-  defines which edge-provided header is authoritative and prevents spoofing.
+- Direct Vercel ingress is the approved trusted-IP deployment policy.
+  `x-forwarded-for` is read only when `MIND_BRIDGE_TRUSTED_IP_SOURCE=vercel`
+  and Vercel exposes `VERCEL=1`. A future upstream proxy requires a separate
+  reviewed policy.
 
 ## Planned Frontend Compatibility
 
@@ -107,7 +111,7 @@ The reference spike identified three P1 blockers. Future implementation must:
 1F persisted messages and chat turns [complete]
 1G persisted Clarity Maps and feedback [complete]
 1H safety, policy, model, and audit metadata [complete]
-1I rate limiting
+1I rate limiting [complete]
 1J export, delete, and purge foundation
 1K frontend compatibility and hydration
 1L tests and QA

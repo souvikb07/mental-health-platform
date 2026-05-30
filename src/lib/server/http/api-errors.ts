@@ -68,6 +68,15 @@ export function clarityMapInProgress() {
   );
 }
 
+export function rateLimited(retryAfterSeconds: number) {
+  return new ApiError(
+    "RATE_LIMITED",
+    429,
+    "Please wait before trying again.",
+    { "Retry-After": String(Math.max(1, Math.ceil(retryAfterSeconds))) },
+  );
+}
+
 export function validationError() {
   return NextResponse.json(
     {

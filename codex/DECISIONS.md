@@ -105,14 +105,12 @@ Last updated: 2026-05-30.
 ## Sprint 1 Production Data Foundation Lands In Narrow Blocks
 
 - Decision: Sprint 1 adds a server-owned anonymous persistence foundation
-  through small reviewable blocks. Blocks 1A through 1E record the contract,
-  add the unapplied SQL foundation, add server-only client/config/encryption
-  infrastructure, wire anonymous session creation, and enforce owner-scoped
-  route guards.
+  through small reviewable blocks. Blocks 1A through 1I now record the
+  contract, add the unapplied SQL foundation, wire server-owned encrypted
+  persistence and raw-free metadata, and enforce ownership and rate limits.
 - Reason: sensitive journey retention needs an explicit privacy and security contract before SQL or runtime work begins.
-- Consequence: do not describe durable journey-content persistence,
-  rate-limit enforcement, export/delete, or hydration as implemented until
-  their later blocks land.
+- Consequence: export/delete and hydration remain pending until their later
+  blocks land.
 
 ## Sprint 1 Server Data Infrastructure
 
@@ -200,9 +198,20 @@ Last updated: 2026-05-30.
 
 ## Sprint 1 Rate-Limit Foundation
 
-- Decision: plan Postgres RPC fixed-window buckets and short-lived HMAC identifiers for pre-cookie IP subjects.
+- Decision: use Postgres RPC fixed-window buckets with window-scoped HMAC
+  identifiers. Session-bound buckets use server-owned owner-plus-session
+  subjects after authorization. Session creation and resources use trusted IP
+  subjects before service invocation.
 - Reason: distributed abuse protection is needed without retaining raw IP addresses.
-- Consequence: do not store or log raw IPs, and do not trust spoofable forwarding headers until a deployment-specific trusted-header policy is documented.
+- Consequence: store only lowercase HMAC digests. Do not store or log raw IPs,
+  owner/session subject strings, cookie values, or request content.
+- Decision: trust Vercel-overwritten `x-forwarded-for` only when
+  `MIND_BRIDGE_TRUSTED_IP_SOURCE=vercel` and Vercel exposes `VERCEL=1`.
+- Reason: the approved deployment path is direct Vercel ingress. Generic
+  forwarding headers and future upstream proxies are not trusted implicitly.
+- Consequence: production session creation fails closed without a trusted IP.
+  Public static resources use a conservative shared fallback bucket so support
+  access remains available.
 
 ## Sprint 1 Raw-Free Event Metadata
 

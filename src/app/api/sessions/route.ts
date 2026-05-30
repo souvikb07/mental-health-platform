@@ -5,6 +5,7 @@ import {
   validationError,
 } from "@/lib/server/http/api-errors";
 import { assertSameOrigin } from "@/lib/server/http/origin-guard";
+import { enforceSessionCreationRateLimit } from "@/lib/server/rate-limit/enforce";
 import { createSession } from "@/lib/server/sessions";
 import { createSessionRequestSchema } from "@/lib/validation/sessions";
 
@@ -17,6 +18,8 @@ export async function POST(request: Request) {
     if (!parsed.success) {
       return validationError();
     }
+
+    await enforceSessionCreationRateLimit(request);
 
     const { result, setCookie } = await createSession(request, parsed.data);
     const response = NextResponse.json(result);
