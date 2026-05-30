@@ -49,6 +49,9 @@ Normal chat flow:
 6. Optional AI triage may run only for eligible subtle messages and may escalate, never downgrade, deterministic safety.
 7. If normal chat is allowed, the conversation agent or fallback runs.
 8. Model output is post-validated before returning.
+9. In Supabase mode, the server loads persisted `previousState` before
+   evaluation and merges the returned state after completion. A storage failure
+   does not hide safety or boundary routes.
 
 Context intake flow:
 
@@ -185,14 +188,16 @@ Boundary behavior:
 - Do not log raw mental-health messages.
 - Do not send raw mental-health content to analytics providers.
 - Do not expose server-only secrets to frontend code.
-- Raw chat content is stored only in `sessionStorage` for the active browser journey.
+- Raw chat content remains in `sessionStorage` for the active browser journey.
+  After storage opt-in, retained server copies are encrypted before database
+  writes.
 - Browser storage is not secure persistence or authorization.
 
 ## Known Safety Gaps Or TODOs
 
 - No production rate limits yet.
-- No accounts, durable journey-content persistence, authoritative persisted
-  safety state, or delete/export controls yet.
+- No accounts, Clarity Map or feedback persistence, event-level safety
+  metadata persistence, or delete/export controls yet.
 - No OpenAI moderation path currently used.
 - Safety rules are deterministic plus optional triage and require continued regression tests for new phrasing.
 - Resource catalog is static and not exhaustive.

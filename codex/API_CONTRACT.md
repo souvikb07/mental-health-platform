@@ -22,8 +22,8 @@ This is the canonical Codex frontend/backend contract for the current Phase 1 MV
 
 - Anonymous session creation is server-owned in Supabase mode. Downstream
   session-bound routes now verify the HttpOnly owner cookie and an unexpired
-  owner-scoped session row before invoking business services. Durable journey
-  persistence is not implemented yet.
+  owner-scoped session row before invoking business services. Opted-in
+  context-intake/chat retention is encrypted at rest.
 - Browser-provided `sessionContext`, `lastRisk`, and `lastSafetyState` are hints only. Backend safety decisions must be recomputed server-side where safety matters.
 - Browser mutation routes reject cross-site requests and mismatched `Origin`
   headers. Non-browser callers without `Origin` remain supported.
@@ -36,6 +36,8 @@ SAME_ORIGIN_REQUIRED      403
 UNAUTHORIZED_SESSION      401
 SESSION_NOT_FOUND         404
 DATA_BACKEND_UNAVAILABLE  503
+CHAT_TURN_IN_PROGRESS     409
+CHAT_TURN_RETRY_UNAVAILABLE 409
 ```
 
 ## POST /api/sessions
@@ -133,6 +135,7 @@ Responses:
   safety: SafetyUi | null;
   resources: SupportResource[];
   source: "safety";
+  persistenceStatus?: "unavailable";
 }
 ```
 
@@ -142,6 +145,7 @@ Responses:
   assistantMessage: ApiChatMessage;
   policyBoundary: PolicyBoundaryResult;
   source: "boundary";
+  persistenceStatus?: "unavailable";
 }
 ```
 
@@ -152,6 +156,10 @@ Safety behavior:
 - Optional `mainConcernText` runs through Safety Core before normal opener generation.
 - High/imminent safety or blocking policy boundary does not call the context-intake model.
 - Missing OpenAI config falls back deterministically.
+- In Supabase mode, opted-in intake results are retained once and replayed.
+  Opt-out intake text remains transient. Safety and boundary routes remain
+  visible with `persistenceStatus: "unavailable"` if a post-evaluation write
+  fails.
 
 ## POST /api/chat
 
@@ -164,6 +172,7 @@ Request:
   sessionId: string;
   message: string;
   sessionContext?: SessionContext;
+  clientMessageId?: string; // UUID; enables retry replay
 }
 ```
 
@@ -184,6 +193,7 @@ Response:
   source: "openai" | "fallback" | "safety" | "boundary";
   policyBoundary?: PolicyBoundaryResult;
   safetyState?: SafetyState;
+  persistenceStatus?: "unavailable";
 }
 ```
 
@@ -197,6 +207,9 @@ Safety behavior:
 - Policy-boundary routes do not call the conversation agent.
 - AI triage is optional and can escalate eligible subtle cases, but cannot downgrade deterministic high/imminent safety.
 - Model output is post-validated before returning.
+- In Supabase mode, opted-in responses are encrypted and replayed for completed
+  `clientMessageId` retries. Active duplicates and opted-out completed retries
+  return safe `409` errors without a second AI call.
 
 ## POST /api/clarity-map
 

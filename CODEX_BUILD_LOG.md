@@ -1327,3 +1327,48 @@ session creation in Block 1L.
 Next step:
 Apply `0001`, `0002`, and `0003` to a disposable Supabase project, then
 implement Block 1F persisted messages and chat turns.
+
+## 2026-05-30 23:31 CEST
+
+Task:
+Sprint 1 Block 1F - persisted messages and chat turns.
+
+Prompt used:
+Add consent-aware encrypted context-intake and chat retention in Supabase mode,
+keep opt-out sessions raw-free, add durable retry claims and persisted
+safety-state continuity, preserve transient behavior, and leave Safety Core and
+OpenAI modules unchanged.
+
+Files changed:
+Added `supabase/migrations/0004_sprint1_persisted_chat_turns.sql`, focused
+server repositories, authoritative-context and encrypted-payload helpers,
+minimal route/client UUID plumbing, focused tests, and canonical handoff
+updates.
+
+Commands run:
+`npx vitest run ...` focused Block 1F and existing regression files
+`npm test`
+`npm run lint`
+`npm run build`
+`git diff --check`
+Read-only scans for logging calls, browser-exposed secrets, `localStorage`
+writes, OpenAI `store: false`, changed paths, and scoped non-changes
+
+Result:
+Supabase mode now retains opted-in context-intake responses and chat message
+pairs as AES-256-GCM envelopes. Raw-free chat-turn claims prevent duplicate AI
+calls for active or completed retries, permit stale recovery after five
+minutes, and retain no opted-out message text. Stored safety state is loaded
+before evaluation and merged atomically after writes.
+
+Manual review notes:
+Safety and boundary routes remain visible with additive
+`persistenceStatus: "unavailable"` if a post-evaluation persistence write
+fails. Normal responses fail closed. Safety Core, AI/OpenAI modules,
+`store: false`, Clarity Map persistence, feedback persistence, event
+persistence, rate limiting, export/delete, hydration, package files, and env
+files remain unchanged.
+
+Next step:
+Apply `0001` through `0004` to a disposable Supabase project, then implement
+Block 1G persisted Clarity Maps and feedback.

@@ -81,6 +81,11 @@ describe("sessions repository", () => {
         id: "session-id",
         owner_id: "owner-id",
         expires_at: "2026-06-29T00:00:00.000Z",
+        storage_consent_accepted: true,
+        current_safety_state: "normal_support",
+        country_code: "US",
+        main_concern_category: "overwhelmed",
+        onboarding_note_encrypted: null,
       },
       error: null,
     });
@@ -91,10 +96,17 @@ describe("sessions repository", () => {
       id: "session-id",
       ownerId: "owner-id",
       expiresAt: "2026-06-29T00:00:00.000Z",
+      storageConsentAccepted: true,
+      currentSafetyState: "normal_support",
+      countryCode: "US",
+      mainConcernCategory: "overwhelmed",
+      onboardingNoteEncrypted: null,
     });
 
     expect(from).toHaveBeenCalledWith("sessions");
-    expect(query.select).toHaveBeenCalledWith("id, owner_id, expires_at");
+    expect(query.select).toHaveBeenCalledWith(
+      "id, owner_id, expires_at, storage_consent_accepted, current_safety_state, country_code, main_concern_category, onboarding_note_encrypted",
+    );
     expect(query.eq.mock.calls).toEqual([
       ["owner_id", "owner-id"],
       ["id", "session-id"],

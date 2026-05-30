@@ -4,6 +4,8 @@ const {
   createChatResponse,
   createClarityMapResponse,
   createContextIntakeResponse,
+  createPersistedChatResponse,
+  createPersistedContextIntakeResponse,
   createSession,
   receiveMockFeedback,
   resolveOwnedSession,
@@ -11,14 +13,22 @@ const {
   createChatResponse: vi.fn(),
   createClarityMapResponse: vi.fn(),
   createContextIntakeResponse: vi.fn(),
+  createPersistedChatResponse: vi.fn(),
+  createPersistedContextIntakeResponse: vi.fn(),
   createSession: vi.fn(),
   receiveMockFeedback: vi.fn(),
   resolveOwnedSession: vi.fn(),
 }));
 
-vi.mock("@/lib/server/chat", () => ({ createChatResponse }));
+vi.mock("@/lib/server/chat", () => ({
+  createChatResponse,
+  createPersistedChatResponse,
+}));
 vi.mock("@/lib/server/clarity-map", () => ({ createClarityMapResponse }));
-vi.mock("@/lib/server/context-intake", () => ({ createContextIntakeResponse }));
+vi.mock("@/lib/server/context-intake", () => ({
+  createContextIntakeResponse,
+  createPersistedContextIntakeResponse,
+}));
 vi.mock("@/lib/server/feedback", () => ({ receiveMockFeedback }));
 vi.mock("@/lib/server/session/ownership", () => ({ resolveOwnedSession }));
 vi.mock("@/lib/server/sessions", () => ({ createSession }));
@@ -37,7 +47,9 @@ describe("session-bound route ownership guards", () => {
     vi.resetAllMocks();
     resolveOwnedSession.mockResolvedValue(null);
     createContextIntakeResponse.mockResolvedValue({ type: "opener" });
+    createPersistedContextIntakeResponse.mockResolvedValue({ type: "opener" });
     createChatResponse.mockResolvedValue({ source: "fallback" });
+    createPersistedChatResponse.mockResolvedValue({ source: "fallback" });
     createClarityMapResponse.mockResolvedValue({ clarityMap: {} });
     receiveMockFeedback.mockReturnValue({ status: "received" });
     createSession.mockResolvedValue({
@@ -65,6 +77,23 @@ describe("session-bound route ownership guards", () => {
     expect(createContextIntakeResponse).toHaveBeenCalledOnce();
   });
 
+  it("uses persisted context-intake orchestration after a Supabase ownership lookup", async () => {
+    const owned = { owner: { id: "owner-id" }, session: { id: sessionId } };
+    resolveOwnedSession.mockResolvedValue(owned);
+
+    await expectOk(
+      postJson(postContextIntake, "/api/context-intake", {
+        sessionContext: validSessionContext(),
+      }),
+    );
+
+    expect(createPersistedContextIntakeResponse).toHaveBeenCalledWith(
+      validSessionContext(),
+      owned,
+    );
+    expect(createContextIntakeResponse).not.toHaveBeenCalled();
+  });
+
   it("guards chat before invoking its service", async () => {
     await expectOk(
       postJson(postChat, "/api/chat", {
@@ -78,6 +107,24 @@ describe("session-bound route ownership guards", () => {
       sessionId,
     );
     expect(createChatResponse).toHaveBeenCalledOnce();
+  });
+
+  it("uses persisted chat orchestration after a Supabase ownership lookup", async () => {
+    const owned = { owner: { id: "owner-id" }, session: { id: sessionId } };
+    resolveOwnedSession.mockResolvedValue(owned);
+
+    await expectOk(
+      postJson(postChat, "/api/chat", {
+        sessionId,
+        message: "I feel stretched thin this week.",
+      }),
+    );
+
+    expect(createPersistedChatResponse).toHaveBeenCalledWith(
+      expect.any(Object),
+      owned,
+    );
+    expect(createChatResponse).not.toHaveBeenCalled();
   });
 
   it("guards legacy Clarity Map generation before invoking its service", async () => {
@@ -136,6 +183,17 @@ describe("session-bound route ownership guards", () => {
       },
     });
     expect(createChatResponse).not.toHaveBeenCalled();
+  });
+
+  it("rejects malformed chat client message ids before ownership lookup", async () => {
+    const response = await postJson(postChat, "/api/chat", {
+      sessionId,
+      clientMessageId: "not-a-uuid",
+      message: "I feel stretched thin this week.",
+    });
+
+    expect(response.status).toBe(400);
+    expect(resolveOwnedSession).not.toHaveBeenCalled();
   });
 
   it("rejects cross-origin session creation before invoking its service", async () => {

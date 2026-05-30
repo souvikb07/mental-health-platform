@@ -61,7 +61,7 @@
 - [x] Block 1C: server Supabase client, environment validation, and encryption helper
 - [x] Block 1D: server-owned anonymous sessions
 - [x] Block 1E: ownership guards
-- [ ] Block 1F: persisted messages and chat turns
+- [x] Block 1F: persisted messages and chat turns
 - [ ] Block 1G: persisted Clarity Maps and feedback
 - [ ] Block 1H: safety, policy, model, and audit metadata
 - [ ] Block 1I: rate limiting
@@ -75,4 +75,6 @@ guardrails in SQL. The full spike on
 reference-only and must not be copied wholesale. Block 1C added unwired
 server-only Supabase/config/encryption helpers. Block 1D added transactional
 server-owned anonymous session creation. Block 1E added same-origin checks and
-cookie-owner-scoped session guards. Next: Block 1F.
+cookie-owner-scoped session guards. Block 1F added consent-aware encrypted
+context-intake/chat retention, raw-free retry claims, and persisted
+safety-state continuity. Next: Block 1G.

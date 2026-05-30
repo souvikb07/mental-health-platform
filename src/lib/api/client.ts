@@ -54,6 +54,7 @@ export type ChatResponse = {
   source?: "openai" | "fallback" | "safety" | "boundary";
   policyBoundary?: PolicyBoundaryResult;
   safetyState?: SafetyState;
+  persistenceStatus?: "unavailable";
 };
 
 export type ContextIntakeResponse =
@@ -70,12 +71,14 @@ export type ContextIntakeResponse =
       safety: SafetyUi | null;
       resources: SupportResource[];
       source: "safety";
+      persistenceStatus?: "unavailable";
     }
   | {
       type: "boundary";
       assistantMessage: ApiChatMessage;
       policyBoundary: PolicyBoundaryResult;
       source: "boundary";
+      persistenceStatus?: "unavailable";
     };
 
 export type ClarityMapResponse = {
@@ -135,6 +138,7 @@ export function createSession(input: CreateSessionInput) {
 export function sendChatMessage(input: {
   sessionId: string;
   message: string;
+  clientMessageId?: string;
   sessionContext?: SessionContext;
 }) {
   return postJson<ChatResponse>("/api/chat", input);

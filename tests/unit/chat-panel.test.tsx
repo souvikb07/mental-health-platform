@@ -280,6 +280,11 @@ describe("ChatPanel context opener", () => {
     await waitFor(() => {
       expect(apiMocks.sendChatMessage).toHaveBeenCalledTimes(1);
     });
+    expect(apiMocks.sendChatMessage).toHaveBeenCalledWith(expect.objectContaining({
+      clientMessageId: expect.stringMatching(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+      ),
+    }));
 
     const savedBeforeAssistant = JSON.parse(
       window.sessionStorage.getItem(getChatStorageKey(sessionContext.sessionId)) ??
