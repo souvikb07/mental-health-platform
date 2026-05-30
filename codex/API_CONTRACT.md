@@ -29,6 +29,9 @@ This is the canonical Codex frontend/backend contract for the current Phase 1 MV
   headers. Non-browser callers without `Origin` remain supported.
 - Supabase-mode writes append raw-free safety, policy, model, and authorized
   action audit metadata without changing public response bodies.
+- Supabase-mode routes enforce distributed fixed-window rate limits before
+  existing service orchestration. Session-bound buckets use server-owned
+  owner-plus-session subjects. Only HMAC digests reach Postgres.
 
 Safe route errors:
 
@@ -41,6 +44,7 @@ DATA_BACKEND_UNAVAILABLE  503
 CHAT_TURN_IN_PROGRESS     409
 CHAT_TURN_RETRY_UNAVAILABLE 409
 CLARITY_MAP_IN_PROGRESS   409
+RATE_LIMITED              429
 ```
 
 ## POST /api/sessions
@@ -443,14 +447,13 @@ Do not expose raw evidence, matched phrases, regex names, model output, or secre
 - `/api/sessions` uses mock anonymous session IDs.
 - `/api/feedback` retains its receipt-only response shape.
 - Legacy `/api/clarity-map` `{ sessionId }` path returns mock-compatible map data for backward compatibility.
-- Supabase migrations exist through Block 1H but have not been applied to a
+- Supabase migrations exist through Block 1I but have not been applied to a
   remote project.
 
 ## Open Alignment Questions
 
 - Production auth/session ownership model.
 - Durable storage, export/delete, and retention policy.
-- Rate limiting strategy for public AI/auth/write/webhook endpoints.
 - Feedback review workflow.
 - Resource catalog governance and update process.
 - Whether/when to wire Supabase database and RLS-backed resources.

@@ -64,7 +64,7 @@
 - [x] Block 1F: persisted messages and chat turns
 - [x] Block 1G: persisted Clarity Maps and feedback
 - [x] Block 1H: safety, policy, model, and audit metadata
-- [ ] Block 1I: rate limiting
+- [x] Block 1I: rate limiting
 - [ ] Block 1J: export, delete, and purge foundation
 - [ ] Block 1K: frontend compatibility and hydration
 - [ ] Block 1L: tests and QA
@@ -79,4 +79,6 @@ cookie-owner-scoped session guards. Block 1F added consent-aware encrypted
 context-intake/chat retention, raw-free retry claims, and persisted
 safety-state continuity. Block 1G added encrypted Clarity Map replay and
 consent-aware feedback persistence. Block 1H added atomic raw-free safety,
-policy, model, and authorized-action audit metadata. Next: Block 1I.
+policy, model, and authorized-action audit metadata. Block 1I added distributed
+RPC-backed rate limits with window-scoped HMAC subjects and an explicit
+direct-Vercel trusted-IP policy. Next: Block 1J.

@@ -8,13 +8,16 @@
 - [ ] Payment secret keys are server-only
 - [ ] Webhook secrets are server-only
 - [ ] Vercel variables configured by environment
+- [ ] Direct Vercel ingress confirmed before trusting `x-forwarded-for`
+- [ ] `MIND_BRIDGE_TRUSTED_IP_SOURCE=vercel` configured for production
+- [ ] Vercel system environment variables exposed so `VERCEL=1` is available
 - [ ] GitHub secret scanning/push protection enabled
 
 ## Backend
 - [ ] All API routes validate input
 - [ ] All protected routes verify session server-side
 - [ ] Authorization checks are server-side
-- [ ] Rate limits on AI and auth endpoints
+- [ ] RPC-backed rate limits verified on AI, write, and resources endpoints
 - [ ] No raw sensitive logs
 - [ ] Error responses do not leak stack traces/secrets
 

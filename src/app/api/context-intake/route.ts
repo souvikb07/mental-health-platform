@@ -6,6 +6,7 @@ import {
   validationError,
 } from "@/lib/server/http/api-errors";
 import { assertSameOrigin } from "@/lib/server/http/origin-guard";
+import { enforceContextIntakeRateLimit } from "@/lib/server/rate-limit/enforce";
 import { resolveOwnedSession } from "@/lib/server/session/ownership";
 import {
   createContextIntakeResponse,
@@ -48,6 +49,7 @@ export async function POST(request: Request) {
       request,
       parsed.data.sessionContext.sessionId,
     );
+    await enforceContextIntakeRateLimit(owned);
 
     return NextResponse.json(
       owned

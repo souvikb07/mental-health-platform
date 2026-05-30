@@ -2,12 +2,12 @@
 
 ## Status
 
-Accepted as the Sprint 1 implementation contract. Blocks 1B through 1H now
+Accepted as the Sprint 1 implementation contract. Blocks 1B through 1I now
 implement the additive SQL foundation, server-only client/encryption helpers,
 anonymous session creation, downstream route ownership guards, encrypted
 context-intake/chat retention, encrypted Clarity Map replay, and consent-aware
-feedback persistence, plus atomic raw-free safety, policy, model, and audit
-metadata. Later control blocks remain pending.
+feedback persistence, atomic raw-free safety, policy, model, and audit
+metadata, and distributed rate limiting. Later control blocks remain pending.
 
 ## Context
 
@@ -45,8 +45,10 @@ wholesale, and does not establish implemented behavior.
 - Keep resources on the tested static TypeScript runtime during Sprint 1.
 - Allow transient local development when Supabase is absent. Production must
   fail closed when Supabase persistence configuration is missing or invalid.
-- Plan atomic Postgres RPC fixed-window rate-limit buckets. Use short-lived HMAC
-  identifiers for pre-cookie IP subjects and never store or log raw IPs.
+- Use atomic Postgres RPC fixed-window rate-limit buckets. Store only
+  short-lived HMAC identifiers. For pre-cookie IP subjects, trust Vercel's
+  overwritten `x-forwarded-for` only when direct Vercel ingress is explicitly
+  configured. Never store or log raw IPs.
 - Add only minimal frontend hydration, export, and delete controls. Browser
   `sessionStorage` becomes a UX cache, not authorization or the source of truth.
 

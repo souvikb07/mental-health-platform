@@ -9,6 +9,7 @@ import {
   validationError,
 } from "@/lib/server/http/api-errors";
 import { assertSameOrigin } from "@/lib/server/http/origin-guard";
+import { enforceClarityMapRateLimit } from "@/lib/server/rate-limit/enforce";
 import { resolveOwnedSession } from "@/lib/server/session/ownership";
 import { clarityMapRequestSchema } from "@/lib/validation/clarity-map";
 
@@ -23,6 +24,7 @@ export async function POST(request: Request) {
     }
 
     const owned = await resolveOwnedSession(request, parsed.data.sessionId);
+    await enforceClarityMapRateLimit(owned);
 
     return NextResponse.json(
       owned

@@ -199,7 +199,8 @@ Boundary behavior:
 
 ## Known Safety Gaps Or TODOs
 
-- No production rate limits yet.
+- Supabase-mode production rate limits run before current AI-capable route
+  services. Direct Vercel ingress must be verified before public deployment.
 - No accounts or delete/export controls yet.
 - No OpenAI moderation path currently used.
 - Safety rules are deterministic plus optional triage and require continued regression tests for new phrasing.
