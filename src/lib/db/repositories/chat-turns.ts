@@ -2,6 +2,7 @@ import "server-only";
 
 import { getSupabaseServerClient } from "@/lib/db/supabase-server";
 import { dataBackendUnavailable } from "@/lib/server/http/api-errors";
+import type { EventBundle } from "@/lib/server/persistence/event-payloads";
 import type { SafetyState } from "@/lib/safety-core";
 import type { EncryptedEnvelope } from "@/types/database";
 import type { RiskLevel } from "@/types/risk";
@@ -45,9 +46,10 @@ export async function completeChatTurn(input: {
   safetyState: SafetyState;
   userCreatedAt: string;
   assistantCreatedAt: string;
+  eventBundle: EventBundle;
 }) {
   const client = getRequiredClient();
-  const { error } = await client.rpc("complete_chat_turn", {
+  const { error } = await client.rpc("complete_chat_turn_with_events", {
     p_owner_id: input.ownerId,
     p_session_id: input.sessionId,
     p_client_message_id: input.clientMessageId,
@@ -59,6 +61,7 @@ export async function completeChatTurn(input: {
     p_safety_state: input.safetyState,
     p_user_created_at: input.userCreatedAt,
     p_assistant_created_at: input.assistantCreatedAt,
+    p_event_bundle: input.eventBundle,
   });
 
   if (error) {
@@ -72,14 +75,16 @@ export async function persistContextIntakeResult(input: {
   responseEncrypted: EncryptedEnvelope | null;
   riskLevel: RiskLevel | null;
   safetyState: SafetyState | null;
+  eventBundle: EventBundle;
 }): Promise<EncryptedEnvelope | null> {
   const client = getRequiredClient();
-  const { data, error } = await client.rpc("persist_context_intake_result", {
+  const { data, error } = await client.rpc("persist_context_intake_result_with_events", {
     p_owner_id: input.ownerId,
     p_session_id: input.sessionId,
     p_response_encrypted: input.responseEncrypted,
     p_risk_level: input.riskLevel,
     p_safety_state: input.safetyState,
+    p_event_bundle: input.eventBundle,
   });
 
   if (error || !Array.isArray(data) || data.length > 1) {

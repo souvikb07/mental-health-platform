@@ -5,13 +5,18 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const {
   findPersistedContextIntakeResponse,
   persistContextIntakeResult,
+  recordAuthorizedAuditEvent,
 } = vi.hoisted(() => ({
   findPersistedContextIntakeResponse: vi.fn(),
   persistContextIntakeResult: vi.fn(),
+  recordAuthorizedAuditEvent: vi.fn(),
 }));
 
 vi.mock("@/lib/db/repositories/messages", () => ({
   findPersistedContextIntakeResponse,
+}));
+vi.mock("@/lib/db/repositories/event-metadata", () => ({
+  recordAuthorizedAuditEvent,
 }));
 vi.mock("@/lib/db/repositories/chat-turns", () => ({
   persistContextIntakeResult,
@@ -34,6 +39,7 @@ describe("persisted context intake", () => {
     persistContextIntakeResult.mockImplementation(async (input) =>
       input.responseEncrypted
     );
+    recordAuthorizedAuditEvent.mockResolvedValue(undefined);
   });
 
   it("replays an opted-in retained result without generating another opener", async () => {
@@ -50,6 +56,18 @@ describe("persisted context intake", () => {
     ).resolves.toEqual(retained);
     expect(contextIntakeAgent).not.toHaveBeenCalled();
     expect(persistContextIntakeResult).not.toHaveBeenCalled();
+    expect(recordAuthorizedAuditEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        eventBundle: expect.objectContaining({
+          safety_events: [],
+          model_events: [],
+          audit_event: expect.objectContaining({
+            route_key: "api/context-intake",
+            outcome_code: "replayed",
+          }),
+        }),
+      }),
+    );
   });
 
   it.each([
@@ -71,6 +89,9 @@ describe("persisted context intake", () => {
     expect(response.type).toBe(type);
     const input = persistContextIntakeResult.mock.calls[0][0];
     expect(input.responseEncrypted).not.toBeNull();
+    expect(JSON.stringify(input.eventBundle)).not.toContain(
+      "What feels most pressing today?",
+    );
     expect(
       decryptContextIntakeResponse(input.responseEncrypted).type,
     ).toBe(type);
@@ -102,6 +123,9 @@ describe("persisted context intake", () => {
     expect(persistContextIntakeResult).toHaveBeenCalledWith(expect.objectContaining({
       responseEncrypted: null,
     }));
+    expect(
+      JSON.stringify(persistContextIntakeResult.mock.calls[0][0].eventBundle),
+    ).not.toContain("Transient note only.");
   });
 
   it("returns a safety route when its persistence write fails", async () => {

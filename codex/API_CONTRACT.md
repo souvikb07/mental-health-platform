@@ -27,6 +27,8 @@ This is the canonical Codex frontend/backend contract for the current Phase 1 MV
 - Browser-provided `sessionContext`, `lastRisk`, and `lastSafetyState` are hints only. Backend safety decisions must be recomputed server-side where safety matters.
 - Browser mutation routes reject cross-site requests and mismatched `Origin`
   headers. Non-browser callers without `Origin` remain supported.
+- Supabase-mode writes append raw-free safety, policy, model, and authorized
+  action audit metadata without changing public response bodies.
 
 Safe route errors:
 
@@ -441,7 +443,7 @@ Do not expose raw evidence, matched phrases, regex names, model output, or secre
 - `/api/sessions` uses mock anonymous session IDs.
 - `/api/feedback` retains its receipt-only response shape.
 - Legacy `/api/clarity-map` `{ sessionId }` path returns mock-compatible map data for backward compatibility.
-- Supabase migrations exist through Block 1G but have not been applied to a
+- Supabase migrations exist through Block 1H but have not been applied to a
   remote project.
 
 ## Open Alignment Questions

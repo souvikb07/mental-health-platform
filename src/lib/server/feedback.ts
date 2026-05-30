@@ -2,6 +2,10 @@ import "server-only";
 
 import { persistFeedback } from "@/lib/db/repositories/feedback";
 import { encryptFeedbackComment } from "@/lib/server/persistence/feedback-payloads";
+import {
+  buildAuditEvent,
+  buildEventBundle,
+} from "@/lib/server/persistence/event-payloads";
 import type { OwnedSession } from "@/lib/server/session/ownership";
 import type { FeedbackRequest } from "@/lib/validation/feedback";
 
@@ -34,6 +38,9 @@ export async function receivePersistedFeedback(
       owned.session.storageConsentAccepted && comment
         ? encryptFeedbackComment(comment)
         : null,
+    eventBundle: buildEventBundle({
+      auditEvent: buildAuditEvent("api/feedback", "received"),
+    }),
   });
 
   return {

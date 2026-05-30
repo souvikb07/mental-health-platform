@@ -204,6 +204,23 @@ Last updated: 2026-05-30.
 - Reason: distributed abuse protection is needed without retaining raw IP addresses.
 - Consequence: do not store or log raw IPs, and do not trust spoofable forwarding headers until a deployment-specific trusted-header policy is documented.
 
+## Sprint 1 Raw-Free Event Metadata
+
+- Decision: append allowlisted safety, policy, model, and authorized-action
+  audit metadata through owner-scoped transactional RPC wrappers.
+- Reason: production review needs structured operational evidence without
+  retaining prompts, outputs, messages, excerpts, comments, or arbitrary JSON.
+- Consequence: normal Supabase-mode writes fail safely if required metadata
+  cannot commit; already-generated safety and boundary responses remain visible
+  with `persistenceStatus: "unavailable"`.
+- Decision: keep AI/OpenAI modules unchanged and derive coarse model provenance
+  from existing server orchestration results. Add only an internal raw-free
+  `policyMetadata` snapshot to Safety Core decisions.
+- Reason: metadata collection must not alter prompts, parsing, fallbacks,
+  routing, generated copy, or existing `store: false` behavior.
+- Consequence: `policyMetadata` is persistence-only and never enters public API
+  responses.
+
 ## Sprint 1 Reference Spike Is Not Merge-Ready
 
 - Decision: treat `spike/sprint1-production-data-foundation-full-codex` at `9e196a1` as reference-only.

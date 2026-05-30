@@ -3,16 +3,10 @@ import "server-only";
 import { getSupabaseServerClient } from "@/lib/db/supabase-server";
 import { dataBackendUnavailable } from "@/lib/server/http/api-errors";
 import type { EventBundle } from "@/lib/server/persistence/event-payloads";
-import type { EncryptedEnvelope } from "@/types/database";
 
-export async function persistFeedback(input: {
+export async function recordAuthorizedAuditEvent(input: {
   ownerId: string;
   sessionId: string;
-  clarityRating: number;
-  helpfulnessRating: number;
-  feltSafe: boolean | null;
-  unsafeOrUnhelpful: boolean;
-  commentEncrypted: EncryptedEnvelope | null;
   eventBundle: EventBundle;
 }) {
   const client = getSupabaseServerClient();
@@ -21,14 +15,9 @@ export async function persistFeedback(input: {
     throw dataBackendUnavailable();
   }
 
-  const { error } = await client.rpc("persist_feedback_with_audit", {
+  const { error } = await client.rpc("record_authorized_audit_event", {
     p_owner_id: input.ownerId,
     p_session_id: input.sessionId,
-    p_clarity_rating: input.clarityRating,
-    p_helpfulness_rating: input.helpfulnessRating,
-    p_felt_safe: input.feltSafe,
-    p_unsafe_or_unhelpful: input.unsafeOrUnhelpful,
-    p_comment_encrypted: input.commentEncrypted,
     p_event_bundle: input.eventBundle,
   });
 

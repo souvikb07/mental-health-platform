@@ -1,4 +1,8 @@
-import type { PolicyBoundaryResult } from "@/types/policy-boundary";
+import type {
+  PolicyBoundaryAction,
+  PolicyBoundaryCategory,
+  PolicyBoundaryResult,
+} from "@/types/policy-boundary";
 import type { AiTriageResult, TriagePromptInput } from "@/lib/ai/triage";
 import type {
   ApiRiskClassification,
@@ -75,6 +79,10 @@ export type SafetyDecision = {
   resources: SupportResource[];
   responseContent: string | null;
   responseSource: "safety" | "boundary" | null;
+  policyMetadata: {
+    action: PolicyBoundaryAction;
+    categories: PolicyBoundaryCategory[];
+  };
   policyBoundary?: PolicyBoundaryResult;
   aiTriage?: AiTriageDecisionMetadata;
 };

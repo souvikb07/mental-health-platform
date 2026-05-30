@@ -1415,3 +1415,44 @@ package files, and env files remain unchanged.
 Next step:
 Apply `0001` through `0005` to a disposable Supabase project, then implement
 Block 1H safety, policy, model, and audit metadata.
+
+## 2026-05-31 00:50 CEST
+
+Task:
+Sprint 1 Block 1H - raw-free safety, policy, model, and audit metadata.
+
+Prompt used:
+Add owner-scoped, allowlisted event persistence without changing Safety Core
+routing, AI/OpenAI behavior, public responses, or transient-mode behavior.
+
+Files changed:
+Added `supabase/migrations/0006_sprint1_event_metadata.sql`, strict raw-free
+event builders, an authorized-audit repository, transactional wrapper wiring,
+focused tests, and canonical handoff updates.
+
+Commands run:
+`npx vitest run ...` focused Block 1H and existing regression files
+`npx tsc --noEmit`
+`npm test`
+`npm run lint`
+`npm run build`
+`git diff --check`
+Read-only scans for logging calls, browser-exposed secrets, `localStorage`
+writes, OpenAI `store: false`, changed paths, and scoped non-changes
+
+Result:
+Supabase-mode writes now append raw-free safety, policy, model, and authorized
+action audit metadata atomically with retained writes or safety-state merges.
+Event bundles are strict RPC transport only and are decomposed into scalar
+columns.
+
+Manual review notes:
+Safety Core routing is unchanged. Its only additive field is the internal,
+raw-free `policyMetadata` snapshot. AI/OpenAI modules, prompts, parsing,
+fallbacks, generated copy, and existing `store: false` calls remain unchanged.
+`npx tsc --noEmit` still reports the pre-existing
+`tests/unit/origin-guard.test.ts` header-union typing issue.
+
+Next step:
+Apply `0001` through `0006` to a disposable Supabase project, then implement
+Block 1I rate limiting.

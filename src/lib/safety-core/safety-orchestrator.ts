@@ -90,6 +90,10 @@ export async function evaluateSafety({
       boundaryResponse,
     }),
     responseSource: getResponseSource(safetyState, exposedPolicyBoundary),
+    policyMetadata: {
+      action: resolvedPolicyBoundary.action,
+      categories: resolvedPolicyBoundary.categories,
+    },
     policyBoundary: exposedPolicyBoundary,
     aiTriage: aiTriage?.metadata,
   };

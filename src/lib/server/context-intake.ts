@@ -2,11 +2,14 @@ import "server-only";
 
 import {
   generateContextIntake,
+  getOpenAiContextIntakeModel,
   type ContextIntakeAgentResult,
 } from "@/lib/ai/context-intake";
+import { getOpenAiTriageModel } from "@/lib/ai/triage";
 import {
   persistContextIntakeResult,
 } from "@/lib/db/repositories/chat-turns";
+import { recordAuthorizedAuditEvent } from "@/lib/db/repositories/event-metadata";
 import { findPersistedContextIntakeResponse } from "@/lib/db/repositories/messages";
 import {
   safetyOrchestrator,
@@ -18,6 +21,13 @@ import {
   decryptContextIntakeResponse,
   encryptContextIntakeResponse,
 } from "@/lib/server/persistence/message-payloads";
+import {
+  buildAiTriageModelEvents,
+  buildAuditEvent,
+  buildEventBundle,
+  buildModelEvent,
+  buildSafetyEvent,
+} from "@/lib/server/persistence/event-payloads";
 import { createAuthoritativeSessionContext } from "@/lib/server/session/authoritative-context";
 import type { OwnedSession } from "@/lib/server/session/ownership";
 import type { PolicyBoundaryResult } from "@/types/policy-boundary";
@@ -130,6 +140,14 @@ export async function createPersistedContextIntakeResponse(
     const retained = await findPersistedContextIntakeResponse(owned.session.id);
 
     if (retained) {
+      await recordAuthorizedAuditEvent({
+        ownerId: owned.owner.id,
+        sessionId: owned.session.id,
+        eventBundle: buildEventBundle({
+          auditEvent: buildAuditEvent("api/context-intake", "replayed"),
+        }),
+      });
+
       return retained;
     }
   }
@@ -155,6 +173,7 @@ export async function createPersistedContextIntakeResponse(
         : null,
       riskLevel: safetyDecision?.risk.level ?? null,
       safetyState: safetyDecision?.safetyState ?? null,
+      eventBundle: buildContextIntakeEventBundle(response, safetyDecision),
     });
 
     return retainedEnvelope
@@ -167,6 +186,41 @@ export async function createPersistedContextIntakeResponse(
 
     throw dataBackendUnavailable();
   }
+}
+
+function buildContextIntakeEventBundle(
+  response: ContextIntakeResponse,
+  safetyDecision: SafetyDecision | undefined,
+) {
+  const safetyDecisions = safetyDecision ? [safetyDecision] : [];
+  const modelEvents =
+    response.type === "opener"
+      ? [
+          buildModelEvent({
+            taskCode: "context_intake",
+            sourceCode: response.source,
+            modelIdentifier: getOpenAiContextIntakeModel(),
+          }),
+        ]
+      : [];
+
+  return buildEventBundle({
+    safetyEvents: safetyDecisions.map((decision) =>
+      buildSafetyEvent("api/context-intake", decision),
+    ),
+    modelEvents: [
+      ...buildAiTriageModelEvents(safetyDecisions, getOpenAiTriageModel()),
+      ...modelEvents,
+    ],
+    auditEvent: buildAuditEvent(
+      "api/context-intake",
+      response.type === "safety"
+        ? "safety_blocked"
+        : response.type === "boundary"
+          ? "boundary_blocked"
+          : "completed",
+    ),
+  });
 }
 
 function createAssistantMessage(content: string): ApiChatMessage {

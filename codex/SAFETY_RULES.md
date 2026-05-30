@@ -52,6 +52,8 @@ Normal chat flow:
 9. In Supabase mode, the server loads persisted `previousState` before
    evaluation and merges the returned state after completion. A storage failure
    does not hide safety or boundary routes.
+10. Supabase-mode safety and policy metadata is raw-free, allowlisted, and
+    appended through owner-scoped transactional RPC wrappers.
 
 Context intake flow:
 
@@ -198,8 +200,7 @@ Boundary behavior:
 ## Known Safety Gaps Or TODOs
 
 - No production rate limits yet.
-- No accounts, event-level safety metadata persistence, or delete/export
-  controls yet.
+- No accounts or delete/export controls yet.
 - No OpenAI moderation path currently used.
 - Safety rules are deterministic plus optional triage and require continued regression tests for new phrasing.
 - Resource catalog is static and not exhaustive.

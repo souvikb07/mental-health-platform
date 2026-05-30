@@ -30,9 +30,10 @@ describe("feedback repository", () => {
       feltSafe: true,
       unsafeOrUnhelpful: false,
       commentEncrypted: envelope,
+      eventBundle: eventBundle(),
     });
 
-    expect(rpc).toHaveBeenCalledWith("persist_feedback", {
+    expect(rpc).toHaveBeenCalledWith("persist_feedback_with_audit", {
       p_owner_id: "owner-id",
       p_session_id: "session-id",
       p_clarity_rating: 4,
@@ -40,6 +41,7 @@ describe("feedback repository", () => {
       p_felt_safe: true,
       p_unsafe_or_unhelpful: false,
       p_comment_encrypted: envelope,
+      p_event_bundle: eventBundle(),
     });
   });
 
@@ -54,6 +56,7 @@ describe("feedback repository", () => {
       feltSafe: null,
       unsafeOrUnhelpful: false,
       commentEncrypted: null,
+      eventBundle: eventBundle(),
     })).rejects.toMatchObject({
       code: "DATA_BACKEND_UNAVAILABLE",
       status: 503,
@@ -68,5 +71,18 @@ function encryptedEnvelope() {
     iv: "AAAAAAAAAAAAAAAA",
     authTag: "AAAAAAAAAAAAAAAAAAAAAA==",
     ciphertext: "YQ==",
+  };
+}
+
+function eventBundle() {
+  return {
+    safety_events: [],
+    model_events: [],
+    audit_event: {
+      event_type: "authorized_session_action" as const,
+      route_key: "api/feedback" as const,
+      outcome_code: "received" as const,
+      error_code: null,
+    },
   };
 }
