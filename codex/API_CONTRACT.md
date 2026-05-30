@@ -21,9 +21,22 @@ This is the canonical Codex frontend/backend contract for the current Phase 1 MV
 ```
 
 - Anonymous session creation is server-owned in Supabase mode. Downstream
-  ownership enforcement and durable journey persistence are not implemented
-  yet.
+  session-bound routes now verify the HttpOnly owner cookie and an unexpired
+  owner-scoped session row before invoking business services. Durable journey
+  persistence is not implemented yet.
 - Browser-provided `sessionContext`, `lastRisk`, and `lastSafetyState` are hints only. Backend safety decisions must be recomputed server-side where safety matters.
+- Browser mutation routes reject cross-site requests and mismatched `Origin`
+  headers. Non-browser callers without `Origin` remain supported.
+
+Safe route errors:
+
+```txt
+VALIDATION_ERROR          400
+SAME_ORIGIN_REQUIRED      403
+UNAUTHORIZED_SESSION      401
+SESSION_NOT_FOUND         404
+DATA_BACKEND_UNAVAILABLE  503
+```
 
 ## POST /api/sessions
 
@@ -134,6 +147,8 @@ Responses:
 
 Safety behavior:
 
+- In Supabase mode, the owner cookie and `sessionContext.sessionId` are verified
+  before Safety Core or opener generation runs.
 - Optional `mainConcernText` runs through Safety Core before normal opener generation.
 - High/imminent safety or blocking policy boundary does not call the context-intake model.
 - Missing OpenAI config falls back deterministically.
@@ -174,6 +189,8 @@ Response:
 
 Safety behavior:
 
+- In Supabase mode, the owner cookie and top-level `sessionId` are verified
+  before Safety Core or normal conversation runs.
 - Deterministic risk classification runs before normal conversation.
 - Policy boundary runs before normal conversation for diagnosis, medication, treatment protocol, medical advice, therapy replacement, prompt injection, self-harm method requests, dependency requests, and out-of-scope requests.
 - High/imminent safety routes do not call the conversation agent.
@@ -202,6 +219,9 @@ Legacy response:
 ```
 
 This keeps older frontend/demo callers from breaking.
+
+In Supabase mode, both legacy and enhanced requests require the owner cookie
+and an unexpired owner-scoped session lookup before map logic runs.
 
 Enhanced request:
 
@@ -329,6 +349,9 @@ Response:
 ```
 
 Current behavior is mock receipt only. UI and docs must not imply database persistence, analytics tracking, clinical review, emergency support, or human follow-up.
+
+In Supabase mode, the owner cookie and top-level `sessionId` are verified before
+the mock receipt runs.
 
 ## Shared Types
 

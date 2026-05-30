@@ -1,17 +1,23 @@
 import { NextResponse } from "next/server";
 
+import {
+  apiErrorResponse,
+  validationError,
+} from "@/lib/server/http/api-errors";
+import { assertSameOrigin } from "@/lib/server/http/origin-guard";
 import { createSession } from "@/lib/server/sessions";
 import { createSessionRequestSchema } from "@/lib/validation/sessions";
 
 export async function POST(request: Request) {
-  const body: unknown = await request.json().catch(() => null);
-  const parsed = createSessionRequestSchema.safeParse(body);
-
-  if (!parsed.success) {
-    return validationError();
-  }
-
   try {
+    assertSameOrigin(request);
+    const body: unknown = await request.json().catch(() => null);
+    const parsed = createSessionRequestSchema.safeParse(body);
+
+    if (!parsed.success) {
+      return validationError();
+    }
+
     const { result, setCookie } = await createSession(request, parsed.data);
     const response = NextResponse.json(result);
 
@@ -20,31 +26,7 @@ export async function POST(request: Request) {
     }
 
     return response;
-  } catch {
-    return dataBackendUnavailable();
+  } catch (error) {
+    return apiErrorResponse(error);
   }
-}
-
-function dataBackendUnavailable() {
-  return NextResponse.json(
-    {
-      error: {
-        code: "DATA_BACKEND_UNAVAILABLE",
-        message: "Please try again later.",
-      },
-    },
-    { status: 503 },
-  );
-}
-
-function validationError() {
-  return NextResponse.json(
-    {
-      error: {
-        code: "VALIDATION_ERROR",
-        message: "Please check your input.",
-      },
-    },
-    { status: 400 },
-  );
 }

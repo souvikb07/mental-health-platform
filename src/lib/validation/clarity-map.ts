@@ -4,7 +4,7 @@ import type { ApiChatMessage } from "@/types/risk";
 
 const legacyClarityMapRequestSchema = z.object({
   sessionId: z.string().trim().min(1).max(120),
-});
+}).strict();
 
 const sessionContextSchema = z.object({
   sessionId: z.string().trim().min(1).max(120),
@@ -36,13 +36,18 @@ const clarityMapMessageSchema = z.object({
   createdAt: z.string().trim().min(1).max(80),
 }) satisfies z.ZodType<ApiChatMessage>;
 
-export const enhancedClarityMapRequestSchema = z.object({
-  sessionId: z.string().trim().min(1).max(120),
-  sessionContext: sessionContextSchema,
-  messages: z.array(clarityMapMessageSchema).max(80),
-  lastRisk: z.unknown().optional(),
-  lastSafetyState: z.unknown().optional(),
-});
+export const enhancedClarityMapRequestSchema = z
+  .object({
+    sessionId: z.string().trim().min(1).max(120),
+    sessionContext: sessionContextSchema,
+    messages: z.array(clarityMapMessageSchema).max(80),
+    lastRisk: z.unknown().optional(),
+    lastSafetyState: z.unknown().optional(),
+  })
+  .refine((request) => request.sessionContext.sessionId === request.sessionId, {
+    message: "Session context must match the session locator.",
+    path: ["sessionContext", "sessionId"],
+  });
 
 export const clarityMapRequestSchema = z.union([
   enhancedClarityMapRequestSchema,

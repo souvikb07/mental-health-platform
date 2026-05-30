@@ -1282,3 +1282,48 @@ is configured locally.
 Next step:
 Apply `0001`, `0002`, and `0003` to a disposable Supabase project, then
 implement Block 1E ownership guards.
+
+## 2026-05-30 22:51 CEST
+
+Task:
+Sprint 1 Block 1E - ownership guards for session-bound routes.
+
+Prompt used:
+Add route-level ownership enforcement without changing business services. In
+Supabase mode, resolve the HttpOnly anonymous-owner cookie, hash it immediately,
+verify an unexpired owner-scoped session before invoking context intake, chat,
+Clarity Map, or feedback behavior, add same-origin mutation checks, and return
+safe API errors. Preserve transient MVP behavior.
+
+Files changed:
+Added minimal anonymous-owner and owned-session lookup infrastructure,
+centralized safe API errors, a same-origin guard, focused tests, and canonical
+handoff updates. Updated the five mutation routes and tightened nested
+session-locator validation for chat and enhanced Clarity Map requests.
+
+Commands run:
+`npx vitest run tests/unit/anonymous-owners-repository.test.ts tests/unit/sessions-repository.test.ts tests/unit/ownership.test.ts tests/unit/origin-guard.test.ts tests/unit/api-errors.test.ts tests/unit/ownership-routes.test.ts tests/unit/sessions-route.test.ts tests/unit/context-intake-route.test.ts tests/unit/clarity-map-route.test.ts`
+`npm test`
+`npm run lint`
+`npm run build`
+`git diff --check`
+Read-only scans for logging calls, browser-exposed secrets, owner-scoped
+session queries, changed paths, and scoped non-changes
+
+Result:
+Added Supabase-mode authorization guards for session-bound routes while
+preserving config-free transient behavior. `sessionId` remains a locator only:
+the service-role session query always includes `owner_id`, invalid locators
+fail before querying Postgres, and unknown or cross-owner sessions share the
+same safe `SESSION_NOT_FOUND` response.
+
+Manual review notes:
+No migration, persistence write, hydration, rate-limit enforcement, Safety
+Core edit, AI/OpenAI edit, frontend change, API-client change, journey-storage
+change, package change, or `.env.local` change was added. Existing response
+unions remain unchanged. Supabase-mode smoke setup still needs cookie-aware
+session creation in Block 1L.
+
+Next step:
+Apply `0001`, `0002`, and `0003` to a disposable Supabase project, then
+implement Block 1F persisted messages and chat turns.

@@ -1,6 +1,10 @@
 import "server-only";
 
 import { getSupabaseServerClient } from "@/lib/db/supabase-server";
+import {
+  dataBackendUnavailable,
+  sessionNotFound,
+} from "@/lib/server/http/api-errors";
 import type { EncryptedEnvelope } from "@/types/database";
 import type { CountryCode, MainConcernCategory } from "@/types/session-context";
 
@@ -20,6 +24,12 @@ export type CreatedOwnedAnonymousSession = {
   sessionId: string;
   storageConsentAccepted: boolean;
   createdAt: string;
+  expiresAt: string;
+};
+
+export type OwnedSessionReference = {
+  id: string;
+  ownerId: string;
   expiresAt: string;
 };
 
@@ -45,6 +55,35 @@ export async function createOwnedAnonymousSession(
   }
 
   return normalizeCreatedSession(data[0]);
+}
+
+export async function findOwnedSession(
+  ownerId: string,
+  sessionId: string,
+): Promise<OwnedSessionReference> {
+  const client = getSupabaseServerClient();
+
+  if (!client) {
+    throw dataBackendUnavailable();
+  }
+
+  const { data, error } = await client
+    .from("sessions")
+    .select("id, owner_id, expires_at")
+    .eq("owner_id", ownerId)
+    .eq("id", sessionId)
+    .gt("expires_at", new Date().toISOString())
+    .maybeSingle();
+
+  if (error) {
+    throw dataBackendUnavailable();
+  }
+
+  if (!data) {
+    throw sessionNotFound();
+  }
+
+  return normalizeOwnedSession(data);
 }
 
 function normalizeCreatedSession(value: unknown): CreatedOwnedAnonymousSession {
@@ -83,4 +122,21 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function isValidTimestamp(value: unknown): value is string {
   return typeof value === "string" && !Number.isNaN(Date.parse(value));
+}
+
+function normalizeOwnedSession(value: unknown): OwnedSessionReference {
+  if (
+    !isRecord(value) ||
+    typeof value.id !== "string" ||
+    typeof value.owner_id !== "string" ||
+    !isValidTimestamp(value.expires_at)
+  ) {
+    throw dataBackendUnavailable();
+  }
+
+  return {
+    id: value.id,
+    ownerId: value.owner_id,
+    expiresAt: value.expires_at,
+  };
 }

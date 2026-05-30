@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import {
+  apiErrorResponse,
+  validationError,
+} from "@/lib/server/http/api-errors";
+import { assertSameOrigin } from "@/lib/server/http/origin-guard";
+import { resolveOwnedSession } from "@/lib/server/session/ownership";
 import { createContextIntakeResponse } from "@/lib/server/context-intake";
 
 const contextIntakeRequestSchema = z.object({
@@ -26,26 +32,21 @@ const contextIntakeRequestSchema = z.object({
 });
 
 export async function POST(request: Request) {
-  const body: unknown = await request.json().catch(() => null);
-  const parsed = contextIntakeRequestSchema.safeParse(body);
+  try {
+    assertSameOrigin(request);
+    const body: unknown = await request.json().catch(() => null);
+    const parsed = contextIntakeRequestSchema.safeParse(body);
 
-  if (!parsed.success) {
-    return validationError();
+    if (!parsed.success) {
+      return validationError();
+    }
+
+    await resolveOwnedSession(request, parsed.data.sessionContext.sessionId);
+
+    return NextResponse.json(
+      await createContextIntakeResponse(parsed.data.sessionContext),
+    );
+  } catch (error) {
+    return apiErrorResponse(error);
   }
-
-  return NextResponse.json(
-    await createContextIntakeResponse(parsed.data.sessionContext),
-  );
-}
-
-function validationError() {
-  return NextResponse.json(
-    {
-      error: {
-        code: "VALIDATION_ERROR",
-        message: "Please check your input.",
-      },
-    },
-    { status: 400 },
-  );
 }
