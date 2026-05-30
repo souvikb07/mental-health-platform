@@ -6,6 +6,7 @@ import {
   sessionNotFound,
 } from "@/lib/server/http/api-errors";
 import type { EncryptedEnvelope } from "@/types/database";
+import type { SafetyState } from "@/lib/safety-core";
 import type { CountryCode, MainConcernCategory } from "@/types/session-context";
 
 export const PRODUCT_BOUNDARY_POLICY_VERSION = "product_boundary.v1";
@@ -31,6 +32,11 @@ export type OwnedSessionReference = {
   id: string;
   ownerId: string;
   expiresAt: string;
+  storageConsentAccepted: boolean;
+  currentSafetyState: SafetyState | null;
+  countryCode: CountryCode;
+  mainConcernCategory: MainConcernCategory;
+  onboardingNoteEncrypted: EncryptedEnvelope | null;
 };
 
 export async function createOwnedAnonymousSession(
@@ -69,7 +75,9 @@ export async function findOwnedSession(
 
   const { data, error } = await client
     .from("sessions")
-    .select("id, owner_id, expires_at")
+    .select(
+      "id, owner_id, expires_at, storage_consent_accepted, current_safety_state, country_code, main_concern_category, onboarding_note_encrypted",
+    )
     .eq("owner_id", ownerId)
     .eq("id", sessionId)
     .gt("expires_at", new Date().toISOString())
@@ -129,7 +137,12 @@ function normalizeOwnedSession(value: unknown): OwnedSessionReference {
     !isRecord(value) ||
     typeof value.id !== "string" ||
     typeof value.owner_id !== "string" ||
-    !isValidTimestamp(value.expires_at)
+    !isValidTimestamp(value.expires_at) ||
+    typeof value.storage_consent_accepted !== "boolean" ||
+    !isSafetyStateOrNull(value.current_safety_state) ||
+    !isCountryCode(value.country_code) ||
+    !isMainConcernCategory(value.main_concern_category) ||
+    !isEncryptedEnvelopeOrNull(value.onboarding_note_encrypted)
   ) {
     throw dataBackendUnavailable();
   }
@@ -138,5 +151,51 @@ function normalizeOwnedSession(value: unknown): OwnedSessionReference {
     id: value.id,
     ownerId: value.owner_id,
     expiresAt: value.expires_at,
+    storageConsentAccepted: value.storage_consent_accepted,
+    currentSafetyState: value.current_safety_state,
+    countryCode: value.country_code,
+    mainConcernCategory: value.main_concern_category,
+    onboardingNoteEncrypted: value.onboarding_note_encrypted,
   };
+}
+
+function isSafetyStateOrNull(value: unknown): value is SafetyState | null {
+  return (
+    value === null ||
+    [
+      "normal_support",
+      "elevated_distress",
+      "passive_suicidal_ideation",
+      "active_suicidal_ideation",
+      "third_party_self_harm",
+      "imminent_risk",
+      "self_harm_method_request",
+      "medical_emergency",
+      "harm_to_others",
+      "abuse_or_coercion",
+      "policy_boundary",
+    ].includes(String(value))
+  );
+}
+
+function isCountryCode(value: unknown): value is CountryCode {
+  return value === "US" || value === "IN" || value === "GLOBAL";
+}
+
+function isMainConcernCategory(value: unknown): value is MainConcernCategory {
+  return [
+    "overwhelmed",
+    "anxious_worried",
+    "low_numb_disconnected",
+    "work_study_stress",
+    "relationship_family",
+    "sleep_energy",
+    "not_sure",
+  ].includes(String(value));
+}
+
+function isEncryptedEnvelopeOrNull(
+  value: unknown,
+): value is EncryptedEnvelope | null {
+  return value === null || isRecord(value);
 }

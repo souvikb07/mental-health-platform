@@ -7,7 +7,10 @@ import {
 } from "@/lib/server/http/api-errors";
 import { assertSameOrigin } from "@/lib/server/http/origin-guard";
 import { resolveOwnedSession } from "@/lib/server/session/ownership";
-import { createContextIntakeResponse } from "@/lib/server/context-intake";
+import {
+  createContextIntakeResponse,
+  createPersistedContextIntakeResponse,
+} from "@/lib/server/context-intake";
 
 const contextIntakeRequestSchema = z.object({
   sessionContext: z.object({
@@ -41,10 +44,18 @@ export async function POST(request: Request) {
       return validationError();
     }
 
-    await resolveOwnedSession(request, parsed.data.sessionContext.sessionId);
+    const owned = await resolveOwnedSession(
+      request,
+      parsed.data.sessionContext.sessionId,
+    );
 
     return NextResponse.json(
-      await createContextIntakeResponse(parsed.data.sessionContext),
+      owned
+        ? await createPersistedContextIntakeResponse(
+            parsed.data.sessionContext,
+            owned,
+          )
+        : await createContextIntakeResponse(parsed.data.sessionContext),
     );
   } catch (error) {
     return apiErrorResponse(error);

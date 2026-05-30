@@ -7,6 +7,7 @@ export class ApiError extends Error {
     readonly code: string,
     readonly status: number,
     message: string,
+    readonly headers?: HeadersInit,
   ) {
     super(message);
     this.name = "ApiError";
@@ -41,6 +42,23 @@ export function sameOriginRequired() {
   );
 }
 
+export function chatTurnInProgress() {
+  return new ApiError(
+    "CHAT_TURN_IN_PROGRESS",
+    409,
+    "That message is still being processed.",
+    { "Retry-After": "5" },
+  );
+}
+
+export function chatTurnRetryUnavailable() {
+  return new ApiError(
+    "CHAT_TURN_RETRY_UNAVAILABLE",
+    409,
+    "That message cannot be replayed. Please send a new message.",
+  );
+}
+
 export function validationError() {
   return NextResponse.json(
     {
@@ -64,6 +82,6 @@ export function apiErrorResponse(error: unknown) {
         message: safeError.message,
       },
     },
-    { status: safeError.status },
+    { status: safeError.status, headers: safeError.headers },
   );
 }

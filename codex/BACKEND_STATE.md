@@ -13,8 +13,8 @@ This is the canonical Codex backend handoff for the current MindBridge repo. Use
 - AI SDK: `openai` package through server-only modules under `src/lib/ai`.
 - Tests: Vitest with unit tests under `tests/unit`.
 - Data persistence: Supabase-mode `POST /api/sessions` creates server-owned
-  anonymous owner/session/consent rows. Other runtime database writes remain
-  pending.
+  anonymous owner/session/consent rows. Opted-in context-intake/chat content is
+  encrypted at rest, and chat retries use raw-free claims.
 - Supabase: server-only client, encryption helper, migrations, and anonymous
   session creation are present. Session-bound routes enforce cookie ownership
   in Supabase mode. There is no Supabase auth or browser client.
@@ -66,6 +66,8 @@ Current routes:
   - Runs Safety Core on optional onboarding text before generating a normal opener.
   - In Supabase mode, verifies the owner cookie and owner-scoped session before
     Safety Core or opener generation.
+  - Retains one encrypted response after storage opt-in and merges persisted
+    safety state without retaining opt-out text.
 
 - `POST /api/chat`
   - Handler: `src/app/api/chat/route.ts`
@@ -74,6 +76,8 @@ Current routes:
   - Runs Safety Core before normal conversation. High/imminent safety and policy-boundary routes do not call the conversation agent.
   - In Supabase mode, verifies the owner cookie and owner-scoped session before
     Safety Core or conversation generation.
+  - Uses raw-free retry claims, encrypted opted-in message pairs, and persisted
+    safety-state continuity.
 
 - `POST /api/clarity-map`
   - Handler: `src/app/api/clarity-map/route.ts`
@@ -119,11 +123,14 @@ Safety-critical details belong in `codex/SAFETY_RULES.md`.
 ## Supabase And Database State
 
 - `@supabase/supabase-js` is installed.
-- SQL exists in `supabase/migrations/0001_phase1_schema.sql` and `supabase/seed/resources_seed.sql`.
+- Additive SQL exists through
+  `supabase/migrations/0004_sprint1_persisted_chat_turns.sql`.
+  `supabase/seed/resources_seed.sql` remains historical starter data.
 - Current app runtime does not use Supabase auth or a browser Supabase client.
   Server-owned session creation uses the service-role-only
   `create_anonymous_session(...)` RPC. Session-bound route guards resolve the
   cookie owner and query sessions with both `owner_id` and `sessionId`.
+  Context-intake and chat persistence uses narrow service-role-only RPCs.
 - If future work enables Supabase:
   - keep service-role keys server-only;
   - enable RLS before production for public schema tables;
@@ -183,8 +190,8 @@ Anything prefixed `NEXT_PUBLIC_` is browser-exposed and must never contain secre
 
 ## Known Backend TODOs And Limitations
 
-- No accounts, durable journey-content persistence, authoritative persisted
-  safety state, delete/export, or hydration.
+- No accounts, Clarity Map or feedback persistence, safety/model/audit event
+  persistence, delete/export, or hydration.
 - Feedback is mock receipt only and has no durable review workflow.
 - Resources are static/app-owned and not exhaustive.
 - Rate limits are not implemented yet and are required before public launch on AI, auth, write, and webhook endpoints.

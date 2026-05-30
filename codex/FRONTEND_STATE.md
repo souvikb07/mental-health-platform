@@ -35,7 +35,7 @@ Last updated: 2026-05-29.
 
 - `/`: Stitch-style landing page with real product story, CTA to `/onboarding`, secondary CTA to `/resources`, and local hero image.
 - `/onboarding`: creates anonymous session, saves journey context, then routes to `/chat`.
-- `/chat`: hydrates session/messages from `sessionStorage`, calls context-intake once when needed, sends chat messages, renders safety/resources, and can generate a Clarity Map.
+- `/chat`: hydrates session/messages from `sessionStorage`, calls context-intake once when needed, sends chat messages with stable per-submission UUIDs, renders safety/resources, and can generate a Clarity Map.
 - `/clarity-map`: reads generated map from `sessionStorage`; shows empty CTA when no generated map exists.
 - `/resources`: fetches app-owned resources through `/api/resources`; falls back to `mockResources` on failure.
 - `/feedback`: submits MVP feedback to `/api/feedback`; does not imply persistence or review.
@@ -73,6 +73,8 @@ Last updated: 2026-05-29.
   - `mindbridge.sessionId`
   - `mindbridge.sessionContext`
 - Raw chat content must not be stored in localStorage.
+- After storage opt-in, server-retained context-intake/chat copies are encrypted
+  before database writes. Browser `sessionStorage` remains the active UX cache.
 - Onboarding sends an optional unchecked `storageConsentAccepted` choice and
   writes active context through the existing `sessionStorage` cache only.
 - Browser storage is not authorization.

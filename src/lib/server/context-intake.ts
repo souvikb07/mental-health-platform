@@ -4,7 +4,22 @@ import {
   generateContextIntake,
   type ContextIntakeAgentResult,
 } from "@/lib/ai/context-intake";
-import { safetyOrchestrator } from "@/lib/safety-core";
+import {
+  persistContextIntakeResult,
+} from "@/lib/db/repositories/chat-turns";
+import { findPersistedContextIntakeResponse } from "@/lib/db/repositories/messages";
+import {
+  safetyOrchestrator,
+  type SafetyDecision,
+  type SafetyState,
+} from "@/lib/safety-core";
+import { dataBackendUnavailable } from "@/lib/server/http/api-errors";
+import {
+  decryptContextIntakeResponse,
+  encryptContextIntakeResponse,
+} from "@/lib/server/persistence/message-payloads";
+import { createAuthoritativeSessionContext } from "@/lib/server/session/authoritative-context";
+import type { OwnedSession } from "@/lib/server/session/ownership";
 import type { PolicyBoundaryResult } from "@/types/policy-boundary";
 import type { ApiChatMessage, ApiRiskClassification, SafetyUi } from "@/types/risk";
 import type { SupportResource } from "@/types/resource";
@@ -24,12 +39,14 @@ export type ContextIntakeResponse =
       safety: SafetyUi | null;
       resources: SupportResource[];
       source: "safety";
+      persistenceStatus?: "unavailable";
     }
   | {
       type: "boundary";
       assistantMessage: ApiChatMessage;
       policyBoundary: PolicyBoundaryResult;
       source: "boundary";
+      persistenceStatus?: "unavailable";
     };
 
 type ContextIntakeDependencies = {
@@ -38,9 +55,15 @@ type ContextIntakeDependencies = {
   ) => Promise<ContextIntakeAgentResult>;
 };
 
+type ContextIntakeOptions = {
+  previousState?: SafetyState;
+  onSafetyDecision?: (decision: SafetyDecision) => void;
+};
+
 export async function createContextIntakeResponse(
   sessionContext: SessionContext,
   dependencies: ContextIntakeDependencies = {},
+  options: ContextIntakeOptions = {},
 ): Promise<ContextIntakeResponse> {
   const optionalText = sessionContext.mainConcernText?.trim();
 
@@ -48,7 +71,9 @@ export async function createContextIntakeResponse(
     const safetyDecision = await safetyOrchestrator.evaluate({
       message: optionalText,
       sessionContext,
+      previousState: options.previousState,
     });
+    options.onSafetyDecision?.(safetyDecision);
 
     if (!safetyDecision.allowNormalChat) {
       if (safetyDecision.responseSource === "boundary" && safetyDecision.policyBoundary) {
@@ -86,6 +111,62 @@ export async function createContextIntakeResponse(
     contextIntake: result.contextIntake,
     source: result.source,
   };
+}
+
+export async function createPersistedContextIntakeResponse(
+  sessionContext: SessionContext,
+  owned: OwnedSession,
+  dependencies: ContextIntakeDependencies = {},
+): Promise<ContextIntakeResponse> {
+  const authoritativeContext = createAuthoritativeSessionContext(
+    owned.session,
+    {
+      transientContext: sessionContext,
+      includeTransientOptionalText: true,
+    },
+  );
+
+  if (owned.session.storageConsentAccepted) {
+    const retained = await findPersistedContextIntakeResponse(owned.session.id);
+
+    if (retained) {
+      return retained;
+    }
+  }
+
+  let safetyDecision: SafetyDecision | undefined;
+  const response = await createContextIntakeResponse(
+    authoritativeContext,
+    dependencies,
+    {
+      previousState: owned.session.currentSafetyState ?? undefined,
+      onSafetyDecision: (decision) => {
+        safetyDecision = decision;
+      },
+    },
+  );
+
+  try {
+    const retainedEnvelope = await persistContextIntakeResult({
+      ownerId: owned.owner.id,
+      sessionId: owned.session.id,
+      responseEncrypted: owned.session.storageConsentAccepted
+        ? encryptContextIntakeResponse(response)
+        : null,
+      riskLevel: safetyDecision?.risk.level ?? null,
+      safetyState: safetyDecision?.safetyState ?? null,
+    });
+
+    return retainedEnvelope
+      ? decryptContextIntakeResponse(retainedEnvelope)
+      : response;
+  } catch {
+    if (response.type === "safety" || response.type === "boundary") {
+      return { ...response, persistenceStatus: "unavailable" };
+    }
+
+    throw dataBackendUnavailable();
+  }
 }
 
 function createAssistantMessage(content: string): ApiChatMessage {

@@ -154,6 +154,22 @@ Last updated: 2026-05-30.
 - Reason: anonymous-owner cookies need a narrow CSRF guard without breaking the
   existing server-side smoke harness.
 - Consequence: keep relative same-origin frontend API calls unchanged.
+- Decision: opted-in context-intake responses and chat turns are stored only as
+  encrypted envelopes. Opted-out chat-turn claims remain raw-free.
+- Reason: retry control and safety-state continuity must not silently retain
+  sensitive message text.
+- Consequence: completed opted-in retries replay the retained response;
+  completed opted-out retries return `CHAT_TURN_RETRY_UNAVAILABLE`.
+- Decision: active duplicate chat turns return `CHAT_TURN_IN_PROGRESS`, and an
+  abandoned processing claim may be reclaimed after five minutes.
+- Reason: concurrent requests must not trigger duplicate AI calls, while
+  crashed workers must recover without manual cleanup.
+- Consequence: only stale-reclaimed claims may regenerate a response.
+- Decision: if a post-evaluation persistence write fails, safety and boundary
+  routes remain visible with `persistenceStatus: "unavailable"`.
+- Reason: storage failure must never suppress urgent local safety resources.
+- Consequence: normal opener/chat responses still fail closed with a safe
+  backend-unavailable error when required persistence fails.
 
 ## Sprint 1 Retention, Controls, And Runtime
 

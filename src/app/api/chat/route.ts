@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 
-import { createChatResponse } from "@/lib/server/chat";
+import {
+  createChatResponse,
+  createPersistedChatResponse,
+} from "@/lib/server/chat";
 import {
   apiErrorResponse,
   validationError,
@@ -19,9 +22,13 @@ export async function POST(request: Request) {
       return validationError();
     }
 
-    await resolveOwnedSession(request, parsed.data.sessionId);
+    const owned = await resolveOwnedSession(request, parsed.data.sessionId);
 
-    return NextResponse.json(await createChatResponse(parsed.data));
+    return NextResponse.json(
+      owned
+        ? await createPersistedChatResponse(parsed.data, owned)
+        : await createChatResponse(parsed.data),
+    );
   } catch (error) {
     return apiErrorResponse(error);
   }

@@ -224,6 +224,7 @@ export function ChatPanel() {
                 const response = await sendChatMessage({
                   sessionId,
                   message: trimmedMessage,
+                  clientMessageId: crypto.randomUUID(),
                   sessionContext: activeSessionContext,
                 });
                 const assistantMessage: UiMessage = {
