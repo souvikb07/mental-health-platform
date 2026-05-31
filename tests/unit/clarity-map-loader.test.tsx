@@ -1,15 +1,23 @@
 // @vitest-environment jsdom
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ClarityMapLoader } from "../../src/components/product/clarity-map-loader";
 import type { EnhancedClarityMapResponse } from "../../src/lib/api/client";
 import type { StructuredClarityMap } from "../../src/types/clarity-map";
 
+const hydrationMocks = vi.hoisted(() => ({
+  hydrateCurrentJourney: vi.fn(),
+}));
+
+vi.mock("@/lib/session/server-hydration", () => hydrationMocks);
+
 describe("ClarityMapLoader", () => {
   beforeEach(() => {
     window.sessionStorage.clear();
     window.history.pushState(null, "", "/clarity-map");
+    hydrationMocks.hydrateCurrentJourney.mockReset();
+    hydrationMocks.hydrateCurrentJourney.mockResolvedValue(null);
   });
 
   afterEach(() => {
@@ -45,6 +53,26 @@ describe("ClarityMapLoader", () => {
       "mindbridge:clarity-map:mock_session_loader",
       JSON.stringify(clarityMapResponse),
     );
+
+    render(<ClarityMapLoader />);
+
+    expect(await screen.findByText("Harmony Signal")).toBeTruthy();
+    expect(screen.getByText("Pressure is visible: 60/100")).toBeTruthy();
+  });
+
+  it("renders a generated map restored by server hydration", async () => {
+    window.history.pushState(
+      null,
+      "",
+      "/clarity-map?sessionId=11111111-1111-4111-8111-111111111111",
+    );
+    hydrationMocks.hydrateCurrentJourney.mockImplementation(async () => {
+      window.sessionStorage.setItem(
+        "mindbridge:clarity-map:11111111-1111-4111-8111-111111111111",
+        JSON.stringify(clarityMapResponse),
+      );
+      return null;
+    });
 
     render(<ClarityMapLoader />);
 

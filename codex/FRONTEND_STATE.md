@@ -35,11 +35,15 @@ Last updated: 2026-05-31.
 
 - `/`: Stitch-style landing page with real product story, CTA to `/onboarding`, secondary CTA to `/resources`, and local hero image.
 - `/onboarding`: creates anonymous session, saves journey context, then routes to `/chat`.
-- `/chat`: hydrates session/messages from `sessionStorage`, calls context-intake once when needed, sends chat messages with stable per-submission UUIDs, renders safety/resources, and can generate a Clarity Map.
-- `/clarity-map`: reads generated map from `sessionStorage`; shows empty CTA when no generated map exists.
+- `/chat`: attempts server hydration before reading the `sessionStorage` cache,
+  calls context-intake once when needed, sends chat messages with stable
+  per-submission UUIDs, renders safety/resources, and can generate a Clarity Map.
+- `/clarity-map`: attempts server hydration before reading a generated map from
+  `sessionStorage`; shows empty CTA when no generated map exists.
 - `/resources`: fetches app-owned resources through `/api/resources`; falls back to `mockResources` on failure.
-- `/feedback`: submits MVP feedback to `/api/feedback`; explains anonymous
-  ratings retention and does not imply review.
+- `/feedback`: submits MVP feedback to `/api/feedback`, explains anonymous
+  ratings retention, and shows minimal export/delete controls without implying
+  an account or review.
 - `/demo`: safety and routing preview; not exposed in main header.
 
 ## Styling And Design Conventions
@@ -80,6 +84,12 @@ Last updated: 2026-05-31.
 - Onboarding sends an optional unchecked `storageConsentAccepted` choice and
   writes active context through the existing `sessionStorage` cache only.
 - Browser storage is not authorization.
+- Opted-in hydration replaces stale cache from retained encrypted server
+  responses. Opted-out hydration preserves matching browser-only transcript and
+  visible safety UI because sensitive response text was not retained.
+- Confirmed anonymous delete clears only MindBridge-owned `sessionStorage`
+  keys and the two legacy localStorage fallback keys before returning to
+  onboarding.
 
 ## API And Mock Data
 
@@ -103,8 +113,8 @@ Last updated: 2026-05-31.
 - Final full journey QA is still recommended after the latest polish work.
 - Feedback has no durable human review workflow.
 - Resources are app-owned/static and not exhaustive.
-- The app is anonymous-session MVP. Backend export/delete endpoints now exist,
-  but frontend controls and server hydration remain pending Block 1K.
+- The app is an anonymous-session MVP. Server hydration is single-journey only;
+  export/delete controls remain a small feedback-page surface.
 - Lint warning exists for the landing plain `<img>` local hero asset.
 
 ## Commands

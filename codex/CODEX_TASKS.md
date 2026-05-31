@@ -66,7 +66,7 @@
 - [x] Block 1H: safety, policy, model, and audit metadata
 - [x] Block 1I: rate limiting
 - [x] Block 1J: export, delete, and purge foundation
-- [ ] Block 1K: frontend compatibility and hydration
+- [x] Block 1K: frontend compatibility and hydration
 - [ ] Block 1L: tests and QA
 
 Block 1B encodes session-relative retention and raw-free storage opt-out
@@ -82,4 +82,6 @@ consent-aware feedback persistence. Block 1H added atomic raw-free safety,
 policy, model, and authorized-action audit metadata. Block 1I added distributed
 RPC-backed rate limits with window-scoped HMAC subjects and an explicit
 direct-Vercel trusted-IP policy. Block 1J added cookie-owner-scoped JSON export,
-idempotent hard delete, and a scheduler-ready purge runner. Next: Block 1K.
+idempotent hard delete, and a scheduler-ready purge runner. Block 1K added
+single-journey server hydration, cache precedence rules, and minimal
+end-of-journey export/delete controls. Next: Block 1L.

@@ -58,6 +58,13 @@ export const SESSIONS_DELETE_RATE_LIMIT = {
   limit: 5,
 } as const satisfies RateLimitPolicy;
 
+export const SESSIONS_HYDRATE_RATE_LIMIT = {
+  routeKey: "api.sessions.hydrate",
+  subjectKind: "owner_hmac",
+  windowSeconds: 60 * 60,
+  limit: 30,
+} as const satisfies RateLimitPolicy;
+
 export const RESOURCES_RATE_LIMIT = {
   routeKey: "api.resources",
   subjectKind: "ip_hmac",

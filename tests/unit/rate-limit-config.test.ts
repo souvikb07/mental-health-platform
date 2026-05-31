@@ -10,6 +10,7 @@ import {
   resolveTrustedIpSource,
   SESSIONS_DELETE_RATE_LIMIT,
   SESSIONS_EXPORT_RATE_LIMIT,
+  SESSIONS_HYDRATE_RATE_LIMIT,
   SESSION_CREATION_RATE_LIMIT,
 } from "../../src/lib/server/rate-limit/config";
 
@@ -22,6 +23,7 @@ describe("rate-limit configuration", () => {
     expect(FEEDBACK_RATE_LIMIT).toMatchObject({ limit: 10, windowSeconds: 3600 });
     expect(SESSIONS_EXPORT_RATE_LIMIT).toMatchObject({ limit: 5, windowSeconds: 3600 });
     expect(SESSIONS_DELETE_RATE_LIMIT).toMatchObject({ limit: 5, windowSeconds: 3600 });
+    expect(SESSIONS_HYDRATE_RATE_LIMIT).toMatchObject({ limit: 30, windowSeconds: 3600 });
     expect(RESOURCES_RATE_LIMIT).toMatchObject({ limit: 120, windowSeconds: 600 });
     expect(RESOURCES_FALLBACK_RATE_LIMIT).toMatchObject({ limit: 600, windowSeconds: 600 });
   });

@@ -95,6 +95,42 @@ Supabase mode atomically creates or reuses a hashed-cookie owner, creates one
 session, records initial consent events, returns `serverOwned: true`, and sets
 the HttpOnly `mindbridge_anon_owner` cookie. `sessionId` is a locator, not auth.
 
+## GET /api/sessions
+
+Hydrates one active cookie-owned anonymous journey for refresh and back
+navigation. It is not a profile or history endpoint.
+
+Optional query:
+
+```txt
+sessionId=<UUID locator>
+```
+
+Response:
+
+```ts
+{ status: "unavailable" } // transient mode
+{ status: "empty" }       // no matching active cookie-owned journey
+{
+  status: "hydrated";
+  serverOwned: true;
+  expiresAt: string;
+  retainedContentHydrated: boolean;
+  sessionContext: SessionContext;
+  messages: JourneyChatMessage[];
+  clarityMap?: {
+    type: "clarity_map";
+    source: "openai" | "fallback";
+    clarityMap: StructuredClarityMap;
+  };
+}
+```
+
+When `sessionId` is present, lookup is exact and owner-scoped. When omitted,
+the latest active owner-scoped session is selected. The no-store payload omits
+owner identifiers, hashes, claims, encryption envelopes, metadata rows, and
+stored safety-state codes.
+
 ## POST /api/context-intake
 
 Generates the first assistant opener from onboarding context, or returns a safety/boundary route if optional onboarding text is unsafe or out of product scope.
@@ -488,7 +524,6 @@ Do not expose raw evidence, matched phrases, regex names, model output, or secre
 ## Open Alignment Questions
 
 - Production auth/session ownership model.
-- Frontend hydration and minimal export/delete controls.
 - Feedback review workflow.
 - Resource catalog governance and update process.
 - Whether/when to wire Supabase database and RLS-backed resources.

@@ -67,6 +67,19 @@ export async function findOwnedSession(
   ownerId: string,
   sessionId: string,
 ): Promise<OwnedSessionReference> {
+  const session = await findOwnedSessionIfPresent(ownerId, sessionId);
+
+  if (!session) {
+    throw sessionNotFound();
+  }
+
+  return session;
+}
+
+export async function findOwnedSessionIfPresent(
+  ownerId: string,
+  sessionId: string,
+): Promise<OwnedSessionReference | null> {
   const client = getSupabaseServerClient();
 
   if (!client) {
@@ -87,11 +100,34 @@ export async function findOwnedSession(
     throw dataBackendUnavailable();
   }
 
-  if (!data) {
-    throw sessionNotFound();
+  return data ? normalizeOwnedSession(data) : null;
+}
+
+export async function findLatestOwnedSession(
+  ownerId: string,
+): Promise<OwnedSessionReference | null> {
+  const client = getSupabaseServerClient();
+
+  if (!client) {
+    throw dataBackendUnavailable();
   }
 
-  return normalizeOwnedSession(data);
+  const { data, error } = await client
+    .from("sessions")
+    .select(
+      "id, owner_id, expires_at, storage_consent_accepted, current_safety_state, country_code, main_concern_category, onboarding_note_encrypted",
+    )
+    .eq("owner_id", ownerId)
+    .gt("expires_at", new Date().toISOString())
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    throw dataBackendUnavailable();
+  }
+
+  return data ? normalizeOwnedSession(data) : null;
 }
 
 function normalizeCreatedSession(value: unknown): CreatedOwnedAnonymousSession {

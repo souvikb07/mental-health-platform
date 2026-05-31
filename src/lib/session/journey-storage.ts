@@ -1,22 +1,21 @@
-import type { ApiRiskClassification, SafetyUi } from "@/types/risk";
-import type { SupportResource } from "@/types/resource";
+import type { ApiRiskClassification } from "@/types/risk";
 import type { SessionContext } from "@/types/session-context";
+import type {
+  HydratedClarityMapResponse,
+  HydratedJourneyChatMessage,
+} from "@/types/session-hydration";
 
 export const JOURNEY_SESSION_CONTEXT_KEY = "mindbridge:session-context";
 export const JOURNEY_LAST_SESSION_ID_KEY = "mindbridge:last-session-id";
 export const JOURNEY_CHAT_KEY_PREFIX = "mindbridge:chat:";
 export const JOURNEY_CHAT_META_KEY_PREFIX = "mindbridge:chat-meta:";
+export const JOURNEY_CLARITY_MAP_KEY_PREFIX = "mindbridge:clarity-map:";
+export const JOURNEY_LAST_CLARITY_MAP_SESSION_KEY =
+  "mindbridge:last-clarity-map-session";
+export const LEGACY_JOURNEY_SESSION_CONTEXT_KEY = "mindbridge.sessionContext";
+export const LEGACY_JOURNEY_LAST_SESSION_ID_KEY = "mindbridge.sessionId";
 
-export type JourneyChatMessage = {
-  id: string;
-  role: "assistant" | "user";
-  content: string;
-  createdAt: string;
-  source?: "openai" | "fallback" | "safety" | "boundary";
-  risk?: Pick<ApiRiskClassification, "level">;
-  safety?: SafetyUi | null;
-  resources?: SupportResource[];
-};
+export type JourneyChatMessage = HydratedJourneyChatMessage;
 
 export type JourneyChatMeta = {
   updatedAt: string;
@@ -48,7 +47,9 @@ export function loadSessionContext(): SessionContext | undefined {
     return parsed;
   }
 
-  const legacyStored = getLocalStorage()?.getItem("mindbridge.sessionContext");
+  const legacyStored = getLocalStorage()?.getItem(
+    LEGACY_JOURNEY_SESSION_CONTEXT_KEY,
+  );
   const legacyParsed = normalizeSessionContext(safeParseJson(legacyStored));
 
   if (legacyParsed) {
@@ -70,7 +71,7 @@ export function saveLastSessionId(sessionId: string) {
 export function loadLastSessionId(): string | undefined {
   const sessionId =
     getSessionStorage()?.getItem(JOURNEY_LAST_SESSION_ID_KEY) ??
-    getLocalStorage()?.getItem("mindbridge.sessionId") ??
+    getLocalStorage()?.getItem(LEGACY_JOURNEY_LAST_SESSION_ID_KEY) ??
     undefined;
 
   return sessionId?.trim() || undefined;
@@ -161,6 +162,70 @@ export function loadChatMeta(sessionId: string): JourneyChatMeta | undefined {
   };
 }
 
+export function getClarityMapStorageKey(sessionId: string) {
+  return `${JOURNEY_CLARITY_MAP_KEY_PREFIX}${sessionId}`;
+}
+
+export function saveGeneratedClarityMap(
+  sessionId: string,
+  response: HydratedClarityMapResponse,
+) {
+  if (!sessionId.trim()) {
+    return;
+  }
+
+  safeSetItem(
+    getSessionStorage(),
+    getClarityMapStorageKey(sessionId),
+    JSON.stringify(response),
+  );
+  safeSetItem(
+    getSessionStorage(),
+    JOURNEY_LAST_CLARITY_MAP_SESSION_KEY,
+    sessionId,
+  );
+}
+
+export function loadGeneratedClarityMap(
+  sessionId?: string | null,
+): HydratedClarityMapResponse | undefined {
+  const storage = getSessionStorage();
+  const resolvedSessionId =
+    sessionId ?? storage?.getItem(JOURNEY_LAST_CLARITY_MAP_SESSION_KEY);
+
+  if (!storage || !resolvedSessionId) {
+    return undefined;
+  }
+
+  const parsed = safeParseJson(
+    storage.getItem(getClarityMapStorageKey(resolvedSessionId)),
+  ) as Partial<HydratedClarityMapResponse> | undefined;
+
+  if (
+    parsed?.type === "clarity_map" &&
+    (parsed.source === "openai" || parsed.source === "fallback") &&
+    parsed.clarityMap
+  ) {
+    return parsed as HydratedClarityMapResponse;
+  }
+
+  return undefined;
+}
+
+export function removeGeneratedClarityMap(sessionId: string) {
+  const storage = getSessionStorage();
+
+  if (!storage) {
+    return;
+  }
+
+  storage.removeItem(getClarityMapStorageKey(sessionId));
+
+  if (storage.getItem(JOURNEY_LAST_CLARITY_MAP_SESSION_KEY) === sessionId) {
+    storage.removeItem(JOURNEY_LAST_CLARITY_MAP_SESSION_KEY);
+  }
+}
+
 export function clearCurrentJourneyPointers() {
   const storage = getSessionStorage();
 
@@ -170,6 +235,29 @@ export function clearCurrentJourneyPointers() {
 
   storage.removeItem(JOURNEY_SESSION_CONTEXT_KEY);
   storage.removeItem(JOURNEY_LAST_SESSION_ID_KEY);
+}
+
+export function clearAllJourneyStorage() {
+  const sessionStorage = getSessionStorage();
+
+  if (sessionStorage) {
+    for (const key of getStorageKeys(sessionStorage)) {
+      if (
+        key === JOURNEY_SESSION_CONTEXT_KEY ||
+        key === JOURNEY_LAST_SESSION_ID_KEY ||
+        key === JOURNEY_LAST_CLARITY_MAP_SESSION_KEY ||
+        key.startsWith(JOURNEY_CHAT_KEY_PREFIX) ||
+        key.startsWith(JOURNEY_CHAT_META_KEY_PREFIX) ||
+        key.startsWith(JOURNEY_CLARITY_MAP_KEY_PREFIX)
+      ) {
+        sessionStorage.removeItem(key);
+      }
+    }
+  }
+
+  const localStorage = getLocalStorage();
+  localStorage?.removeItem(LEGACY_JOURNEY_SESSION_CONTEXT_KEY);
+  localStorage?.removeItem(LEGACY_JOURNEY_LAST_SESSION_ID_KEY);
 }
 
 function normalizeSessionContext(payload: unknown): SessionContext | undefined {
@@ -278,6 +366,11 @@ function safeSetItem(
   } catch {
     return;
   }
+}
+
+function getStorageKeys(storage: Storage) {
+  return Array.from({ length: storage.length }, (_, index) => storage.key(index))
+    .filter((key): key is string => typeof key === "string");
 }
 
 function getSessionStorage() {

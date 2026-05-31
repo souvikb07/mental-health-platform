@@ -195,14 +195,17 @@ Boundary behavior:
 - Raw chat content remains in `sessionStorage` for the active browser journey.
   After storage opt-in, retained server copies of chat, Clarity Maps, and
   feedback comments are encrypted before database writes.
+- Opted-in hydration restores visible safety UI only from decrypted retained
+  backend responses. Opted-out hydration preserves matching browser cache
+  rather than inventing or erasing safety content.
 - Browser storage is not secure persistence or authorization.
 
 ## Known Safety Gaps Or TODOs
 
 - Supabase-mode production rate limits run before current AI-capable route
   services. Direct Vercel ingress must be verified before public deployment.
-- No accounts. Backend export/delete controls exist without changing Safety
-  Core behavior; minimal frontend controls remain pending.
+- No accounts. Single-journey hydration and minimal feedback-page export/delete
+  controls exist without changing Safety Core behavior.
 - No OpenAI moderation path currently used.
 - Safety rules are deterministic plus optional triage and require continued regression tests for new phrasing.
 - Resource catalog is static and not exhaustive.

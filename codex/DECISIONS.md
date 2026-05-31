@@ -252,6 +252,25 @@ Last updated: 2026-05-30.
 - Reason: review found plaintext opt-out persistence, owner-relative retention, and spoofable forwarded-IP assumptions.
 - Consequence: do not merge or copy the spike wholesale. Reimplement narrower blocks with the P1 findings fixed.
 
+## Sprint 1 Frontend Hydration Is Single-Journey Only
+
+- Decision: `GET /api/sessions` hydrates one exact requested or latest active
+  cookie-owned journey. A missing exact locator returns an empty result rather
+  than silently switching journeys.
+- Reason: refresh and back-navigation compatibility do not require a profile or
+  history surface, and `sessionId` remains a locator rather than authorization.
+- Consequence: the hydration payload omits owner identifiers, hashes, claims,
+  encryption envelopes, event metadata, and stored safety-state codes.
+- Decision: opted-in retained responses replace stale browser caches. Opted-out
+  hydration preserves matching browser-only transcript and visible safety UI
+  because sensitive response text was intentionally not retained.
+- Reason: server persistence is authoritative when it exists, while opt-out
+  must not erase local safety support or reconstruct text the user declined to
+  retain.
+- Consequence: `sessionStorage` remains UX cache only. Confirmed delete removes
+  MindBridge-owned cache keys and legacy read-only fallback keys before
+  returning the browser to onboarding.
+
 ## Sprint 1 Scope Exclusions
 
 - Decision: Sprint 1 does not add RAG, agents, a vector database, payments, an admin dashboard, OAuth-first login, profile/history UI, a major frontend redesign, client-side safety classification, model-generated crisis resources, or diagnosis, treatment, or medication behavior.

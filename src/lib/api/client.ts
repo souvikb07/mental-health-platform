@@ -16,8 +16,9 @@ import type {
   MainConcernCategory,
   SessionContext,
 } from "@/types/session-context";
+import type { SessionHydrationResponse } from "@/types/session-hydration";
 
-type ApiError = {
+type ApiErrorPayload = {
   error: {
     code: string;
     message: string;
@@ -133,6 +134,18 @@ export type FeedbackResponse = {
   status: "received";
 };
 
+export class ApiRequestError extends Error {
+  constructor(
+    readonly code: string,
+    readonly status: number,
+    message: string,
+    readonly retryAfterSeconds?: number,
+  ) {
+    super(message);
+    this.name = "ApiRequestError";
+  }
+}
+
 export function createSession(input: CreateSessionInput) {
   return postJson<CreateSessionResponse>("/api/sessions", input);
 }
@@ -181,6 +194,33 @@ export function submitFeedback(input: FeedbackSubmission) {
   return postJson<FeedbackResponse>("/api/feedback", input);
 }
 
+export function fetchSessionHydration(sessionId?: string) {
+  const params = new URLSearchParams();
+
+  if (sessionId) {
+    params.set("sessionId", sessionId);
+  }
+
+  const path = params.size > 0 ? `/api/sessions?${params}` : "/api/sessions";
+  return getJson<SessionHydrationResponse>(path);
+}
+
+export async function downloadAnonymousDataExport() {
+  const response = await fetch("/api/sessions/export", {
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw await toApiRequestError(response);
+  }
+
+  return response.blob();
+}
+
+export function deleteAnonymousData() {
+  return deleteJson<{ status: "deleted" }>("/api/sessions");
+}
+
 async function getJson<T>(path: string): Promise<T> {
   const response = await fetch(path, {
     cache: "no-store",
@@ -201,25 +241,46 @@ async function postJson<T>(path: string, body: unknown): Promise<T> {
   return parseJsonResponse<T>(response);
 }
 
-async function parseJsonResponse<T>(response: Response): Promise<T> {
-  const payload: unknown = await response.json();
+async function deleteJson<T>(path: string): Promise<T> {
+  const response = await fetch(path, {
+    method: "DELETE",
+  });
 
-  if (!response.ok) {
-    throw new Error(
-      isApiError(payload)
-        ? payload.error.message
-        : "Request failed.",
-    );
-  }
-
-  return payload as T;
+  return parseJsonResponse<T>(response);
 }
 
-function isApiError(payload: unknown): payload is ApiError {
+async function parseJsonResponse<T>(response: Response): Promise<T> {
+  if (!response.ok) {
+    throw await toApiRequestError(response);
+  }
+
+  return (await response.json()) as T;
+}
+
+async function toApiRequestError(response: Response) {
+  const payload: unknown = await response.json().catch(() => undefined);
+  const retryAfterSeconds = parseRetryAfter(response.headers.get("Retry-After"));
+
+  return new ApiRequestError(
+    isApiError(payload) ? payload.error.code : "REQUEST_FAILED",
+    response.status,
+    isApiError(payload) ? payload.error.message : "Request failed.",
+    retryAfterSeconds,
+  );
+}
+
+function isApiError(payload: unknown): payload is ApiErrorPayload {
   return (
     typeof payload === "object" &&
     payload !== null &&
     "error" in payload &&
-    typeof (payload as ApiError).error?.message === "string"
+    typeof (payload as ApiErrorPayload).error?.code === "string" &&
+    typeof (payload as ApiErrorPayload).error?.message === "string"
   );
+}
+
+function parseRetryAfter(value: string | null) {
+  const seconds = Number(value);
+
+  return Number.isInteger(seconds) && seconds > 0 ? seconds : undefined;
 }

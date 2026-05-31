@@ -19,6 +19,7 @@ import {
   RESOURCES_RATE_LIMIT,
   SESSIONS_DELETE_RATE_LIMIT,
   SESSIONS_EXPORT_RATE_LIMIT,
+  SESSIONS_HYDRATE_RATE_LIMIT,
   SESSION_CREATION_RATE_LIMIT,
   type RateLimitPolicy,
 } from "@/lib/server/rate-limit/config";
@@ -147,6 +148,13 @@ export async function enforceSessionsDeleteRateLimit(
   dependencies: RateLimitDependencies = {},
 ) {
   await enforceOwnerRateLimit(SESSIONS_DELETE_RATE_LIMIT, owner, dependencies);
+}
+
+export async function enforceSessionsHydrateRateLimit(
+  owner: ResolvedAnonymousOwner,
+  dependencies: RateLimitDependencies = {},
+) {
+  await enforceOwnerRateLimit(SESSIONS_HYDRATE_RATE_LIMIT, owner, dependencies);
 }
 
 export function buildRateLimitBucketKey(input: {

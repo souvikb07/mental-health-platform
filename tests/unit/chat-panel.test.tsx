@@ -28,7 +28,12 @@ const navigationMocks = vi.hoisted(() => ({
   push: vi.fn(),
 }));
 
+const hydrationMocks = vi.hoisted(() => ({
+  hydrateCurrentJourney: vi.fn(),
+}));
+
 vi.mock("@/lib/api/client", () => apiMocks);
+vi.mock("@/lib/session/server-hydration", () => hydrationMocks);
 vi.mock("next/navigation", () => ({
   useRouter: () => navigationMocks,
 }));
@@ -81,6 +86,8 @@ describe("ChatPanel context opener", () => {
     apiMocks.fetchContextIntake.mockReset();
     apiMocks.fetchEnhancedClarityMap.mockReset();
     apiMocks.sendChatMessage.mockReset();
+    hydrationMocks.hydrateCurrentJourney.mockReset();
+    hydrationMocks.hydrateCurrentJourney.mockResolvedValue(null);
     navigationMocks.push.mockReset();
   });
 
@@ -134,6 +141,44 @@ describe("ChatPanel context opener", () => {
     expect(
       screen.getAllByText(openerResponse.assistantMessage.content),
     ).toHaveLength(1);
+  });
+
+  it("renders retained server-hydrated safety UI before requesting an opener", async () => {
+    storeSessionContext(sessionContext);
+    hydrationMocks.hydrateCurrentJourney.mockImplementation(async () => {
+      window.sessionStorage.setItem(
+        getChatStorageKey(sessionContext.sessionId),
+        JSON.stringify([
+          {
+            id: "server-retained-safety",
+            role: "assistant",
+            content: "Safety support comes first.",
+            createdAt: "2026-05-31T00:00:00.000Z",
+            source: "safety",
+            risk: { level: "imminent" },
+            safety: {
+              showInlineSafetyCard: true,
+              disableNormalNextStep: true,
+              title: "Urgent support",
+              message: "Please contact local emergency support now.",
+              tone: "urgent",
+            },
+          },
+        ]),
+      );
+      return null;
+    });
+
+    render(<ChatPanel />);
+
+    expect(await screen.findByText("Safety support comes first.")).toBeTruthy();
+    expect(screen.getByText("Urgent support")).toBeTruthy();
+    expect(
+      (screen.getByRole("button", {
+        name: "Clarity map paused for safety",
+      }) as HTMLButtonElement).disabled,
+    ).toBe(true);
+    expect(apiMocks.fetchContextIntake).not.toHaveBeenCalled();
   });
 
   it("does not duplicate the opener after a refresh-style remount", async () => {

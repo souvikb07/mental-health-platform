@@ -21,16 +21,18 @@ import {
   fetchContextIntake,
   sendChatMessage,
   type ContextIntakeResponse,
-  type EnhancedClarityMapResponse,
 } from "@/lib/api/client";
 import {
   loadChatMessages,
   loadChatMeta,
+  loadLastSessionId,
   loadSessionContext,
   saveChatMessages,
   saveChatMeta,
+  saveGeneratedClarityMap,
   type JourneyChatMessage,
 } from "@/lib/session/journey-storage";
+import { hydrateCurrentJourney } from "@/lib/session/server-hydration";
 import { cn } from "@/lib/utils";
 import type { ApiChatMessage } from "@/types/risk";
 import type { SessionContext } from "@/types/session-context";
@@ -57,6 +59,7 @@ export function ChatPanel() {
     let isMounted = true;
 
     async function loadContextOpener() {
+      await hydrateCurrentJourney({ sessionId: loadLastSessionId() });
       const storedSessionContext = loadSessionContext();
 
       if (!storedSessionContext) {
@@ -375,7 +378,7 @@ async function handleGenerateClarityMap(input: {
     });
 
     if (response.type === "clarity_map") {
-      storeGeneratedClarityMap(sessionContext.sessionId, response);
+      saveGeneratedClarityMap(sessionContext.sessionId, response);
       routerPush(
         `/clarity-map?sessionId=${encodeURIComponent(sessionContext.sessionId)}`,
       );
@@ -566,20 +569,6 @@ function toApiChatMessage(message: UiMessage): ApiChatMessage {
   };
 }
 
-function storeGeneratedClarityMap(
-  sessionId: string,
-  response: Extract<EnhancedClarityMapResponse, { type: "clarity_map" }>,
-) {
-  const storage = getSessionStorage();
-
-  if (!storage) {
-    return;
-  }
-
-  storage.setItem(getClarityMapStorageKey(sessionId), JSON.stringify(response));
-  storage.setItem("mindbridge:last-clarity-map-session", sessionId);
-}
-
 function persistChatJourney(
   sessionId: string,
   messages: UiMessage[],
@@ -596,24 +585,10 @@ function persistChatJourney(
   });
 }
 
-function getClarityMapStorageKey(sessionId: string) {
-  return `mindbridge:clarity-map:${sessionId}`;
-}
-
 function normalizeCreatedAt(createdAt: unknown) {
   if (typeof createdAt === "string" && !Number.isNaN(Date.parse(createdAt))) {
     return createdAt;
   }
 
   return new Date().toISOString();
-}
-
-function getSessionStorage() {
-  try {
-    return typeof window !== "undefined" && window.sessionStorage
-      ? window.sessionStorage
-      : null;
-  } catch {
-    return null;
-  }
 }
