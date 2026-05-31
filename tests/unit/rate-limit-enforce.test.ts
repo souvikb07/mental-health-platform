@@ -8,6 +8,7 @@ import {
   enforceResourcesRateLimit,
   enforceSessionsDeleteRateLimit,
   enforceSessionsExportRateLimit,
+  enforceSessionsHydrateRateLimit,
   enforceSessionCreationRateLimit,
 } from "../../src/lib/server/rate-limit/enforce";
 import {
@@ -89,6 +90,7 @@ describe("rate-limit enforcement", () => {
   it.each([
     [enforceSessionsExportRateLimit, "api.sessions.export"],
     [enforceSessionsDeleteRateLimit, "api.sessions.delete"],
+    [enforceSessionsHydrateRateLimit, "api.sessions.hydrate"],
   ])("sends only an owner HMAC digest for %s", async (enforce, routeKey) => {
     const consume = vi.fn().mockResolvedValue({ allowed: true, retryAfterSeconds: 30 });
 
@@ -103,7 +105,7 @@ describe("rate-limit enforcement", () => {
       subjectKind: "owner_hmac",
       bucketKey: expect.stringMatching(/^[0-9a-f]{64}$/),
       windowSeconds: 3600,
-      limit: 5,
+      limit: routeKey === "api.sessions.hydrate" ? 30 : 5,
     });
     expect(JSON.stringify(consume.mock.calls)).not.toContain("owner-id");
   });

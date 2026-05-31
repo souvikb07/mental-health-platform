@@ -6,13 +6,18 @@ import { ArrowRight, FileSearch, Sparkles } from "lucide-react";
 
 import { StructuredClarityMapCard } from "@/components/product/clarity-map-card";
 import { Button } from "@/components/ui/button";
-import type { EnhancedClarityMapResponse } from "@/lib/api/client";
+import {
+  loadGeneratedClarityMap,
+  loadLastSessionId,
+} from "@/lib/session/journey-storage";
+import { hydrateCurrentJourney } from "@/lib/session/server-hydration";
+import type { HydratedClarityMapResponse } from "@/types/session-hydration";
 
 type LoadState =
   | { status: "loading" }
   | {
       status: "ready";
-      response: Extract<EnhancedClarityMapResponse, { type: "clarity_map" }>;
+      response: HydratedClarityMapResponse;
     }
   | { status: "missing" };
 
@@ -20,21 +25,32 @@ export function ClarityMapLoader() {
   const [state, setState] = useState<LoadState>({ status: "loading" });
 
   useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
+    let isMounted = true;
+
+    async function loadClarityMap() {
       const requestedSessionId = new URLSearchParams(window.location.search).get(
         "sessionId",
       );
-      const response = getStoredGeneratedClarityMap(requestedSessionId);
+      await hydrateCurrentJourney({
+        sessionId: requestedSessionId ?? loadLastSessionId(),
+      });
+      const response = loadGeneratedClarityMap(requestedSessionId);
 
-      if (response) {
+      if (isMounted && response) {
         setState({ status: "ready", response });
         return;
       }
 
-      setState({ status: "missing" });
-    }, 0);
+      if (isMounted) {
+        setState({ status: "missing" });
+      }
+    }
 
-    return () => window.clearTimeout(timeoutId);
+    void loadClarityMap();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   if (state.status === "loading") {
@@ -89,58 +105,4 @@ export function ClarityMapLoader() {
   }
 
   return <StructuredClarityMapCard clarityMap={state.response.clarityMap} />;
-}
-
-function getStoredGeneratedClarityMap(sessionId: string | null) {
-  const storage = getSessionStorage();
-
-  if (!storage) {
-    return null;
-  }
-
-  const resolvedSessionId =
-    sessionId ?? storage.getItem("mindbridge:last-clarity-map-session");
-
-  if (!resolvedSessionId) {
-    return null;
-  }
-
-  const stored = storage.getItem(getClarityMapStorageKey(resolvedSessionId));
-
-  if (!stored) {
-    return null;
-  }
-
-  try {
-    const parsed = JSON.parse(stored) as Partial<EnhancedClarityMapResponse>;
-
-    if (
-      parsed.type === "clarity_map" &&
-      (parsed.source === "openai" || parsed.source === "fallback") &&
-      parsed.clarityMap
-    ) {
-      return parsed as Extract<
-        EnhancedClarityMapResponse,
-        { type: "clarity_map" }
-      >;
-    }
-  } catch {
-    return null;
-  }
-
-  return null;
-}
-
-function getClarityMapStorageKey(sessionId: string) {
-  return `mindbridge:clarity-map:${sessionId}`;
-}
-
-function getSessionStorage() {
-  try {
-    return typeof window !== "undefined" && window.sessionStorage
-      ? window.sessionStorage
-      : null;
-  } catch {
-    return null;
-  }
 }

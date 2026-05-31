@@ -14,7 +14,8 @@ context-intake, chat, Clarity Map, and feedback retention is wired. Raw-free
 safety, policy, model, and audit metadata now commits through owner-scoped
 transactional RPC wrappers. Distributed RPC-backed rate limiting, cookie-owned
 JSON export, hard delete, and the scheduler-ready purge runner are wired.
-Frontend hydration remains pending. The full spike on
+Single-journey server hydration and minimal end-of-journey export/delete
+controls are wired. The full spike on
 `spike/sprint1-production-data-foundation-full-codex` at `9e196a1` is
 reference-only and is not merge-ready.
 
@@ -86,12 +87,19 @@ comments follow the encrypted opt-in path.
   and Vercel exposes `VERCEL=1`. A future upstream proxy requires a separate
   reviewed policy.
 
-## Planned Frontend Compatibility
+## Frontend Compatibility
 
-Frontend changes stay minimal: hydrate the active cookie-owned journey into the
-existing UX, treat `sessionStorage` as a cache, stop sensitive `localStorage`
-writes, and add small export/delete controls near feedback. Sprint 1 does not
-add profile or history UI.
+`GET /api/sessions` hydrates one exact or latest active cookie-owned journey
+into the existing UX. It is distinct from the broad export endpoint and does
+not expose history, owner identifiers, hashes, claims, encryption envelopes, or
+event metadata. Opted-in retained content replaces stale browser caches.
+Opted-out hydration keeps matching browser-only transcript and safety UI state
+because sensitive response text was intentionally not retained.
+
+`sessionStorage` remains a UX cache rather than authorization. Confirmed delete
+clears only MindBridge-owned session cache keys and the two read-only legacy
+`localStorage` fallback keys. Small export/delete controls live below feedback.
+Sprint 1 does not add profile or history UI.
 
 ## Spike Review Guardrails
 
@@ -117,7 +125,7 @@ The reference spike identified three P1 blockers. Future implementation must:
 1H safety, policy, model, and audit metadata [complete]
 1I rate limiting [complete]
 1J export, delete, and purge foundation [complete]
-1K frontend compatibility and hydration
+1K frontend compatibility and hydration [complete]
 1L tests and QA
 ```
 

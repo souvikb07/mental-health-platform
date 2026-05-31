@@ -7,12 +7,20 @@ const { getSupabaseServerClient, rpc } = vi.hoisted(() => ({
   rpc: vi.fn(),
 }));
 
+const { decryptClarityMapResponseForExport } = vi.hoisted(() => ({
+  decryptClarityMapResponseForExport: vi.fn(),
+}));
+
 vi.mock("@/lib/db/supabase-server", () => ({
   getSupabaseServerClient,
+}));
+vi.mock("@/lib/server/persistence/clarity-map-payloads", () => ({
+  decryptClarityMapResponseForExport,
 }));
 
 import {
   claimClarityMapGeneration,
+  findLatestHydratedClarityMap,
   mergeOwnedSessionSafetyState,
   persistClarityMapResult,
 } from "../../src/lib/db/repositories/clarity-maps";
@@ -109,6 +117,23 @@ describe("Clarity Maps repository", () => {
       status: 503,
     });
   });
+
+  it("loads only the latest encrypted generated map for hydration", async () => {
+    const response = { type: "clarity_map", source: "fallback", clarityMap: {} };
+    decryptClarityMapResponseForExport.mockReturnValue(response);
+    const query = createLatestQuery({
+      data: { map_encrypted: encryptedEnvelope() },
+      error: null,
+    });
+    getSupabaseServerClient.mockReturnValue({ rpc, from: () => query });
+
+    await expect(findLatestHydratedClarityMap("session-id")).resolves.toBe(
+      response,
+    );
+    expect(query.eq).toHaveBeenCalledWith("session_id", "session-id");
+    expect(query.order).toHaveBeenCalledWith("created_at", { ascending: false });
+    expect(query.limit).toHaveBeenCalledWith(1);
+  });
 });
 
 describe("0005 persisted Clarity Map and feedback migration", () => {
@@ -162,4 +187,20 @@ function eventBundle() {
       error_code: null,
     },
   };
+}
+
+function createLatestQuery(result: unknown) {
+  const query = {
+    select: vi.fn(),
+    eq: vi.fn(),
+    order: vi.fn(),
+    limit: vi.fn(),
+    maybeSingle: vi.fn().mockResolvedValue(result),
+  };
+
+  query.select.mockReturnValue(query);
+  query.eq.mockReturnValue(query);
+  query.order.mockReturnValue(query);
+  query.limit.mockReturnValue(query);
+  return query;
 }

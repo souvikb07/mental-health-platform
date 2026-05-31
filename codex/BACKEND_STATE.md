@@ -20,7 +20,8 @@ This is the canonical Codex backend handoff for the current MindBridge repo. Use
   atomically with associated writes or safety-state merges. Supabase-mode API
   routes enforce distributed RPC-backed rate limits before existing services.
   Cookie-owner-scoped JSON export, idempotent hard delete, and a scheduler-ready
-  expired-data purge runner are present.
+  expired-data purge runner are present. `GET /api/sessions` adds no-store
+  single-journey hydration for one exact or latest active cookie-owned session.
 - Supabase: server-only client, encryption helper, migrations, and anonymous
   session creation are present. Session-bound routes enforce cookie ownership
   in Supabase mode. There is no Supabase auth or browser client.
@@ -55,6 +56,14 @@ All current API routes return JSON and use the common validation error shape:
 ```
 
 Current routes:
+
+- `GET /api/sessions`
+  - Handler: `src/app/api/sessions/route.ts`
+  - Service: `src/lib/server/session/hydration.ts`
+  - Returns one exact requested or latest active cookie-owned journey for
+    frontend refresh/back compatibility.
+  - Uses owner-scoped reads and owner-HMAC rate limiting. It is not a profile
+    or history endpoint.
 
 - `POST /api/sessions`
   - Handler: `src/app/api/sessions/route.ts`
@@ -203,12 +212,14 @@ Anything prefixed `NEXT_PUBLIC_` is browser-exposed and must never contain secre
 - `src/lib/api/client.ts` is the frontend API wrapper.
 - Frontend must render backend-returned risk, safety, resources, Clarity Map, and boundary states.
 - Frontend must not infer or override risk, invent resources, generate safety copy, or fabricate Harmony Signal values.
-- `/clarity-map` renders generated map responses from `sessionStorage`; it should not silently fall back to static mock map content in the real flow.
+- `/clarity-map` attempts server hydration before rendering generated map
+  responses from `sessionStorage`; it should not silently fall back to static
+  mock map content in the real flow.
 
 ## Known Backend TODOs And Limitations
 
-- No accounts or server hydration. Export/delete endpoints exist, but their
-  minimal frontend controls land in Block 1K.
+- No accounts or profile/history API. Single-journey hydration and minimal
+  feedback-page export/delete controls are wired.
 - Feedback has no durable human review workflow.
 - Resources are static/app-owned and not exhaustive.
 - RPC-backed rate limits are implemented for current AI, write, session

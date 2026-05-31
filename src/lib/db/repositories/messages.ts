@@ -10,6 +10,7 @@ import {
 import type { ChatResponse } from "@/lib/server/chat";
 import type { ContextIntakeResponse } from "@/lib/server/context-intake";
 import type { ApiChatMessage } from "@/types/risk";
+import type { HydratedJourneyChatMessage } from "@/types/session-hydration";
 
 export type PersistedTranscript = {
   messages: ApiChatMessage[];
@@ -88,6 +89,32 @@ export async function loadPersistedTranscript(
   };
 }
 
+export async function loadHydratedJourneyMessages(
+  sessionId: string,
+): Promise<HydratedJourneyChatMessage[]> {
+  const client = getRequiredClient();
+  const { data, error } = await client
+    .from("messages")
+    .select("source, content_encrypted")
+    .eq("session_id", sessionId)
+    .in("source", [
+      "context_intake_result",
+      "chat_user",
+      "chat_openai",
+      "chat_fallback",
+      "chat_safety",
+      "chat_boundary",
+    ])
+    .order("created_at", { ascending: true })
+    .order("id", { ascending: true });
+
+  if (error || !Array.isArray(data)) {
+    throw dataBackendUnavailable();
+  }
+
+  return data.map(normalizeHydratedMessageRow);
+}
+
 function getRequiredClient() {
   const client = getSupabaseServerClient();
 
@@ -139,6 +166,69 @@ function normalizeTranscriptRow(value: unknown) {
   }
 
   throw dataBackendUnavailable();
+}
+
+function normalizeHydratedMessageRow(value: unknown): HydratedJourneyChatMessage {
+  if (
+    !isRecord(value) ||
+    typeof value.source !== "string" ||
+    !isRecord(value.content_encrypted)
+  ) {
+    throw dataBackendUnavailable();
+  }
+
+  if (value.source === "context_intake_result") {
+    return toContextIntakeJourneyMessage(
+      decryptContextIntakeResponse(value.content_encrypted),
+    );
+  }
+
+  if (value.source === "chat_user") {
+    return decryptChatUserMessage(value.content_encrypted);
+  }
+
+  if (
+    ["chat_openai", "chat_fallback", "chat_safety", "chat_boundary"].includes(
+      value.source,
+    )
+  ) {
+    return toChatJourneyMessage(
+      decryptChatAssistantResponse(value.content_encrypted),
+    );
+  }
+
+  throw dataBackendUnavailable();
+}
+
+function toContextIntakeJourneyMessage(
+  response: ContextIntakeResponse,
+): HydratedJourneyChatMessage {
+  if (response.type === "safety") {
+    return {
+      ...response.assistantMessage,
+      source: response.source,
+      risk: { level: response.risk.level },
+      safety: response.safety,
+      resources: response.resources,
+    };
+  }
+
+  return {
+    ...response.assistantMessage,
+    source: response.source,
+  };
+}
+
+function toChatJourneyMessage(
+  response: ChatResponse,
+): HydratedJourneyChatMessage {
+  return {
+    ...response.assistantMessage,
+    source: response.source,
+    risk: { level: response.risk.level },
+    safety: response.safety,
+    resources: response.resources,
+  };
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

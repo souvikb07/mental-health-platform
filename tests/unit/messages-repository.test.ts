@@ -1,6 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { getSupabaseServerClient } = vi.hoisted(() => ({
+const {
+  decryptChatAssistantResponse,
+  decryptChatUserMessage,
+  decryptContextIntakeResponse,
+  getSupabaseServerClient,
+} = vi.hoisted(() => ({
+  decryptChatAssistantResponse: vi.fn(),
+  decryptChatUserMessage: vi.fn(),
+  decryptContextIntakeResponse: vi.fn(),
   getSupabaseServerClient: vi.fn(),
 }));
 
@@ -9,26 +17,30 @@ vi.mock("@/lib/db/supabase-server", () => ({
 }));
 
 vi.mock("@/lib/server/persistence/message-payloads", () => ({
-  decryptChatAssistantResponse: vi.fn(() => ({
-    replayed: "chat",
-    assistantMessage: { id: "assistant-id", role: "assistant" },
-  })),
-  decryptChatUserMessage: vi.fn(() => ({ id: "user-id", role: "user" })),
-  decryptContextIntakeResponse: vi.fn(() => ({
-    replayed: "intake",
-    assistantMessage: { id: "intake-id", role: "assistant" },
-  })),
+  decryptChatAssistantResponse,
+  decryptChatUserMessage,
+  decryptContextIntakeResponse,
 }));
 
 import {
   findPersistedChatResponse,
   findPersistedContextIntakeResponse,
+  loadHydratedJourneyMessages,
   loadPersistedTranscript,
 } from "../../src/lib/db/repositories/messages";
 
 describe("messages repository", () => {
   beforeEach(() => {
     getSupabaseServerClient.mockReset();
+    decryptChatAssistantResponse.mockReturnValue({
+      replayed: "chat",
+      assistantMessage: { id: "assistant-id", role: "assistant" },
+    });
+    decryptChatUserMessage.mockReturnValue({ id: "user-id", role: "user" });
+    decryptContextIntakeResponse.mockReturnValue({
+      replayed: "intake",
+      assistantMessage: { id: "intake-id", role: "assistant" },
+    });
   });
 
   it("loads the one retained context-intake result by session and source", async () => {
@@ -111,6 +123,44 @@ describe("messages repository", () => {
       ["created_at", { ascending: true }],
       ["id", { ascending: true }],
     ]);
+  });
+
+  it("loads hydrated UI messages without returning internal row ids", async () => {
+    decryptContextIntakeResponse.mockReturnValue({
+      type: "safety",
+      source: "safety",
+      assistantMessage: {
+        id: "intake-id",
+        role: "assistant",
+        content: "Safety support comes first.",
+        createdAt: "2026-05-31T00:00:00.000Z",
+      },
+      risk: { level: "imminent" },
+      safety: { disableNormalNextStep: true },
+      resources: [{ id: "resource-id" }],
+    });
+    const query = createListQuery({
+      data: [{
+        source: "context_intake_result",
+        content_encrypted: { ciphertext: "encrypted" },
+      }],
+      error: null,
+    });
+    getSupabaseServerClient.mockReturnValue({ from: () => query });
+
+    await expect(loadHydratedJourneyMessages("session-id")).resolves.toEqual([
+      {
+        id: "intake-id",
+        role: "assistant",
+        content: "Safety support comes first.",
+        createdAt: "2026-05-31T00:00:00.000Z",
+        source: "safety",
+        risk: { level: "imminent" },
+        safety: { disableNormalNextStep: true },
+        resources: [{ id: "resource-id" }],
+      },
+    ]);
+    expect(query.select).toHaveBeenCalledWith("source, content_encrypted");
   });
 });
 

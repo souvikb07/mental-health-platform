@@ -6,6 +6,8 @@ import type { EventBundle } from "@/lib/server/persistence/event-payloads";
 import type { SafetyState } from "@/lib/safety-core";
 import type { EncryptedEnvelope } from "@/types/database";
 import type { RiskLevel } from "@/types/risk";
+import { decryptClarityMapResponseForExport } from "@/lib/server/persistence/clarity-map-payloads";
+import type { HydratedClarityMapResponse } from "@/types/session-hydration";
 
 export type ClarityMapClaim = {
   status: "claimed" | "in_progress" | "completed";
@@ -90,6 +92,33 @@ export async function mergeOwnedSessionSafetyState(input: {
   if (error) {
     throw dataBackendUnavailable();
   }
+}
+
+export async function findLatestHydratedClarityMap(
+  sessionId: string,
+): Promise<HydratedClarityMapResponse | null> {
+  const client = getRequiredClient();
+  const { data, error } = await client
+    .from("clarity_maps")
+    .select("map_encrypted")
+    .eq("session_id", sessionId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    throw dataBackendUnavailable();
+  }
+
+  if (!data) {
+    return null;
+  }
+
+  if (!isRecord(data.map_encrypted)) {
+    throw dataBackendUnavailable();
+  }
+
+  return decryptClarityMapResponseForExport(data.map_encrypted);
 }
 
 function getRequiredClient() {

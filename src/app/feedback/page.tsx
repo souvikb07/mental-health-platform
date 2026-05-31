@@ -3,6 +3,7 @@ import { ArrowLeft, ShieldCheck } from "lucide-react";
 
 import { PageContainer } from "@/components/layout/page-container";
 import { FeedbackForm } from "@/components/product/feedback-form";
+import { AnonymousDataControls } from "@/components/product/anonymous-data-controls";
 
 export default function FeedbackPage() {
   return (
@@ -52,6 +53,7 @@ export default function FeedbackPage() {
         </div>
 
         <FeedbackForm />
+        <AnonymousDataControls />
       </div>
     </PageContainer>
   );

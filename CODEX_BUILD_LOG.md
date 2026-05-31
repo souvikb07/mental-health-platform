@@ -1553,3 +1553,54 @@ Next step:
 Apply `0001` through `0008` to a disposable Supabase project, choose a purge
 scheduler before public launch, then implement Block 1K frontend compatibility
 and hydration.
+
+## 2026-05-31 02:15 CEST
+
+Task:
+Sprint 1 Block 1K - frontend hydration and anonymous data controls.
+
+Prompt used:
+Add single-journey server hydration, browser-cache compatibility, and minimal
+feedback-page export/delete controls without migrations, Safety Core changes,
+or AI/OpenAI changes.
+
+Files changed:
+Added `GET /api/sessions`, owner-scoped hydration readers and orchestration, an
+owner-only hydration rate limit, frontend API helpers, explicit opted-in and
+opted-out cache precedence, centralized Clarity Map cache helpers, scoped
+browser-cache deletion, the feedback-page anonymous data controls, focused
+tests, and canonical handoff updates.
+
+Commands run:
+`npx vitest run ...` focused Block 1K files
+`npm test`
+`npm run lint`
+`npm run build`
+`npx tsc --noEmit --incremental false`
+`git diff --check`
+Read-only scans for `localStorage` writes, HTML injection, browser-exposed
+secrets, OpenAI `store: false`, server logging calls, protected-path diffs,
+changed paths, and untracked files
+
+Result:
+`GET /api/sessions` returns one no-store exact or latest active cookie-owned
+journey without exposing owner identifiers, hashes, claims, envelopes, or
+event metadata. Opted-in retained responses replace stale caches. Opted-out
+hydration preserves matching browser-only transcript and safety UI. The
+feedback page now offers truthful retained-data export and confirmed anonymous
+delete controls.
+
+Manual review notes:
+Focused Block 1K coverage passed with 13 files and 81 tests before the final
+transient mock-locator and direct UI hydration regressions were added. Final
+`npm test` passes with 67 files and 514 tests. `npm run lint` reports only the
+known landing-page `<img>` warning. `npm run build` passes and includes
+`/api/sessions`.
+`npx tsc --noEmit --incremental false` still reports only the pre-existing
+`tests/unit/origin-guard.test.ts` header-union typing issue.
+Safety Core, AI/OpenAI modules, prompts, migrations, package files, env files,
+and existing `store: false` calls remain unchanged.
+
+Next step:
+Complete Block 1L QA and apply `0001` through `0008` to a disposable Supabase
+project before production work.

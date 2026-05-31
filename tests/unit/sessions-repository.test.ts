@@ -13,7 +13,9 @@ vi.mock("@/lib/db/supabase-server", () => ({
 
 import {
   createOwnedAnonymousSession,
+  findLatestOwnedSession,
   findOwnedSession,
+  findOwnedSessionIfPresent,
 } from "../../src/lib/db/repositories/sessions";
 
 const rpcRow = {
@@ -125,6 +127,32 @@ describe("sessions repository", () => {
     });
   });
 
+  it("returns null for an absent optional exact hydration lookup", async () => {
+    const query = createSessionQuery({ data: null, error: null });
+    getSupabaseServerClient.mockReturnValue({ rpc, from: () => query });
+
+    await expect(
+      findOwnedSessionIfPresent("owner-id", "unknown-session"),
+    ).resolves.toBeNull();
+  });
+
+  it("finds the latest active owner-scoped journey for hydration", async () => {
+    const query = createLatestSessionQuery({
+      data: ownedSessionRow(),
+      error: null,
+    });
+    getSupabaseServerClient.mockReturnValue({ rpc, from: () => query });
+
+    await expect(findLatestOwnedSession("owner-id")).resolves.toMatchObject({
+      id: "session-id",
+      ownerId: "owner-id",
+    });
+    expect(query.eq).toHaveBeenCalledWith("owner_id", "owner-id");
+    expect(query.gt).toHaveBeenCalledWith("expires_at", expect.any(String));
+    expect(query.order).toHaveBeenCalledWith("created_at", { ascending: false });
+    expect(query.limit).toHaveBeenCalledWith(1);
+  });
+
   it("maps session query failures to a safe backend error", async () => {
     const query = createSessionQuery({
       data: null,
@@ -178,4 +206,35 @@ function createSessionQuery(result: unknown) {
   query.eq.mockReturnValue(query);
   query.gt.mockReturnValue(query);
   return query;
+}
+
+function createLatestSessionQuery(result: unknown) {
+  const query = {
+    select: vi.fn(),
+    eq: vi.fn(),
+    gt: vi.fn(),
+    order: vi.fn(),
+    limit: vi.fn(),
+    maybeSingle: vi.fn().mockResolvedValue(result),
+  };
+
+  query.select.mockReturnValue(query);
+  query.eq.mockReturnValue(query);
+  query.gt.mockReturnValue(query);
+  query.order.mockReturnValue(query);
+  query.limit.mockReturnValue(query);
+  return query;
+}
+
+function ownedSessionRow() {
+  return {
+    id: "session-id",
+    owner_id: "owner-id",
+    expires_at: "2026-06-29T00:00:00.000Z",
+    storage_consent_accepted: true,
+    current_safety_state: "normal_support",
+    country_code: "US",
+    main_concern_category: "overwhelmed",
+    onboarding_note_encrypted: null,
+  };
 }

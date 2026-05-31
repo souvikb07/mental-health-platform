@@ -8,7 +8,8 @@ anonymous session creation, downstream route ownership guards, encrypted
 context-intake/chat retention, encrypted Clarity Map replay, and consent-aware
 feedback persistence, atomic raw-free safety, policy, model, and audit
 metadata, distributed rate limiting, server-owned JSON export, hard delete, and
-the scheduler-ready purge foundation. Frontend hydration remains pending.
+the scheduler-ready purge foundation, single-journey server hydration, and
+minimal anonymous export/delete controls.
 
 ## Context
 

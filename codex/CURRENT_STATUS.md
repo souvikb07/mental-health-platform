@@ -41,6 +41,9 @@ This is the canonical Codex status file. `docs/project-handoff/` is ChatGPT-web 
 - `DELETE /api/sessions` is idempotent, clears the anonymous-owner cookie after
   success, and removes every cookie-owned journey through one narrow cascade
   RPC. A scheduler-ready purge runner reuses the session-relative purge RPC.
+- `GET /api/sessions` returns a no-store, cookie-owner-scoped hydration payload
+  for one exact or latest active journey. It does not expose a journey list,
+  owner identifiers, hashes, claims, encryption envelopes, or event metadata.
 - OpenAI conversation path uses server-only modules, non-streaming Responses API behavior, `store: false`, model env config, post-response validation, and deterministic fallback when config/output fails.
 - Policy boundary guardrails block diagnosis, medication, treatment protocol, therapy replacement, prompt injection, unsafe self-harm method requests, and related out-of-scope requests.
 - Safety Core / Safety Playbook Engine controls safety states, normal chat permission, Clarity Map permission, safety card visibility, resources, mode, and next actions.
@@ -65,9 +68,15 @@ This is the canonical Codex status file. `docs/project-handoff/` is ChatGPT-web 
 - Global layout exists in `src/components/layout`.
 - Visual baseline exists in `src/app/globals.css`.
 - Onboarding requires support location, main reason, 18+ confirmation, and product/safety consent.
-- Chat starts with a context-aware opener, hydrates active journey state from `sessionStorage`, renders safety/resources, and sends real messages to `/api/chat`.
+- Chat attempts server hydration before reading the active `sessionStorage`
+  cache, then starts with a context-aware opener when no transcript exists.
+  Retained backend safety/resources replace opted-in cache state.
 - Generate Clarity Map sends current session context and chat transcript to enhanced `/api/clarity-map`.
-- `/clarity-map` renders generated `type: "clarity_map"` responses from `sessionStorage`; no stored generated map shows CTA back to chat.
+- `/clarity-map` attempts server hydration before rendering generated
+  `type: "clarity_map"` responses from `sessionStorage`; no stored generated
+  map shows CTA back to chat.
+- `/feedback` includes minimal anonymous export/delete controls. Confirmed
+  delete clears MindBridge-owned browser cache keys and returns to onboarding.
 - Resources page uses the backend resources API and app-owned fallback data.
 - Feedback page submits to the feedback API and uses safe generic UI states.
 
@@ -77,14 +86,14 @@ This is the canonical Codex status file. `docs/project-handoff/` is ChatGPT-web 
 - Supabase-mode anonymous session creation, owner-scoped route guards, encrypted
   context-intake/chat retention, encrypted Clarity Map replay, and consent-aware
   feedback persistence are wired. Supabase auth remains absent.
-- Sprint 1 Blocks 1A through 1J document the production data contract, add
+- Sprint 1 Blocks 1A through 1K document the production data contract, add
   unapplied additive database migrations, add server-only
   Supabase/config/encryption infrastructure, and wire anonymous session
   creation, enforce ownership on session-bound routes, persist encrypted
   opted-in journey content plus authoritative safety state, append structured
   raw-free event metadata, enforce distributed rate limits, and add server-owned
-  export/delete plus a purge runner. Purge scheduling and server hydration are
-  not implemented.
+  export/delete plus a purge runner, and add single-journey server hydration
+  plus minimal data controls. Purge scheduling is not implemented.
 - No remote Supabase project exists yet. Future migration work must start with a disposable verification project.
 - Feedback still returns `status: "received"` only. Supabase mode persists
   anonymous ratings and flags, but no human review workflow exists.
@@ -99,7 +108,7 @@ This is the canonical Codex status file. `docs/project-handoff/` is ChatGPT-web 
 ## Important Next Backend Tasks
 
 - Keep tightening deterministic safety coverage from manual QA and eval findings.
-- Implement Sprint 1 Block 1K: frontend compatibility and hydration.
+- Complete Sprint 1 Block 1L: tests and QA.
 - Verify direct Vercel ingress and exposed Vercel system variables before
   public launch.
 - Keep Supabase persistence server-owned and explicitly scoped by the anonymous-owner cookie; `sessionId` must remain a locator only.
@@ -107,7 +116,7 @@ This is the canonical Codex status file. `docs/project-handoff/` is ChatGPT-web 
 
 ## Sprint 1 Production Data Foundation
 
-- Blocks 1A through 1J are complete. The additive migrations through
+- Blocks 1A through 1K are complete. The additive migrations through
   `supabase/migrations/0008_sprint1_data_controls_hardening.sql` have
   not been applied to a remote project.
 - Locked decisions live in `docs/adr/ADR-0004-production-anonymous-data-foundation.md` and `docs/architecture/10-production-data-foundation.md`.
@@ -144,6 +153,9 @@ This is the canonical Codex status file. `docs/project-handoff/` is ChatGPT-web 
 - Block 1J adds cookie-owner-scoped no-store JSON export, idempotent anonymous
   hard delete through a narrow cascade RPC, owner-only export/delete rate
   limits, and a scheduler-ready purge runner that prints deletion counts only.
+- Block 1K adds one no-store single-journey hydration endpoint, owner-only
+  hydration rate limiting, explicit opted-in/opted-out browser-cache precedence,
+  and minimal feedback-page export/delete controls.
 
 ## Frontend/API Dependencies
 
